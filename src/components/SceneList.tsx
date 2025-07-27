@@ -16,7 +16,6 @@ import {
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Edit as EditIcon,
   Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon
@@ -60,12 +59,7 @@ export const SceneList: React.FC<SceneListProps> = ({
     setOpenDialog(true);
   };
 
-  const handleEditScene = (scene: Scene) => {
-    setEditingScene(scene);
-    setSceneTitle(scene.title);
-    setSceneDescription(scene.description);
-    setOpenDialog(true);
-  };
+
 
   const handleDeleteScene = (sceneId: string) => {
     if (!story) return;
@@ -183,17 +177,7 @@ export const SceneList: React.FC<SceneListProps> = ({
                         {expandedScenes.has(scene.id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Edit scene">
-                      <IconButton
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditScene(scene);
-                        }}
-                        size="small"
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
+
                     <Tooltip title="Delete scene">
                       <IconButton
                         onClick={(e) => {

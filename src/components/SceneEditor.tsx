@@ -44,6 +44,7 @@ interface SceneEditorProps {
 export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, onStoryUpdate }) => {
   const [currentScene, setCurrentScene] = useState<Scene | null>(null);
   const [selectedCharacters, setSelectedCharacters] = useState<string[]>([]);
+  const [sceneTitle, setSceneTitle] = useState('');
   const [sceneDescription, setSceneDescription] = useState('');
   const [sceneItems, setSceneItems] = useState<SceneItem[]>([]);
   const [openSceneItemDialog, setOpenSceneItemDialog] = useState(false);
@@ -58,15 +59,38 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     if (selectedScene) {
       setCurrentScene(selectedScene);
       setSelectedCharacters(selectedScene.characterIds);
+      setSceneTitle(selectedScene.title);
       setSceneDescription(selectedScene.description || '');
       setSceneItems(selectedScene.scenes || []);
     } else {
       setCurrentScene(null);
       setSelectedCharacters([]);
+      setSceneTitle('');
       setSceneDescription('');
       setSceneItems([]);
     }
   }, [selectedScene]);
+
+  const handleSceneTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = event.target.value;
+    setSceneTitle(newTitle);
+    
+    // Auto-save the scene title
+    if (story && currentScene) {
+      const updatedStory = { ...story };
+      const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
+      if (sceneIndex !== -1) {
+        updatedStory.scenes[sceneIndex] = {
+          ...updatedStory.scenes[sceneIndex],
+          title: newTitle,
+          updatedAt: new Date()
+        };
+        updatedStory.updatedAt = new Date();
+        StoryService.updateStory(story.id, updatedStory);
+        onStoryUpdate();
+      }
+    }
+  };
 
   const handleSceneDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newDescription = event.target.value;
@@ -243,9 +267,19 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
           <Box display="flex" alignItems="center" gap={1}>
-            <Typography variant="h5" component="h2">
-              Scene: {currentScene.title}
-            </Typography>
+            <TextField
+              variant="outlined"
+              label="Scene Title"
+              placeholder="Enter scene title..."
+              value={sceneTitle}
+              onChange={handleSceneTitleChange}
+              sx={{
+                '& .MuiInputBase-root': {
+                  fontSize: '1.5rem',
+                  fontWeight: 'bold'
+                }
+              }}
+            />
           </Box>
           <Button
             variant="contained"

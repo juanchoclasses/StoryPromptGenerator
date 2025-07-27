@@ -82,6 +82,7 @@ function App() {
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs value={activeTab} onChange={handleTabChange}>
             <Tab label="Stories" />
+            <Tab label="Characters" disabled={!selectedStory} />
             <Tab label="Story Editor" disabled={!selectedStory} />
           </Tabs>
         </Box>
@@ -94,16 +95,19 @@ function App() {
               onStorySelect={handleStorySelect}
               onStoryUpdate={handleStoryUpdate}
             />
-            {selectedStory && (
-              <CastManager
-                story={selectedStory}
-                onStoryUpdate={handleStoryUpdate}
-              />
-            )}
           </Box>
         )}
 
         {activeTab === 1 && selectedStory && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <CastManager
+              story={selectedStory}
+              onStoryUpdate={handleStoryUpdate}
+            />
+          </Box>
+        )}
+
+        {activeTab === 2 && selectedStory && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Background Setup */}
             <BackgroundSetup 

@@ -5,12 +5,6 @@ import {
   Paper,
   Button,
   TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Tooltip,
-  IconButton,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -19,19 +13,17 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  OutlinedInput
+  OutlinedInput,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import {
   ExpandMore as ExpandMoreIcon,
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
   ContentCopy as CopyIcon,
   Person as PersonIcon
 } from '@mui/icons-material';
-import { Snackbar, Alert } from '@mui/material';
-import type { Scene, Story, SceneItem } from '../types/Story';
+import type { Scene, Story } from '../types/Story';
 import { StoryService } from '../services/StoryService';
 
 interface SceneEditorProps {
@@ -42,12 +34,8 @@ interface SceneEditorProps {
 
 export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, onStoryUpdate }) => {
   const [currentScene, setCurrentScene] = useState<Scene | null>(null);
-  const [sceneItems, setSceneItems] = useState<SceneItem[]>([]);
   const [selectedCharacters, setSelectedCharacters] = useState<string[]>([]);
-  const [openSceneItemDialog, setOpenSceneItemDialog] = useState(false);
-  const [editingSceneItem, setEditingSceneItem] = useState<SceneItem | null>(null);
-  const [sceneItemTitle, setSceneItemTitle] = useState('');
-  const [sceneItemDescription, setSceneItemDescription] = useState('');
+  const [sceneDescription, setSceneDescription] = useState('');
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -55,64 +43,31 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   useEffect(() => {
     if (selectedScene) {
       setCurrentScene(selectedScene);
-      setSceneItems(selectedScene.scenes);
       setSelectedCharacters(selectedScene.characterIds);
+      setSceneDescription(selectedScene.description || '');
     } else {
       setCurrentScene(null);
-      setSceneItems([]);
       setSelectedCharacters([]);
+      setSceneDescription('');
     }
   }, [selectedScene]);
 
-  const handleAddSceneItem = () => {
-    setEditingSceneItem(null);
-    setSceneItemTitle('');
-    setSceneItemDescription('');
-    setOpenSceneItemDialog(true);
-  };
-
-  const handleEditSceneItem = (sceneItem: SceneItem) => {
-    setEditingSceneItem(sceneItem);
-    setSceneItemTitle(sceneItem.title);
-    setSceneItemDescription(sceneItem.description);
-    setOpenSceneItemDialog(true);
-  };
-
-  const handleDeleteSceneItem = (sceneItemId: string) => {
-    if (!story || !currentScene) return;
-    if (window.confirm('Are you sure you want to delete this scene item?')) {
-      StoryService.deleteSceneItem(story.id, currentScene.id, sceneItemId);
-      const updatedStory = StoryService.getStoryById(story.id);
-      if (updatedStory) {
-        const updatedScene = updatedStory.scenes.find(s => s.id === currentScene.id);
-        if (updatedScene) {
-          setCurrentScene(updatedScene);
-          setSceneItems(updatedScene.scenes);
-          onStoryUpdate();
-        }
-      }
-    }
-  };
-
-  const handleSaveSceneItem = () => {
-    if (!story || !currentScene || !sceneItemTitle.trim()) return;
-
-    if (editingSceneItem) {
-      StoryService.updateSceneItem(story.id, currentScene.id, editingSceneItem.id, {
-        title: sceneItemTitle.trim(),
-        description: sceneItemDescription.trim()
-      });
-    } else {
-      StoryService.addSceneItem(story.id, currentScene.id, sceneItemTitle.trim(), sceneItemDescription.trim());
-    }
-
-    setOpenSceneItemDialog(false);
-    const updatedStory = StoryService.getStoryById(story.id);
-    if (updatedStory) {
-      const updatedScene = updatedStory.scenes.find(s => s.id === currentScene.id);
-      if (updatedScene) {
-        setCurrentScene(updatedScene);
-        setSceneItems(updatedScene.scenes);
+  const handleSceneDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newDescription = event.target.value;
+    setSceneDescription(newDescription);
+    
+    // Auto-save the scene description
+    if (story && currentScene) {
+      const updatedStory = { ...story };
+      const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
+      if (sceneIndex !== -1) {
+        updatedStory.scenes[sceneIndex] = {
+          ...updatedStory.scenes[sceneIndex],
+          description: newDescription,
+          updatedAt: new Date()
+        };
+        updatedStory.updatedAt = new Date();
+        StoryService.updateStory(story.id, updatedStory);
         onStoryUpdate();
       }
     }
@@ -231,9 +186,17 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           </Button>
         </Box>
 
-        <Typography variant="body1" color="text.secondary" mb={2}>
-          {currentScene.description}
-        </Typography>
+        <TextField
+          fullWidth
+          multiline
+          rows={3}
+          variant="outlined"
+          label="Scene Description"
+          placeholder="Describe this scene..."
+          value={sceneDescription}
+          onChange={handleSceneDescriptionChange}
+          sx={{ mb: 2 }}
+        />
 
         {/* Debug Information (temporary) */}
         <Box p={1} bgcolor="grey.100" borderRadius={1}>
@@ -431,121 +394,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         </AccordionDetails>
       </Accordion>
 
-      {/* Scene Items */}
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">
-            Scene Elements ({sceneItems.length})
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          {sceneItems.length === 0 ? (
-            <Box textAlign="center" py={2}>
-              <Typography variant="body2" color="text.secondary" mb={2}>
-                No scene elements yet
-              </Typography>
-              <Button
-                variant="outlined"
-                startIcon={<AddIcon />}
-                onClick={handleAddSceneItem}
-              >
-                Add Scene Element
-              </Button>
-            </Box>
-          ) : (
-            <Box>
-              {sceneItems.map((sceneItem) => (
-                <Box
-                  key={sceneItem.id}
-                  sx={{
-                    border: 1,
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    p: 2,
-                    mb: 2,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start'
-                  }}
-                >
-                  <Box flex={1}>
-                    <Typography variant="h6" gutterBottom>
-                      {sceneItem.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {sceneItem.description}
-                    </Typography>
-                  </Box>
-                  <Box display="flex" gap={1}>
-                    <Tooltip title="Edit scene element">
-                      <IconButton
-                        onClick={() => handleEditSceneItem(sceneItem)}
-                        size="small"
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete scene element">
-                      <IconButton
-                        onClick={() => handleDeleteSceneItem(sceneItem.id)}
-                        color="error"
-                        size="small"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </Box>
-              ))}
-              <Button
-                variant="outlined"
-                startIcon={<AddIcon />}
-                onClick={handleAddSceneItem}
-                fullWidth
-              >
-                Add Scene Element
-              </Button>
-            </Box>
-          )}
-        </AccordionDetails>
-      </Accordion>
 
-      {/* Scene Item Dialog */}
-      <Dialog open={openSceneItemDialog} onClose={() => setOpenSceneItemDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editingSceneItem ? 'Edit Scene Element' : 'Add Scene Element'}
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Title"
-            fullWidth
-            variant="outlined"
-            value={sceneItemTitle}
-            onChange={(e) => setSceneItemTitle(e.target.value)}
-            placeholder="Enter scene element title..."
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="Description"
-            fullWidth
-            multiline
-            rows={4}
-            variant="outlined"
-            value={sceneItemDescription}
-            onChange={(e) => setSceneItemDescription(e.target.value)}
-            placeholder="Describe this scene element..."
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenSceneItemDialog(false)}>Cancel</Button>
-          <Button onClick={handleSaveSceneItem} variant="contained" disabled={!sceneItemTitle.trim()}>
-            {editingSceneItem ? 'Update' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       <Snackbar
         open={snackbarOpen}

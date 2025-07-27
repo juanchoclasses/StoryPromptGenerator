@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://juanchoclasses.github.io/prompter",
+  "homepage": "https://juanchoclasses.github.io/StoryPromptGenerator",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

@@ -9,7 +9,8 @@ import {
   ThemeProvider,
   createTheme,
   Tabs,
-  Tab
+  Tab,
+  TextField
 } from '@mui/material';
 import { Book as BookIcon } from '@mui/icons-material';
 import { BackgroundSetup } from './components/BackgroundSetup';
@@ -37,10 +38,19 @@ function App() {
   const [selectedScene, setSelectedScene] = useState<Scene | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState(0);
+  const [storyTitle, setStoryTitle] = useState('');
+  const [storyDescription, setStoryDescription] = useState('');
 
   const handleStorySelect = (story: Story | null) => {
     setSelectedStory(story);
     setSelectedScene(null); // Reset selected scene when switching stories
+    if (story) {
+      setStoryTitle(story.title);
+      setStoryDescription(story.description || '');
+    } else {
+      setStoryTitle('');
+      setStoryDescription('');
+    }
   };
 
   const handleSceneSelect = (scene: Scene) => {
@@ -58,6 +68,35 @@ function App() {
         const updatedScene = updatedStory.scenes.find(s => s.id === selectedScene.id);
         setSelectedScene(updatedScene || null);
       }
+      // Update title and description state
+      if (updatedStory) {
+        setStoryTitle(updatedStory.title);
+        setStoryDescription(updatedStory.description || '');
+      }
+    }
+  };
+
+  const handleStoryTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = event.target.value;
+    setStoryTitle(newTitle);
+    
+    // Auto-save the story title
+    if (selectedStory) {
+      const updatedStory = { ...selectedStory, title: newTitle, updatedAt: new Date() };
+      StoryService.updateStory(selectedStory.id, updatedStory);
+      setSelectedStory(updatedStory);
+    }
+  };
+
+  const handleStoryDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newDescription = event.target.value;
+    setStoryDescription(newDescription);
+    
+    // Auto-save the story description
+    if (selectedStory) {
+      const updatedStory = { ...selectedStory, description: newDescription, updatedAt: new Date() };
+      StoryService.updateStory(selectedStory.id, updatedStory);
+      setSelectedStory(updatedStory);
     }
   };
 
@@ -114,24 +153,40 @@ function App() {
 
         {activeTab === 2 && selectedStory && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {/* Story Title */}
+            {/* Story Title and Description */}
             <Box sx={{ 
               borderBottom: 1, 
               borderColor: 'divider', 
               pb: 2, 
               mb: 2,
               display: 'flex',
-              alignItems: 'center',
+              flexDirection: 'column',
               gap: 2
             }}>
-              <Typography variant="h4" component="h1" color="primary">
-                Editing: {selectedStory.title}
-              </Typography>
-              {selectedStory.description && (
-                <Typography variant="body1" color="text.secondary">
-                  {selectedStory.description}
-                </Typography>
-              )}
+              <TextField
+                fullWidth
+                variant="outlined"
+                label="Story Title"
+                placeholder="Enter story title..."
+                value={storyTitle}
+                onChange={handleStoryTitleChange}
+                sx={{
+                  '& .MuiInputBase-root': {
+                    fontSize: '2rem',
+                    fontWeight: 'bold'
+                  }
+                }}
+              />
+              <TextField
+                fullWidth
+                multiline
+                rows={2}
+                variant="outlined"
+                label="Story Description"
+                placeholder="Enter story description..."
+                value={storyDescription}
+                onChange={handleStoryDescriptionChange}
+              />
             </Box>
             
             {/* Background Setup */}

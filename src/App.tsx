@@ -109,6 +109,26 @@ function App() {
 
         {activeTab === 2 && selectedStory && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Story Title */}
+            <Box sx={{ 
+              borderBottom: 1, 
+              borderColor: 'divider', 
+              pb: 2, 
+              mb: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2
+            }}>
+              <Typography variant="h4" component="h1" color="primary">
+                Editing: {selectedStory.title}
+              </Typography>
+              {selectedStory.description && (
+                <Typography variant="body1" color="text.secondary">
+                  {selectedStory.description}
+                </Typography>
+              )}
+            </Box>
+            
             {/* Background Setup */}
             <BackgroundSetup 
               story={selectedStory} 

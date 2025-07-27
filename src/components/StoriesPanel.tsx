@@ -116,7 +116,7 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
 
   const handleExportData = () => {
     try {
-      const data = localStorage.getItem('storyData');
+      const data = localStorage.getItem('story-data');
       if (!data) {
         showSnackbar('No data to export', 'error');
         return;
@@ -153,7 +153,7 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
             }
             
             // Clear current data and import new data
-            localStorage.setItem('storyData', JSON.stringify(data));
+            localStorage.setItem('story-data', JSON.stringify(data));
             loadStories();
             onStoryUpdate();
             

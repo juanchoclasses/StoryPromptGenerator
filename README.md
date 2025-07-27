@@ -1,100 +1,117 @@
 # Story Prompt Editor
 
-A modern, responsive web application for creating and managing story prompts with scenes, characters, and background settings. Built with React, TypeScript, Material UI, and Vite.
+A modern, feature-rich story prompt editor built with React, TypeScript, and Material UI. This application helps writers organize their stories with structured scenes, characters, and elements, making it easy to generate comprehensive prompts for AI writing tools.
 
 ## Features
 
-- **Background Scene Setup**: Create and edit the foundational background and setting for your story
-- **Scene Management**: Add, edit, and delete scenes with a clean, intuitive interface
-- **Character Management**: For each scene, add detailed character descriptions
-- **Scene Items**: Organize sub-scenes within each main scene
-- **Local Storage**: All data is automatically saved to your browser's local storage
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
-- **Modern UI**: Beautiful Material Design interface with smooth interactions
+### 📚 **Story Management**
+- **Multiple Stories**: Create and manage multiple stories in one application
+- **Story Organization**: Each story has its own background setup, cast, and scenes
+- **Auto-save**: All changes are automatically saved to local storage
+- **Version Control**: Data is versioned and automatically migrated between updates
+
+### 👥 **Cast of Characters**
+- **Global Cast**: Define characters once for the entire story
+- **Character Profiles**: Each character has a name and detailed description
+- **Reusable Characters**: Characters can be used across multiple scenes
+- **Character Management**: Add, edit, and delete characters from the story's cast
+
+### 🎬 **Scene Management**
+- **Scene Creation**: Create multiple scenes within each story
+- **Scene Descriptions**: Add detailed descriptions for each scene
+- **Character Selection**: Select which characters appear in each scene from the story's cast
+- **Scene Elements**: Add specific elements and events within each scene
+
+### 📝 **Prompt Generation**
+- **Smart Prompts**: Generate comprehensive prompts combining background, scene details, and characters
+- **Clipboard Integration**: One-click copying to clipboard for use with AI tools
+- **Structured Format**: Prompts are formatted in clear, organized Markdown
+
+### 💾 **Data Persistence**
+- **Local Storage**: All data is stored locally in your browser
+- **No Server Required**: Works completely offline
+- **Data Safety**: Automatic backups and version migration
+- **Cross-platform**: Works on any device with a modern browser
 
 ## Tech Stack
 
 - **Frontend**: React 19 with TypeScript
 - **UI Framework**: Material UI v7
 - **Build Tool**: Vite
-- **Storage**: Browser Local Storage
-- **Styling**: Emotion (CSS-in-JS)
+- **State Management**: React Hooks with local storage
+- **Styling**: Material UI theming system
 
 ## Getting Started
 
 ### Prerequisites
-
-- Node.js (v20.17.0 or higher)
+- Node.js (version 18 or higher)
 - npm or yarn
 
 ### Installation
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd prompter
-```
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd prompter
+   ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-3. Start the development server:
-```bash
-npm run dev
-```
+3. **Start the development server**
+   ```bash
+   npm run dev
+   ```
 
-4. Open your browser and navigate to `http://localhost:5173`
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
+4. **Open your browser**
+   Navigate to `http://localhost:5173`
 
 ## Usage
 
-### Background Setup
-1. Start by describing your story's background and setting in the top section
-2. Click the save button to persist your changes
+### Creating Your First Story
 
-### Managing Scenes
-1. Click "Add Scene" to create a new scene
-2. Select a scene from the list to edit its details
-3. Use the expand/collapse buttons to view scene contents
-4. Edit or delete scenes using the action buttons
+1. **Open the Stories Tab**
+   - Click on the "Stories" tab in the main navigation
+   - Click "Add New Story" to create your first story
 
-### Adding Characters
-1. Select a scene from the list
-2. In the Scene Editor, expand the "Characters" section
-3. Click "Add Character" to create a new character
-4. Fill in the character's name and description
-5. Edit or delete characters as needed
+2. **Add Characters to the Cast**
+   - In the "Cast of Characters" section, click "Add Character"
+   - Enter the character's name and description
+   - Repeat for all characters in your story
 
-### Managing Scene Items
-1. In the Scene Editor, expand the "Scene Items" section
-2. Click "Add Scene Item" to create a new sub-scene
-3. Provide a title and description for the scene item
-4. Organize your story's flow with these sub-scenes
+3. **Set the Background**
+   - Switch to the "Story Editor" tab
+   - In the "Background Setup" section, describe your story's world and setting
 
-## Data Structure
+4. **Create Scenes**
+   - In the "Scenes" panel, click "Add Scene"
+   - Give your scene a title and description
+   - Select which characters appear in this scene from the cast
 
-The application stores data in the following structure:
+5. **Add Scene Elements**
+   - Select a scene to edit its details
+   - Add specific elements, events, or plot points for the scene
+   - These will be included in your generated prompts
+
+6. **Generate Prompts**
+   - Click "Get Prompt" on any scene to generate a comprehensive prompt
+   - The prompt will include background, scene details, and character information
+   - Use this prompt with your favorite AI writing tool
+
+### Data Structure
+
+Each story contains:
 
 ```typescript
-interface StoryData {
-  backgroundSetup: string;
-  scenes: Scene[];
-  lastUpdated: Date;
-}
-
-interface Scene {
+interface Story {
   id: string;
   title: string;
-  characters: Character[];
-  scenes: SceneItem[];
+  description?: string;
+  backgroundSetup: string;
+  cast: Character[];           // Global cast of characters
+  scenes: Scene[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -105,6 +122,16 @@ interface Character {
   description: string;
 }
 
+interface Scene {
+  id: string;
+  title: string;
+  description: string;
+  characterIds: string[];      // References to characters in cast
+  scenes: SceneItem[];         // Scene elements/events
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface SceneItem {
   id: string;
   title: string;
@@ -113,26 +140,60 @@ interface SceneItem {
 }
 ```
 
-## Data Persistence
+### Data Persistence
 
-All data is automatically saved to your browser's local storage under the key `story-data`. This means:
-- Your work is automatically saved as you type
-- Data persists between browser sessions
-- No internet connection required
-- Data is stored locally on your machine
+- **Storage Location**: Browser's local storage (`localStorage`)
+- **Storage Key**: `story-data`
+- **Format**: JSON with versioning support
+- **Auto-save**: Changes are saved automatically
+- **Migration**: Data is automatically migrated between versions
+
+### Version Control
+
+The application includes a robust versioning system:
+
+- **Current Version**: 1.0.0
+- **Automatic Migration**: Old data formats are automatically upgraded
+- **Backward Compatibility**: All previous data formats are supported
+- **Version Display**: Current data version is shown in the app bar
+
+## Development
+
+### Project Structure
+
+```
+src/
+├── components/          # React components
+│   ├── BackgroundSetup.tsx
+│   ├── CastManager.tsx
+│   ├── SceneEditor.tsx
+│   ├── SceneList.tsx
+│   ├── StoriesPanel.tsx
+│   └── VersionInfo.tsx
+├── services/           # Business logic and data management
+│   ├── MigrationService.ts
+│   └── StoryService.ts
+├── types/             # TypeScript type definitions
+│   └── Story.ts
+└── App.tsx           # Main application component
+```
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run type-check` - Run TypeScript type checking
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-If you encounter any issues or have questions, please open an issue on the GitHub repository.
+This project is open source and available under the [MIT License](LICENSE).

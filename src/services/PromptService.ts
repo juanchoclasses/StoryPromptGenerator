@@ -1,4 +1,4 @@
-import { Prompt, CreatePromptRequest, UpdatePromptRequest } from '../types/Prompt';
+import type { Prompt, CreatePromptRequest, UpdatePromptRequest } from '../types/Prompt';
 
 const STORAGE_KEY = 'story-prompts';
 

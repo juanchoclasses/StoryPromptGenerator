@@ -21,65 +21,81 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
-import type { Scene } from '../types/Story';
+import type { Scene, Story } from '../types/Story';
 import { StoryService } from '../services/StoryService';
 
 interface SceneListProps {
+  story: Story | null;
   selectedSceneId?: string;
   onSceneSelect: (scene: Scene) => void;
-  onScenesChange: () => void;
+  onStoryUpdate: () => void;
 }
 
 export const SceneList: React.FC<SceneListProps> = ({
+  story,
   selectedSceneId,
   onSceneSelect,
-  onScenesChange
+  onStoryUpdate
 }) => {
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingScene, setEditingScene] = useState<Scene | null>(null);
   const [sceneTitle, setSceneTitle] = useState('');
+  const [sceneDescription, setSceneDescription] = useState('');
   const [expandedScenes, setExpandedScenes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    loadScenes();
-  }, []);
-
-  const loadScenes = () => {
-    const data = StoryService.getStoryData();
-    setScenes(data.scenes);
-  };
+    if (story) {
+      setScenes(story.scenes);
+    } else {
+      setScenes([]);
+    }
+  }, [story]);
 
   const handleAddScene = () => {
+    if (!story) return;
     setEditingScene(null);
     setSceneTitle('');
+    setSceneDescription('');
     setOpenDialog(true);
   };
 
   const handleEditScene = (scene: Scene) => {
     setEditingScene(scene);
     setSceneTitle(scene.title);
+    setSceneDescription(scene.description);
     setOpenDialog(true);
   };
 
   const handleDeleteScene = (sceneId: string) => {
+    if (!story) return;
     if (window.confirm('Are you sure you want to delete this scene?')) {
-      StoryService.deleteScene(sceneId);
-      loadScenes();
-      onScenesChange();
+      StoryService.deleteScene(story.id, sceneId);
+      const updatedStory = StoryService.getStoryById(story.id);
+      if (updatedStory) {
+        setScenes(updatedStory.scenes);
+        onStoryUpdate();
+      }
     }
   };
 
   const handleSaveScene = () => {
-    if (sceneTitle.trim()) {
-      if (editingScene) {
-        StoryService.updateScene(editingScene.id, { title: sceneTitle.trim() });
-      } else {
-        StoryService.createScene(sceneTitle.trim());
-      }
-      setOpenDialog(false);
-      loadScenes();
-      onScenesChange();
+    if (!story || !sceneTitle.trim()) return;
+
+    if (editingScene) {
+      StoryService.updateScene(story.id, editingScene.id, { 
+        title: sceneTitle.trim(), 
+        description: sceneDescription.trim() 
+      });
+    } else {
+      StoryService.createScene(story.id, sceneTitle.trim(), sceneDescription.trim());
+    }
+    
+    setOpenDialog(false);
+    const updatedStory = StoryService.getStoryById(story.id);
+    if (updatedStory) {
+      setScenes(updatedStory.scenes);
+      onStoryUpdate();
     }
   };
 
@@ -93,8 +109,18 @@ export const SceneList: React.FC<SceneListProps> = ({
     setExpandedScenes(newExpanded);
   };
 
+  if (!story) {
+    return (
+      <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
+        <Typography variant="h6" color="text.secondary">
+          Select a story to manage scenes
+        </Typography>
+      </Paper>
+    );
+  }
+
   return (
-    <Paper elevation={2} sx={{ p: 3 }}>
+    <Paper elevation={2} sx={{ p: 3, height: 'fit-content', maxHeight: 'calc(100vh - 200px)', overflow: 'auto' }}>
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
         <Typography variant="h5" component="h2">
           Scenes
@@ -114,7 +140,9 @@ export const SceneList: React.FC<SceneListProps> = ({
         </Typography>
       ) : (
         <List>
-          {scenes.map((scene) => (
+          {scenes.map((scene) => {
+            if (!scene || !scene.id) return null;
+            return (
             <Box key={scene.id}>
               <Box
                 onClick={() => onSceneSelect(scene)}
@@ -137,7 +165,7 @@ export const SceneList: React.FC<SceneListProps> = ({
                       {scene.title}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {scene.characters.length} characters • {scene.scenes.length} sub-scenes
+                      {scene.characterIds?.length || 0} characters • {scene.scenes?.length || 0} sub-scenes
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       Updated: {scene.updatedAt.toLocaleDateString()}
@@ -184,25 +212,39 @@ export const SceneList: React.FC<SceneListProps> = ({
 
               {expandedScenes.has(scene.id) && (
                 <Box ml={3} mb={2}>
-                  {scene.characters.length > 0 && (
+                  {scene.description && (
+                    <Box mb={1}>
+                      <Typography variant="subtitle2" color="primary">
+                        Description:
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                        {scene.description}
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {scene.characterIds && scene.characterIds.length > 0 && story && (
                     <Box mb={1}>
                       <Typography variant="subtitle2" color="primary">
                         Characters:
                       </Typography>
                       <Box display="flex" flexWrap="wrap" gap={0.5}>
-                        {scene.characters.map((character) => (
-                          <Chip
-                            key={character.id}
-                            label={character.name}
-                            size="small"
-                            variant="outlined"
-                          />
-                        ))}
+                        {scene.characterIds.map((characterId) => {
+                          const character = story.cast.find(c => c.id === characterId);
+                          return character ? (
+                            <Chip
+                              key={characterId}
+                              label={character.name}
+                              size="small"
+                              variant="outlined"
+                            />
+                          ) : null;
+                        })}
                       </Box>
                     </Box>
                   )}
                   
-                  {scene.scenes.length > 0 && (
+                  {scene.scenes && scene.scenes.length > 0 && (
                     <Box>
                       <Typography variant="subtitle2" color="primary">
                         Sub-scenes:
@@ -222,8 +264,9 @@ export const SceneList: React.FC<SceneListProps> = ({
                 </Box>
               )}
             </Box>
-          ))}
-        </List>
+          );
+        })}
+      </List>
       )}
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
@@ -240,6 +283,18 @@ export const SceneList: React.FC<SceneListProps> = ({
             value={sceneTitle}
             onChange={(e) => setSceneTitle(e.target.value)}
             placeholder="Enter scene title..."
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            label="Scene Description"
+            fullWidth
+            multiline
+            rows={3}
+            variant="outlined"
+            value={sceneDescription}
+            onChange={(e) => setSceneDescription(e.target.value)}
+            placeholder="Describe the scene, setting, atmosphere, and key elements..."
           />
         </DialogContent>
         <DialogActions>

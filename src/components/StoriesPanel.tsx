@@ -2,43 +2,47 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Paper,
   Button,
-  List,
-  IconButton,
+  Paper,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
+  IconButton,
   Tooltip,
-  Chip
+  Snackbar,
+  Alert
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
+import { 
+  Add as AddIcon, 
+  Edit as EditIcon, 
   Delete as DeleteIcon,
-  Book as BookIcon,
-  AccessTime as AccessTimeIcon
+  Download as DownloadIcon,
+  Upload as UploadIcon
 } from '@mui/icons-material';
-import type { Story } from '../types/Story';
 import { StoryService } from '../services/StoryService';
+import type { Story, StoryData } from '../types/Story';
 
 interface StoriesPanelProps {
-  selectedStoryId?: string;
-  onStorySelect: (story: Story) => void;
-  onStoriesChange: () => void;
+  selectedStory: Story | null;
+  onStorySelect: (story: Story | null) => void;
+  onStoryUpdate: () => void;
 }
 
-export const StoriesPanel: React.FC<StoriesPanelProps> = ({
-  selectedStoryId,
-  onStorySelect,
-  onStoriesChange
+export const StoriesPanel: React.FC<StoriesPanelProps> = ({ 
+  selectedStory, 
+  onStorySelect, 
+  onStoryUpdate 
 }) => {
   const [stories, setStories] = useState<Story[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [storyTitle, setStoryTitle] = useState('');
+  const [storyDescription, setStoryDescription] = useState('');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
   useEffect(() => {
     loadStories();
@@ -52,168 +56,241 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
   const handleAddStory = () => {
     setEditingStory(null);
     setStoryTitle('');
+    setStoryDescription('');
     setOpenDialog(true);
   };
 
   const handleEditStory = (story: Story) => {
     setEditingStory(story);
     setStoryTitle(story.title);
+    setStoryDescription(story.description || '');
     setOpenDialog(true);
   };
 
   const handleDeleteStory = (storyId: string) => {
     if (window.confirm('Are you sure you want to delete this story? This action cannot be undone.')) {
       StoryService.deleteStory(storyId);
+      if (selectedStory?.id === storyId) {
+        onStorySelect(null);
+      }
       loadStories();
-      onStoriesChange();
+      onStoryUpdate();
+      showSnackbar('Story deleted successfully', 'success');
     }
   };
 
   const handleSaveStory = () => {
-    if (storyTitle.trim()) {
-      if (editingStory) {
-        StoryService.updateStory(editingStory.id, { title: storyTitle.trim() });
-      } else {
+    if (!storyTitle.trim()) return;
+
+    if (editingStory) {
+      StoryService.updateStory(editingStory.id, {
+        ...editingStory,
+        title: storyTitle.trim(),
+        description: storyDescription.trim(),
+        updatedAt: new Date()
+      });
+          } else {
         const newStory = StoryService.createStory(storyTitle.trim());
         onStorySelect(newStory);
       }
-      setOpenDialog(false);
-      loadStories();
-      onStoriesChange();
-    }
+
+    setOpenDialog(false);
+    loadStories();
+    onStoryUpdate();
+    showSnackbar(editingStory ? 'Story updated successfully' : 'Story created successfully', 'success');
   };
 
   const getStoryStats = (story: Story) => {
-    const totalScenes = story.scenes?.length || 0;
-    const totalCharacters = story.cast?.length || 0;
-    const totalSceneItems = story.scenes?.reduce((sum, scene) => sum + (scene.scenes?.length || 0), 0) || 0;
+    if (!story.scenes) return { characters: 0, scenes: 0, subScenes: 0 };
     
-    return { totalScenes, totalCharacters, totalSceneItems };
+    const characters = story.cast?.length || 0;
+    const scenes = story.scenes.length;
+    const subScenes = story.scenes.reduce((total, scene) => {
+      return total + (scene.scenes?.length || 0);
+    }, 0);
+
+    return { characters, scenes, subScenes };
+  };
+
+  const handleExportData = () => {
+    try {
+      const data = localStorage.getItem('storyData');
+      if (!data) {
+        showSnackbar('No data to export', 'error');
+        return;
+      }
+      
+      const dataBlob = new Blob([data], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(dataBlob);
+      link.download = `story-data-${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      
+      showSnackbar('Data exported successfully', 'success');
+    } catch {
+      showSnackbar('Failed to export data', 'error');
+    }
+  };
+
+  const handleImportData = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const content = e.target?.result as string;
+            const data: StoryData = JSON.parse(content);
+            
+            // Validate the data structure
+            if (!data.stories || !Array.isArray(data.stories)) {
+              throw new Error('Invalid data format');
+            }
+            
+            // Clear current data and import new data
+            localStorage.setItem('storyData', JSON.stringify(data));
+            loadStories();
+            onStoryUpdate();
+            
+                         showSnackbar('Data imported successfully', 'success');
+           } catch {
+             showSnackbar('Failed to import data. Please check the file format.', 'error');
+           }
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  };
+
+  const showSnackbar = (message: string, severity: 'success' | 'error') => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
   };
 
   return (
-    <Paper elevation={2} sx={{ p: 3 }}>
+    <Box>
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-        <Box display="flex" alignItems="center" gap={1}>
-          <BookIcon color="primary" />
-          <Typography variant="h5" component="h2">
-            Stories
-          </Typography>
+        <Typography variant="h5" component="h2">
+          Stories
+        </Typography>
+        <Box>
+          <Tooltip title="Export Data">
+            <IconButton onClick={handleExportData} color="primary">
+              <DownloadIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Import Data">
+            <IconButton onClick={handleImportData} color="primary">
+              <UploadIcon />
+            </IconButton>
+          </Tooltip>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleAddStory}
+            sx={{ ml: 1 }}
+          >
+            New Story
+          </Button>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleAddStory}
-        >
-          New Story
-        </Button>
       </Box>
 
       {stories.length === 0 ? (
-        <Box textAlign="center" py={4}>
-          <BookIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+        <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="h6" color="text.secondary" gutterBottom>
             No stories yet
           </Typography>
-          <Typography variant="body2" color="text.secondary" mb={3}>
+          <Typography variant="body2" color="text.secondary" mb={2}>
             Create your first story to get started
           </Typography>
           <Button
-            variant="outlined"
+            variant="contained"
             startIcon={<AddIcon />}
             onClick={handleAddStory}
           >
-            Create Your First Story
+            Create Story
           </Button>
-        </Box>
+        </Paper>
       ) : (
-        <List>
+        <Box display="flex" flexDirection="column" gap={2}>
           {stories.map((story) => {
             if (!story || !story.id) return null;
+            
             const stats = getStoryStats(story);
+            const isSelected = selectedStory?.id === story.id;
+            
             return (
-              <Box key={story.id}>
-                <Box
-                  onClick={() => onStorySelect(story)}
-                  sx={{
-                    border: 1,
-                    borderColor: selectedStoryId === story.id ? 'primary.main' : 'divider',
-                    borderRadius: 1,
-                    mb: 1,
-                    p: 2,
-                    cursor: 'pointer',
-                    backgroundColor: selectedStoryId === story.id ? 'primary.light' : 'background.paper',
-                    '&:hover': {
-                      backgroundColor: selectedStoryId === story.id ? 'primary.light' : 'action.hover',
-                    },
-                  }}
-                >
-                  <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                    <Box flex={1}>
-                      <Box display="flex" alignItems="center" gap={1} mb={1}>
-                        <Typography variant="h6" component="h3">
-                          {story.title}
-                        </Typography>
-                        {story.backgroundSetup && (
-                          <Chip
-                            label="Has Background"
-                            size="small"
-                            color="success"
-                            variant="outlined"
-                          />
-                        )}
-                      </Box>
-                      <Box display="flex" gap={2} mb={1}>
-                        <Typography variant="body2" color="text.secondary">
-                          {stats.totalScenes} scenes
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {stats.totalCharacters} characters
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {stats.totalSceneItems} sub-scenes
-                        </Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" gap={0.5}>
-                        <AccessTimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                        <Typography variant="caption" color="text.secondary">
-                          Updated: {story.updatedAt.toLocaleDateString()} at {story.updatedAt.toLocaleTimeString()}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Box>
-                      <Tooltip title="Edit story">
-                        <IconButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditStory(story);
-                          }}
-                          size="small"
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete story">
-                        <IconButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteStory(story.id);
-                          }}
-                          color="error"
-                          size="small"
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
+              <Paper
+                key={story.id}
+                elevation={isSelected ? 4 : 2}
+                sx={{
+                  p: 2,
+                  cursor: 'pointer',
+                  border: isSelected ? 2 : 1,
+                  borderColor: isSelected ? 'primary.main' : 'divider',
+                  '&:hover': {
+                    elevation: 3,
+                    borderColor: 'primary.main'
+                  }
+                }}
+                onClick={() => onStorySelect(story)}
+              >
+                <Box display="flex" alignItems="center" justifyContent="space-between">
+                  <Box flex={1}>
+                    <Typography variant="h6" component="h3" gutterBottom>
+                      {story.title}
+                    </Typography>
+                    {story.description && (
+                      <Typography variant="body2" color="text.secondary" mb={1}>
+                        {story.description}
+                      </Typography>
+                    )}
+                    <Box display="flex" gap={2}>
+                      <Typography variant="caption" color="text.secondary">
+                        Characters: {stats.characters}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Scenes: {stats.scenes}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Sub-scenes: {stats.subScenes}
+                      </Typography>
                     </Box>
                   </Box>
+                  <Box display="flex" gap={1}>
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditStory(story);
+                      }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteStory(story.id);
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
                 </Box>
-              </Box>
+              </Paper>
             );
           })}
-        </List>
+        </Box>
       )}
 
+      {/* Story Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
         <DialogTitle>
           {editingStory ? 'Edit Story' : 'Create New Story'}
@@ -227,8 +304,17 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
             variant="outlined"
             value={storyTitle}
             onChange={(e) => setStoryTitle(e.target.value)}
-            placeholder="Enter story title..."
-            helperText="Give your story a descriptive title"
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            label="Description (optional)"
+            fullWidth
+            multiline
+            rows={3}
+            variant="outlined"
+            value={storyDescription}
+            onChange={(e) => setStoryDescription(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
@@ -238,6 +324,21 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
-    </Paper>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+      >
+        <Alert 
+          onClose={() => setSnackbarOpen(false)} 
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 }; 

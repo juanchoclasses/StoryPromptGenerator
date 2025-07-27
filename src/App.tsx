@@ -38,7 +38,7 @@ function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState(0);
 
-  const handleStorySelect = (story: Story) => {
+  const handleStorySelect = (story: Story | null) => {
     setSelectedStory(story);
     setSelectedScene(null); // Reset selected scene when switching stories
   };
@@ -90,9 +90,9 @@ function App() {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <StoriesPanel
               key={refreshKey}
-              selectedStoryId={selectedStory?.id}
+              selectedStory={selectedStory}
               onStorySelect={handleStorySelect}
-              onStoriesChange={handleStoryUpdate}
+              onStoryUpdate={handleStoryUpdate}
             />
             {selectedStory && (
               <CastManager

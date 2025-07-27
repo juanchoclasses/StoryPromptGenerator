@@ -198,49 +198,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           sx={{ mb: 2 }}
         />
 
-        {/* Debug Information (temporary) */}
-        <Box p={1} bgcolor="grey.100" borderRadius={1}>
-          <Typography variant="caption" color="text.secondary">
-            Debug: Available characters: {availableCharacters.length}, Selected: {selectedCharacters.length}
-          </Typography>
-          <Typography variant="caption" color="text.secondary" display="block">
-            Available IDs: {availableCharacters.map(c => c.id.slice(0, 8)).join(', ')}
-          </Typography>
-          <Typography variant="caption" color="text.secondary" display="block">
-            Selected IDs: {selectedCharacters.map(id => id.slice(0, 8)).join(', ')}
-          </Typography>
-          <Button 
-            size="small" 
-            variant="outlined" 
-            onClick={() => {
-              // Clear invalid character IDs
-              const validCharacterIds = selectedCharacters.filter(id => 
-                availableCharacters.some(char => char.id === id)
-              );
-              if (validCharacterIds.length !== selectedCharacters.length) {
-                setSelectedCharacters(validCharacterIds);
-                // Update the scene
-                if (story && currentScene) {
-                  const updatedStory = { ...story };
-                  const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
-                  if (sceneIndex !== -1) {
-                    updatedStory.scenes[sceneIndex] = {
-                      ...updatedStory.scenes[sceneIndex],
-                      characterIds: validCharacterIds,
-                      updatedAt: new Date()
-                    };
-                    updatedStory.updatedAt = new Date();
-                    StoryService.updateStory(story.id, updatedStory);
-                    onStoryUpdate();
-                  }
-                }
-              }
-            }}
-            sx={{ mt: 1 }}
-          >
-            Fix Invalid Character IDs
-          </Button>
-        </Box>
+
       </Box>
 
       {/* Scrollable Content */}

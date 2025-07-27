@@ -65,6 +65,10 @@ function App() {
     setActiveTab(newValue);
   };
 
+  const navigateToStoryEditor = () => {
+    setActiveTab(2); // Story Editor tab
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -94,6 +98,7 @@ function App() {
               selectedStory={selectedStory}
               onStorySelect={handleStorySelect}
               onStoryUpdate={handleStoryUpdate}
+              onNavigateToEditor={navigateToStoryEditor}
             />
           </Box>
         )}

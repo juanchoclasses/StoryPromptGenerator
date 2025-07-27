@@ -28,12 +28,14 @@ interface StoriesPanelProps {
   selectedStory: Story | null;
   onStorySelect: (story: Story | null) => void;
   onStoryUpdate: () => void;
+  onNavigateToEditor?: () => void;
 }
 
 export const StoriesPanel: React.FC<StoriesPanelProps> = ({ 
   selectedStory, 
   onStorySelect, 
-  onStoryUpdate 
+  onStoryUpdate,
+  onNavigateToEditor
 }) => {
   const [stories, setStories] = useState<Story[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
@@ -61,10 +63,10 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
   };
 
   const handleEditStory = (story: Story) => {
-    setEditingStory(story);
-    setStoryTitle(story.title);
-    setStoryDescription(story.description || '');
-    setOpenDialog(true);
+    onStorySelect(story);
+    if (onNavigateToEditor) {
+      onNavigateToEditor();
+    }
   };
 
   const handleDeleteStory = (storyId: string) => {

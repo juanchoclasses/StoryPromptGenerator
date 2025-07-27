@@ -207,69 +207,98 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const availableCharacters = story.cast;
 
   return (
-    <Paper elevation={2} sx={{ p: 3, height: 'fit-content', maxHeight: 'calc(100vh - 200px)', overflow: 'auto' }}>
-      <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-        <Box display="flex" alignItems="center" gap={1}>
-          <Typography variant="h5" component="h2">
-            Scene: {currentScene.title}
-          </Typography>
+    <Paper elevation={2} sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: 'calc(100vh - 200px)', 
+      maxHeight: 'calc(100vh - 200px)',
+      overflow: 'hidden'
+    }}>
+      {/* Fixed Header */}
+      <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}>
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Typography variant="h5" component="h2">
+              Scene: {currentScene.title}
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<CopyIcon />}
+            onClick={handleCopyPrompt}
+          >
+            Get Prompt
+          </Button>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<CopyIcon />}
-          onClick={handleCopyPrompt}
-        >
-          Get Prompt
-        </Button>
-      </Box>
 
-      <Typography variant="body1" color="text.secondary" mb={3}>
-        {currentScene.description}
-      </Typography>
+        <Typography variant="body1" color="text.secondary" mb={2}>
+          {currentScene.description}
+        </Typography>
 
-      {/* Debug Information (temporary) */}
-      <Box mb={2} p={1} bgcolor="grey.100" borderRadius={1}>
-        <Typography variant="caption" color="text.secondary">
-          Debug: Available characters: {availableCharacters.length}, Selected: {selectedCharacters.length}
-        </Typography>
-        <Typography variant="caption" color="text.secondary" display="block">
-          Available IDs: {availableCharacters.map(c => c.id.slice(0, 8)).join(', ')}
-        </Typography>
-        <Typography variant="caption" color="text.secondary" display="block">
-          Selected IDs: {selectedCharacters.map(id => id.slice(0, 8)).join(', ')}
-        </Typography>
-        <Button 
-          size="small" 
-          variant="outlined" 
-          onClick={() => {
-            // Clear invalid character IDs
-            const validCharacterIds = selectedCharacters.filter(id => 
-              availableCharacters.some(char => char.id === id)
-            );
-            if (validCharacterIds.length !== selectedCharacters.length) {
-              setSelectedCharacters(validCharacterIds);
-              // Update the scene
-              if (story && currentScene) {
-                const updatedStory = { ...story };
-                const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
-                if (sceneIndex !== -1) {
-                  updatedStory.scenes[sceneIndex] = {
-                    ...updatedStory.scenes[sceneIndex],
-                    characterIds: validCharacterIds,
-                    updatedAt: new Date()
-                  };
-                  updatedStory.updatedAt = new Date();
-                  StoryService.updateStory(story.id, updatedStory);
-                  onStoryUpdate();
+        {/* Debug Information (temporary) */}
+        <Box p={1} bgcolor="grey.100" borderRadius={1}>
+          <Typography variant="caption" color="text.secondary">
+            Debug: Available characters: {availableCharacters.length}, Selected: {selectedCharacters.length}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" display="block">
+            Available IDs: {availableCharacters.map(c => c.id.slice(0, 8)).join(', ')}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" display="block">
+            Selected IDs: {selectedCharacters.map(id => id.slice(0, 8)).join(', ')}
+          </Typography>
+          <Button 
+            size="small" 
+            variant="outlined" 
+            onClick={() => {
+              // Clear invalid character IDs
+              const validCharacterIds = selectedCharacters.filter(id => 
+                availableCharacters.some(char => char.id === id)
+              );
+              if (validCharacterIds.length !== selectedCharacters.length) {
+                setSelectedCharacters(validCharacterIds);
+                // Update the scene
+                if (story && currentScene) {
+                  const updatedStory = { ...story };
+                  const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
+                  if (sceneIndex !== -1) {
+                    updatedStory.scenes[sceneIndex] = {
+                      ...updatedStory.scenes[sceneIndex],
+                      characterIds: validCharacterIds,
+                      updatedAt: new Date()
+                    };
+                    updatedStory.updatedAt = new Date();
+                    StoryService.updateStory(story.id, updatedStory);
+                    onStoryUpdate();
+                  }
                 }
               }
-            }
-          }}
-          sx={{ mt: 1 }}
-        >
-          Fix Invalid Character IDs
-        </Button>
+            }}
+            sx={{ mt: 1 }}
+          >
+            Fix Invalid Character IDs
+          </Button>
+        </Box>
       </Box>
+
+      {/* Scrollable Content */}
+      <Box sx={{ 
+        flex: 1, 
+        overflow: 'auto', 
+        p: 3,
+        '&::-webkit-scrollbar': {
+          width: '8px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#f1f1f1',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#c1c1c1',
+          borderRadius: '4px',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: '#a8a8a8',
+        },
+      }}>
 
       {/* Character Selection */}
       <Accordion defaultExpanded>
@@ -527,6 +556,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           {snackbarMessage}
         </Alert>
       </Snackbar>
+      </Box>
     </Paper>
   );
 }; 

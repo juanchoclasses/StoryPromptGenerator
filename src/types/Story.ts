@@ -4,11 +4,11 @@ export interface Character {
   description: string;
 }
 
-export interface SceneItem {
+export interface StoryElement {
   id: string;
-  title: string;
+  name: string;
   description: string;
-  order: number;
+  category?: string; // Optional category for organization
 }
 
 export interface Scene {
@@ -16,7 +16,7 @@ export interface Scene {
   title: string;
   description: string;
   characterIds: string[]; // References to characters in the story's cast
-  scenes: SceneItem[];
+  elementIds: string[]; // References to elements in the story's elements
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,7 +26,6 @@ export interface Story {
   title: string;
   description?: string; // Optional for backward compatibility
   backgroundSetup: string;
-  cast: Character[]; // Global cast of characters for the story
   scenes: Scene[];
   createdAt: Date;
   updatedAt: Date;
@@ -35,8 +34,10 @@ export interface Story {
 export interface StoryData {
   version: string;
   stories: Story[];
+  characters: Character[]; // Global characters shared across all stories
+  elements: StoryElement[]; // Global elements shared across all stories
   lastUpdated: Date;
 }
 
 // Current version of the data structure
-export const CURRENT_VERSION = '1.0.0'; 
+export const CURRENT_VERSION = '2.0.0'; 

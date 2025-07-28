@@ -18,6 +18,7 @@ import { SceneList } from './components/SceneList';
 import { SceneEditor } from './components/SceneEditor';
 import { StoriesPanel } from './components/StoriesPanel';
 import { CastManager } from './components/CastManager';
+import { ElementsManager } from './components/ElementsManager';
 import { VersionInfo } from './components/VersionInfo';
 import type { Scene, Story } from './types/Story';
 import { StoryService } from './services/StoryService';
@@ -105,7 +106,7 @@ function App() {
   };
 
   const navigateToStoryEditor = () => {
-    setActiveTab(2); // Story Editor tab
+    setActiveTab(3); // Story Editor tab
   };
 
   return (
@@ -126,6 +127,7 @@ function App() {
           <Tabs value={activeTab} onChange={handleTabChange}>
             <Tab label="Stories" />
             <Tab label="Characters" disabled={!selectedStory} />
+            <Tab label="Elements" disabled={!selectedStory} />
             <Tab label="Story Editor" disabled={!selectedStory} />
           </Tabs>
         </Box>
@@ -152,6 +154,15 @@ function App() {
         )}
 
         {activeTab === 2 && selectedStory && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <ElementsManager
+              story={selectedStory}
+              onStoryUpdate={handleStoryUpdate}
+            />
+          </Box>
+        )}
+
+        {activeTab === 3 && selectedStory && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Story Title and Description */}
             <Box sx={{ 

@@ -111,6 +111,7 @@ interface Story {
   description?: string;
   backgroundSetup: string;
   cast: Character[];           // Global cast of characters
+  elements: StoryElement[];    // Global elements for the story
   scenes: Scene[];
   createdAt: Date;
   updatedAt: Date;
@@ -122,21 +123,21 @@ interface Character {
   description: string;
 }
 
+interface StoryElement {
+  id: string;
+  name: string;
+  description: string;
+  category?: string;
+}
+
 interface Scene {
   id: string;
   title: string;
   description: string;
   characterIds: string[];      // References to characters in cast
-  scenes: SceneItem[];         // Scene elements/events
+  elementIds: string[];        // References to elements in story
   createdAt: Date;
   updatedAt: Date;
-}
-
-interface SceneItem {
-  id: string;
-  title: string;
-  description: string;
-  order: number;
 }
 ```
 

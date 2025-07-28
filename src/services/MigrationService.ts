@@ -1,4 +1,4 @@
-import type { StoryData, Story, Scene, Character, SceneItem } from '../types/Story';
+import type { StoryData, Story, Scene, Character } from '../types/Story';
 import { CURRENT_VERSION } from '../types/Story';
 
 export interface MigrationResult {
@@ -39,9 +39,14 @@ export class MigrationService {
         result.migrated = true;
       }
 
+      if (this.isVersionOlder(version, '2.0.0')) {
+        migratedData = this.migrateToV2_0_0(migratedData);
+        result.migrated = true;
+      }
+
       // Add more migrations here as needed
-      // if (this.isVersionOlder(version, '1.1.0')) {
-      //   migratedData = this.migrateToV1_1_0(migratedData);
+      // if (this.isVersionOlder(version, '2.1.0')) {
+      //   migratedData = this.migrateToV2_1_0(migratedData);
       //   result.migrated = true;
       // }
 
@@ -69,7 +74,6 @@ export class MigrationService {
         id: crypto.randomUUID(),
         title: 'Migrated Story',
         backgroundSetup: data.backgroundSetup || '',
-        cast: cast,
         scenes: scenes,
         createdAt: new Date(data.lastUpdated || Date.now()),
         updatedAt: new Date()
@@ -78,21 +82,86 @@ export class MigrationService {
       return {
         version: '1.0.0',
         stories: [oldStory],
+        characters: cast, // Move characters to global level
+        elements: [], // Initialize empty global elements array
         lastUpdated: new Date()
       };
     }
 
     // Handle the old multi-story format without version
     if (data.stories !== undefined) {
+      // Collect all characters and elements from all stories
+      const allCharacters: Character[] = [];
+      const allElements: StoryElement[] = [];
+      const migratedStories: Story[] = [];
+
+      data.stories.forEach((story: any) => {
+        // Extract characters and elements directly from the story
+        if (story.cast && Array.isArray(story.cast)) {
+          allCharacters.push(...story.cast);
+        }
+        if (story.elements && Array.isArray(story.elements)) {
+          allElements.push(...story.elements);
+        }
+        
+        // Create story without cast and elements
+        const { cast: _cast, elements: _elements, ...storyWithoutCast } = story;
+        migratedStories.push({
+          ...storyWithoutCast,
+          createdAt: new Date(story.createdAt || Date.now()),
+          updatedAt: new Date(story.updatedAt || Date.now())
+        });
+      });
+
       return {
         version: '1.0.0',
-        stories: data.stories.map((story: any) => this.migrateStoryWithCharacters(story)),
+        stories: migratedStories,
+        characters: allCharacters,
+        elements: allElements,
         lastUpdated: new Date(data.lastUpdated || Date.now())
       };
     }
 
     // Unknown format, return default
     return this.getDefaultData();
+  }
+
+  /**
+   * Migrate from v1.0.0 to v2.0.0 (global characters/elements)
+   */
+  private static migrateToV2_0_0(data: any): any {
+    console.log('Migrating from v1.0.0 to v2.0.0 (global characters/elements)...');
+    
+    // Collect all characters and elements from all stories
+    const allCharacters: Character[] = [];
+    const allElements: StoryElement[] = [];
+    const migratedStories: Story[] = [];
+
+    data.stories.forEach((story: any) => {
+      // Extract characters and elements directly from the story
+      if (story.cast && Array.isArray(story.cast)) {
+        allCharacters.push(...story.cast);
+      }
+      if (story.elements && Array.isArray(story.elements)) {
+        allElements.push(...story.elements);
+      }
+      
+      // Create story without cast and elements
+      const { cast: _cast, elements: _elements, ...storyWithoutCast } = story;
+      migratedStories.push({
+        ...storyWithoutCast,
+        createdAt: new Date(story.createdAt || Date.now()),
+        updatedAt: new Date(story.updatedAt || Date.now())
+      });
+    });
+
+    return {
+      version: '2.0.0',
+      stories: migratedStories,
+      characters: allCharacters,
+      elements: allElements,
+      lastUpdated: new Date(data.lastUpdated || Date.now())
+    };
   }
 
 
@@ -109,6 +178,7 @@ export class MigrationService {
       description: story.description || '',
       backgroundSetup: story.backgroundSetup || '',
       cast: cast,
+      elements: [], // Initialize empty elements array
       scenes: scenes,
       createdAt: new Date(story.createdAt || Date.now()),
       updatedAt: new Date(story.updatedAt || Date.now())
@@ -145,7 +215,7 @@ export class MigrationService {
       title: scene.title || 'Untitled Scene',
       description: scene.description || '',
       characterIds: scene.characters ? scene.characters.map((char: any) => characterIdMap.get(char.id) || '') : [],
-      scenes: this.migrateSceneItems(scene.scenes || []),
+      elementIds: [], // Initialize empty elementIds array
       createdAt: new Date(scene.createdAt || Date.now()),
       updatedAt: new Date(scene.updatedAt || Date.now())
     }));
@@ -159,17 +229,7 @@ export class MigrationService {
 
 
 
-  /**
-   * Migrate scene items to current format
-   */
-  private static migrateSceneItems(sceneItems: any[]): SceneItem[] {
-    return sceneItems.map((item: any, index: number) => ({
-      id: item.id || crypto.randomUUID(),
-      title: item.title || 'Untitled Scene Item',
-      description: item.description || '',
-      order: item.order !== undefined ? item.order : index
-    }));
-  }
+
 
   /**
    * Parse current version data with proper date handling
@@ -184,12 +244,17 @@ export class MigrationService {
         updatedAt: new Date(story.updatedAt || Date.now()),
         scenes: story.scenes.map((scene: any) => ({
           ...scene,
+          elementIds: scene.elementIds || [], // Ensure elementIds array exists
           createdAt: new Date(scene.createdAt || Date.now()),
           updatedAt: new Date(scene.updatedAt || Date.now())
         }))
-      }))
+      })),
+      characters: data.characters || [],
+      elements: data.elements || []
     };
   }
+
+
 
   /**
    * Get default data structure
@@ -198,6 +263,8 @@ export class MigrationService {
     return {
       version: CURRENT_VERSION,
       stories: [],
+      characters: [],
+      elements: [],
       lastUpdated: new Date()
     };
   }

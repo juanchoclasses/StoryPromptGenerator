@@ -11,16 +11,16 @@ import {
   DialogActions,
   Tooltip,
   IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
 import type { Character, Story } from '../types/Story';
 import { StoryService } from '../services/StoryService';
@@ -39,7 +39,7 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
 
   useEffect(() => {
     if (story) {
-      setCharacters(story.cast);
+      setCharacters(StoryService.getAllCharacters());
     } else {
       setCharacters([]);
     }
@@ -63,12 +63,9 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
   const handleDeleteCharacter = (characterId: string) => {
     if (!story) return;
     if (window.confirm('Are you sure you want to delete this character? This will also remove them from all scenes.')) {
-      StoryService.deleteCharacter(story.id, characterId);
-      const updatedStory = StoryService.getStoryById(story.id);
-      if (updatedStory) {
-        setCharacters(updatedStory.cast);
-        onStoryUpdate();
-      }
+      StoryService.deleteCharacter(characterId);
+      setCharacters(StoryService.getAllCharacters());
+      onStoryUpdate();
     }
   };
 
@@ -76,20 +73,17 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
     if (!story || !characterName.trim()) return;
 
     if (editingCharacter) {
-      StoryService.updateCharacter(story.id, editingCharacter.id, {
+      StoryService.updateCharacter(editingCharacter.id, {
         name: characterName.trim(),
-        description: characterDescription.trim()
+        description: characterDescription
       });
     } else {
-      StoryService.addCharacterToCast(story.id, characterName.trim(), characterDescription.trim());
+      StoryService.addCharacterToCast(characterName.trim(), characterDescription);
     }
 
     setOpenDialog(false);
-    const updatedStory = StoryService.getStoryById(story.id);
-    if (updatedStory) {
-      setCharacters(updatedStory.cast);
-      onStoryUpdate();
-    }
+    setCharacters(StoryService.getAllCharacters());
+    onStoryUpdate();
   };
 
   if (!story) {
@@ -103,71 +97,119 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
   }
 
   return (
-    <Paper elevation={2} sx={{ p: 3 }}>
-      <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-        <Box display="flex" alignItems="center" gap={1}>
-          <PersonIcon color="primary" />
-          <Typography variant="h5" component="h2">
-            Cast of Characters ({characters.length})
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleAddCharacter}
-        >
-          Add Character
-        </Button>
-      </Box>
-
-      {characters.length === 0 ? (
-        <Box textAlign="center" py={4}>
-          <PersonIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            No characters yet
-          </Typography>
-          <Typography variant="body2" color="text.secondary" mb={3}>
-            Add characters to your story's cast to use them in scenes
-          </Typography>
+    <Paper elevation={2} sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: 'calc(100vh - 200px)', 
+      maxHeight: 'calc(100vh - 200px)',
+      overflow: 'hidden'
+    }}>
+      {/* Fixed Header */}
+      <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}>
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+          <Box display="flex" alignItems="center" gap={1}>
+            <PersonIcon color="primary" />
+            <Typography variant="h5" component="h2">
+              Cast of Characters ({characters.length})
+            </Typography>
+          </Box>
           <Button
-            variant="outlined"
+            variant="contained"
             startIcon={<AddIcon />}
             onClick={handleAddCharacter}
           >
-            Add Your First Character
+            Add Character
           </Button>
         </Box>
-      ) : (
-        <List>
-          {characters.map((character) => (
-            <ListItem key={character.id} sx={{ border: 1, borderColor: 'divider', borderRadius: 1, mb: 1 }}>
-              <ListItemText
-                primary={character.name}
-                secondary={character.description}
-              />
-              <ListItemSecondaryAction>
-                <Tooltip title="Edit character">
-                  <IconButton
-                    onClick={() => handleEditCharacter(character)}
-                    size="small"
-                  >
-                    <EditIcon />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Delete character">
-                  <IconButton
-                    onClick={() => handleDeleteCharacter(character.id)}
-                    color="error"
-                    size="small"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip>
-              </ListItemSecondaryAction>
-            </ListItem>
-          ))}
-        </List>
-      )}
+      </Box>
+
+      {/* Scrollable Content */}
+      <Box sx={{ 
+        flex: 1, 
+        overflow: 'auto', 
+        p: 3,
+        '&::-webkit-scrollbar': {
+          width: '8px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#f1f1f1',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#c1c1c1',
+          borderRadius: '4px',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: '#a8a8a8',
+        },
+      }}>
+        {characters.length === 0 ? (
+          <Box textAlign="center" py={4}>
+            <PersonIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              No characters yet
+            </Typography>
+            <Typography variant="body2" color="text.secondary" mb={3}>
+              Add characters to your story's cast to use them in scenes
+            </Typography>
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={handleAddCharacter}
+            >
+              Add Your First Character
+            </Button>
+          </Box>
+        ) : (
+          <Box>
+            {characters.map((character) => (
+              <Accordion key={character.id} sx={{ mb: 1 }}>
+                <AccordionSummary 
+                  expandIcon={<ExpandMoreIcon />}
+                  sx={{ 
+                    '& .MuiAccordionSummary-content': {
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%'
+                    }
+                  }}
+                >
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <PersonIcon color="primary" />
+                    <Typography variant="h6">
+                      {character.name}
+                    </Typography>
+                  </Box>
+                  <Box display="flex" gap={1} onClick={(e) => e.stopPropagation()}>
+                    <Tooltip title="Edit character">
+                      <IconButton
+                        onClick={() => handleEditCharacter(character)}
+                        size="small"
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete character">
+                      <IconButton
+                        onClick={() => handleDeleteCharacter(character.id)}
+                        color="error"
+                        size="small"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Box sx={{ whiteSpace: 'pre-line' }}>
+                    {character.description}
+                  </Box>
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Box>
+        )}
+      </Box>
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
         <DialogTitle>

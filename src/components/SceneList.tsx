@@ -18,7 +18,8 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon
+  ExpandLess as ExpandLessIcon,
+  DragIndicator as DragIndicatorIcon
 } from '@mui/icons-material';
 import type { Scene, Story } from '../types/Story';
 import { StoryService } from '../services/StoryService';
@@ -42,6 +43,7 @@ export const SceneList: React.FC<SceneListProps> = ({
   const [sceneTitle, setSceneTitle] = useState('');
   const [sceneDescription, setSceneDescription] = useState('');
   const [expandedScenes, setExpandedScenes] = useState<Set<string>>(new Set());
+  const [draggedSceneId, setDraggedSceneId] = useState<string | null>(null);
 
   useEffect(() => {
     if (story) {
@@ -103,6 +105,47 @@ export const SceneList: React.FC<SceneListProps> = ({
     setExpandedScenes(newExpanded);
   };
 
+  const handleDragStart = (e: React.DragEvent, sceneId: string) => {
+    setDraggedSceneId(sceneId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetSceneId: string) => {
+    e.preventDefault();
+    if (!story || !draggedSceneId || draggedSceneId === targetSceneId) {
+      setDraggedSceneId(null);
+      return;
+    }
+
+    const draggedIndex = scenes.findIndex(scene => scene.id === draggedSceneId);
+    const targetIndex = scenes.findIndex(scene => scene.id === targetSceneId);
+    
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedSceneId(null);
+      return;
+    }
+
+    const newScenes = [...scenes];
+    const [draggedScene] = newScenes.splice(draggedIndex, 1);
+    newScenes.splice(targetIndex, 0, draggedScene);
+
+    // Update the story with the new scene order
+    const updatedStory = { ...story, scenes: newScenes };
+    StoryService.updateStory(story.id, updatedStory);
+    setScenes(newScenes);
+    onStoryUpdate();
+    setDraggedSceneId(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedSceneId(null);
+  };
+
   if (!story) {
     return (
       <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
@@ -137,7 +180,19 @@ export const SceneList: React.FC<SceneListProps> = ({
           {scenes.map((scene) => {
             if (!scene || !scene.id) return null;
             return (
-            <Box key={scene.id}>
+            <Box 
+              key={scene.id}
+              draggable
+              onDragStart={(e) => handleDragStart(e, scene.id)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, scene.id)}
+              onDragEnd={handleDragEnd}
+              sx={{
+                opacity: draggedSceneId === scene.id ? 0.5 : 1,
+                transform: draggedSceneId === scene.id ? 'rotate(2deg)' : 'none',
+                transition: 'opacity 0.2s, transform 0.2s'
+              }}
+            >
               <Box
                 onClick={() => onSceneSelect(scene)}
                 sx={{
@@ -159,13 +214,22 @@ export const SceneList: React.FC<SceneListProps> = ({
                       {scene.title}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {scene.characterIds?.length || 0} characters • {scene.scenes?.length || 0} sub-scenes
+                      {scene.characterIds?.length || 0} characters
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       Updated: {scene.updatedAt.toLocaleDateString()}
                     </Typography>
                   </Box>
-                  <Box>
+                  <Box display="flex" gap={0.5}>
+                    <Tooltip title="Drag to reorder">
+                      <IconButton
+                        size="small"
+                        sx={{ cursor: 'grab', '&:active': { cursor: 'grabbing' } }}
+                      >
+                        <DragIndicatorIcon />
+                      </IconButton>
+                    </Tooltip>
+                    
                     <Tooltip title="Expand details">
                       <IconButton
                         onClick={(e) => {
@@ -214,7 +278,8 @@ export const SceneList: React.FC<SceneListProps> = ({
                       </Typography>
                       <Box display="flex" flexWrap="wrap" gap={0.5}>
                         {scene.characterIds.map((characterId) => {
-                          const character = story.cast.find(c => c.id === characterId);
+                          const allCharacters = StoryService.getAllCharacters();
+        const character = allCharacters.find(c => c.id === characterId);
                           return character ? (
                             <Chip
                               key={characterId}
@@ -228,23 +293,7 @@ export const SceneList: React.FC<SceneListProps> = ({
                     </Box>
                   )}
                   
-                  {scene.scenes && scene.scenes.length > 0 && (
-                    <Box>
-                      <Typography variant="subtitle2" color="primary">
-                        Sub-scenes:
-                      </Typography>
-                      <Box display="flex" flexWrap="wrap" gap={0.5}>
-                        {scene.scenes.map((sceneItem) => (
-                          <Chip
-                            key={sceneItem.id}
-                            label={sceneItem.title}
-                            size="small"
-                            variant="outlined"
-                          />
-                        ))}
-                      </Box>
-                    </Box>
-                  )}
+
                 </Box>
               )}
             </Box>

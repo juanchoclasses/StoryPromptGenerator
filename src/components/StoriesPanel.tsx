@@ -103,20 +103,18 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
   };
 
   const getStoryStats = (story: Story) => {
-    if (!story.scenes) return { characters: 0, scenes: 0, subScenes: 0 };
+    if (!story.scenes) return { characters: 0, scenes: 0 };
     
-    const characters = story.cast?.length || 0;
+    const allCharacters = StoryService.getAllCharacters();
+    const characters = allCharacters.length;
     const scenes = story.scenes.length;
-    const subScenes = story.scenes.reduce((total, scene) => {
-      return total + (scene.scenes?.length || 0);
-    }, 0);
 
-    return { characters, scenes, subScenes };
+    return { characters, scenes };
   };
 
   const handleExportData = () => {
     try {
-      const data = localStorage.getItem('story-data');
+      const data = localStorage.getItem('story-data-v2');
       if (!data) {
         showSnackbar('No data to export', 'error');
         return;
@@ -125,7 +123,7 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
       const dataBlob = new Blob([data], { type: 'application/json' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(dataBlob);
-      link.download = `story-data-${new Date().toISOString().split('T')[0]}.json`;
+      link.download = `story-data-v2-${new Date().toISOString().split('T')[0]}.json`;
       link.click();
       
       showSnackbar('Data exported successfully', 'success');
@@ -153,7 +151,7 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
             }
             
             // Clear current data and import new data
-            localStorage.setItem('story-data', JSON.stringify(data));
+            localStorage.setItem('story-data-v2', JSON.stringify(data));
             loadStories();
             onStoryUpdate();
             
@@ -260,7 +258,7 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
                         Scenes: {stats.scenes}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        Sub-scenes: {stats.subScenes}
+        
                       </Typography>
                     </Box>
                   </Box>

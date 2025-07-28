@@ -15,24 +15,15 @@ import {
   MenuItem,
   OutlinedInput,
   Snackbar,
-  Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Tooltip,
-  IconButton
+  Alert
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import {
   ExpandMore as ExpandMoreIcon,
   ContentCopy as CopyIcon,
-  Person as PersonIcon,
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon
+  Person as PersonIcon
 } from '@mui/icons-material';
-import type { Scene, Story, SceneItem } from '../types/Story';
+import type { Scene, Story } from '../types/Story';
 import { StoryService } from '../services/StoryService';
 
 interface SceneEditorProps {
@@ -44,13 +35,9 @@ interface SceneEditorProps {
 export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, onStoryUpdate }) => {
   const [currentScene, setCurrentScene] = useState<Scene | null>(null);
   const [selectedCharacters, setSelectedCharacters] = useState<string[]>([]);
+  const [selectedElements, setSelectedElements] = useState<string[]>([]);
   const [sceneTitle, setSceneTitle] = useState('');
   const [sceneDescription, setSceneDescription] = useState('');
-  const [sceneItems, setSceneItems] = useState<SceneItem[]>([]);
-  const [openSceneItemDialog, setOpenSceneItemDialog] = useState(false);
-  const [editingSceneItem, setEditingSceneItem] = useState<SceneItem | null>(null);
-  const [sceneItemTitle, setSceneItemTitle] = useState('');
-  const [sceneItemDescription, setSceneItemDescription] = useState('');
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -59,15 +46,15 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     if (selectedScene) {
       setCurrentScene(selectedScene);
       setSelectedCharacters(selectedScene.characterIds);
+      setSelectedElements(selectedScene.elementIds || []);
       setSceneTitle(selectedScene.title);
       setSceneDescription(selectedScene.description || '');
-      setSceneItems(selectedScene.scenes || []);
     } else {
       setCurrentScene(null);
       setSelectedCharacters([]);
+      setSelectedElements([]);
       setSceneTitle('');
       setSceneDescription('');
-      setSceneItems([]);
     }
   }, [selectedScene]);
 
@@ -139,66 +126,41 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     }
   };
 
-  const handleAddSceneItem = () => {
-    setEditingSceneItem(null);
-    setSceneItemTitle('');
-    setSceneItemDescription('');
-    setOpenSceneItemDialog(true);
-  };
-
-  const handleEditSceneItem = (sceneItem: SceneItem) => {
-    setEditingSceneItem(sceneItem);
-    setSceneItemTitle(sceneItem.title);
-    setSceneItemDescription(sceneItem.description);
-    setOpenSceneItemDialog(true);
-  };
-
-  const handleDeleteSceneItem = (sceneItemId: string) => {
+  const handleElementSelection = (event: SelectChangeEvent<string[]>) => {
     if (!story || !currentScene) return;
-    if (window.confirm('Are you sure you want to delete this scene element?')) {
-      StoryService.deleteSceneItem(story.id, currentScene.id, sceneItemId);
-      const updatedStory = StoryService.getStoryById(story.id);
-      if (updatedStory) {
-        const updatedScene = updatedStory.scenes.find(s => s.id === currentScene.id);
-        if (updatedScene) {
-          setCurrentScene(updatedScene);
-          setSceneItems(updatedScene.scenes);
-          onStoryUpdate();
-        }
-      }
+    
+    const value = event.target.value;
+    const elementIds = typeof value === 'string' ? value.split(',') : value;
+    setSelectedElements(elementIds);
+    
+    // Update the scene's element IDs by updating the story
+    const updatedStory = { ...story };
+    const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
+    if (sceneIndex !== -1) {
+      updatedStory.scenes[sceneIndex] = {
+        ...updatedStory.scenes[sceneIndex],
+        elementIds: elementIds,
+        updatedAt: new Date()
+      };
+      updatedStory.updatedAt = new Date();
+      
+      // Update the story through the service
+      StoryService.updateStory(story.id, updatedStory);
+      
+      // Trigger update
+      onStoryUpdate();
     }
   };
 
-  const handleSaveSceneItem = () => {
-    if (!story || !currentScene || !sceneItemTitle.trim()) return;
 
-    if (editingSceneItem) {
-      StoryService.updateSceneItem(story.id, currentScene.id, editingSceneItem.id, {
-        title: sceneItemTitle.trim(),
-        description: sceneItemDescription.trim()
-      });
-    } else {
-      StoryService.addSceneItem(story.id, currentScene.id, sceneItemTitle.trim(), sceneItemDescription.trim());
-    }
-
-    setOpenSceneItemDialog(false);
-    const updatedStory = StoryService.getStoryById(story.id);
-    if (updatedStory) {
-      const updatedScene = updatedStory.scenes.find(s => s.id === currentScene.id);
-      if (updatedScene) {
-        setCurrentScene(updatedScene);
-        setSceneItems(updatedScene.scenes);
-        onStoryUpdate();
-      }
-    }
-  };
 
   const generatePrompt = () => {
     if (!story || !currentScene) return '';
 
-    const selectedCast = story.cast.filter(char => currentScene.characterIds.includes(char.id));
+    const selectedCast = availableCharacters.filter(char => currentScene.characterIds.includes(char.id));
+    const selectedElements = availableElements.filter(elem => (currentScene.elementIds || []).includes(elem.id));
     
-    let prompt = `# Story Prompt\n\n`;
+    let prompt = `I need you to create me an image according to the following data.\n\n`;
     prompt += `## Background Setup\n${story.backgroundSetup}\n\n`;
     prompt += `## Scene: ${currentScene.title}\n`;
     prompt += `${currentScene.description}\n\n`;
@@ -206,14 +168,14 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     if (selectedCast.length > 0) {
       prompt += `## Characters in this Scene\n`;
       selectedCast.forEach(character => {
-        prompt += `### ${character.name}\n${character.description}\n\n`;
+        prompt += `[Character Definition: ${character.name}]\n${character.description}\n\n`;
       });
     }
     
-    if (currentScene.scenes.length > 0) {
-      prompt += `## Scene Elements\n`;
-      currentScene.scenes.forEach((sceneItem, index) => {
-        prompt += `${index + 1}. **${sceneItem.title}**: ${sceneItem.description}\n`;
+    if (selectedElements.length > 0) {
+      prompt += `## Elements in this Scene\n`;
+      selectedElements.forEach(element => {
+        prompt += `[Object Definition: ${element.name}]\n${element.description}\n\n`;
       });
     }
 
@@ -253,7 +215,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     );
   }
 
-  const availableCharacters = story.cast;
+  const availableCharacters = StoryService.getAllCharacters();
+  const availableElements = StoryService.getAllElements();
 
   return (
     <Paper elevation={2} sx={{ 
@@ -456,121 +419,139 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         </AccordionDetails>
       </Accordion>
 
-      {/* Scene Items */}
+      {/* Element Selection */}
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">
-            Scene Elements ({sceneItems.length})
-          </Typography>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Typography variant="h6">
+              Elements in this Scene ({selectedElements.length})
+            </Typography>
+          </Box>
         </AccordionSummary>
         <AccordionDetails>
-          {sceneItems.length === 0 ? (
-            <Box textAlign="center" py={2}>
-              <Typography variant="body2" color="text.secondary" mb={2}>
-                No scene elements yet
-              </Typography>
-              <Button
-                variant="outlined"
-                startIcon={<AddIcon />}
-                onClick={handleAddSceneItem}
-              >
-                Add Scene Element
-              </Button>
-            </Box>
-          ) : (
-            <Box>
-              {sceneItems.map((sceneItem) => (
-                <Box
-                  key={sceneItem.id}
-                  sx={{
-                    border: 1,
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    p: 2,
-                    mb: 2,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start'
-                  }}
-                >
-                  <Box flex={1}>
-                    <Typography variant="h6" gutterBottom>
-                      {sceneItem.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {sceneItem.description}
-                    </Typography>
-                  </Box>
-                  <Box display="flex" gap={1}>
-                    <Tooltip title="Edit scene element">
-                      <IconButton
-                        onClick={() => handleEditSceneItem(sceneItem)}
-                        size="small"
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete scene element">
-                      <IconButton
-                        onClick={() => handleDeleteSceneItem(sceneItem.id)}
+          <FormControl fullWidth>
+            <InputLabel>Select Elements</InputLabel>
+            <Select
+              multiple
+              value={selectedElements}
+              onChange={handleElementSelection}
+              input={<OutlinedInput label="Select Elements" />}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((elementId) => {
+                    const element = availableElements.find(e => e.id === elementId);
+                    return element ? (
+                      <Chip 
+                        key={elementId} 
+                        label={element.name} 
+                        size="small" 
+                        color="secondary"
+                        variant="filled"
+                      />
+                    ) : (
+                      <Chip 
+                        key={elementId} 
+                        label={`Unknown (${elementId.slice(0, 8)}...)`} 
+                        size="small" 
                         color="error"
-                        size="small"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
+                        variant="outlined"
+                      />
+                    );
+                  })}
                 </Box>
+              )}
+            >
+              {availableElements.map((element) => (
+                <MenuItem key={element.id} value={element.id}>
+                  <Box>
+                    <Typography variant="body1">{element.name}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {element.description}
+                    </Typography>
+                  </Box>
+                </MenuItem>
               ))}
-              <Button
-                variant="outlined"
-                startIcon={<AddIcon />}
-                onClick={handleAddSceneItem}
-                fullWidth
-              >
-                Add Scene Element
-              </Button>
+            </Select>
+          </FormControl>
+          
+          {/* Selected Elements Summary */}
+          {selectedElements.length > 0 && (
+            <Box mt={2}>
+              <Typography variant="subtitle2" color="secondary" gutterBottom>
+                Selected Elements:
+              </Typography>
+              <Box display="flex" flexWrap="wrap" gap={1}>
+                {selectedElements.map((elementId) => {
+                  const element = availableElements.find(e => e.id === elementId);
+                  return element ? (
+                    <Chip
+                      key={elementId}
+                      label={element.name}
+                      size="small"
+                      color="secondary"
+                      variant="outlined"
+                      onDelete={() => {
+                        const newSelection = selectedElements.filter(id => id !== elementId);
+                        setSelectedElements(newSelection);
+                        // Update the scene's element IDs
+                        if (story && currentScene) {
+                          const updatedStory = StoryService.getStoryById(story.id);
+                          if (updatedStory) {
+                            const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
+                            if (sceneIndex !== -1) {
+                              updatedStory.scenes[sceneIndex].elementIds = newSelection;
+                              updatedStory.scenes[sceneIndex].updatedAt = new Date();
+                              updatedStory.updatedAt = new Date();
+                              onStoryUpdate();
+                            }
+                          }
+                        }
+                      }}
+                    />
+                  ) : (
+                    <Chip
+                      key={elementId}
+                      label={`Unknown (${elementId.slice(0, 8)}...)`}
+                      size="small"
+                      color="error"
+                      variant="outlined"
+                      onDelete={() => {
+                        const newSelection = selectedElements.filter(id => id !== elementId);
+                        setSelectedElements(newSelection);
+                        // Update the scene's element IDs
+                        if (story && currentScene) {
+                          const updatedStory = StoryService.getStoryById(story.id);
+                          if (updatedStory) {
+                            const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
+                            if (sceneIndex !== -1) {
+                              updatedStory.scenes[sceneIndex].elementIds = newSelection;
+                              updatedStory.scenes[sceneIndex].updatedAt = new Date();
+                              updatedStory.updatedAt = new Date();
+                              onStoryUpdate();
+                            }
+                          }
+                        }
+                      }}
+                    />
+                  );
+                })}
+              </Box>
+            </Box>
+          )}
+          
+          {availableElements.length === 0 && (
+            <Box textAlign="center" py={2}>
+              <Typography variant="body2" color="text.secondary">
+                No elements available. Add elements to the story's elements first.
+              </Typography>
             </Box>
           )}
         </AccordionDetails>
       </Accordion>
 
-      {/* Scene Item Dialog */}
-      <Dialog open={openSceneItemDialog} onClose={() => setOpenSceneItemDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editingSceneItem ? 'Edit Scene Element' : 'Add Scene Element'}
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Title"
-            fullWidth
-            variant="outlined"
-            value={sceneItemTitle}
-            onChange={(e) => setSceneItemTitle(e.target.value)}
-            placeholder="Enter scene element title..."
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="Description"
-            fullWidth
-            multiline
-            rows={4}
-            variant="outlined"
-            value={sceneItemDescription}
-            onChange={(e) => setSceneItemDescription(e.target.value)}
-            placeholder="Describe this scene element..."
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenSceneItemDialog(false)}>Cancel</Button>
-          <Button onClick={handleSaveSceneItem} variant="contained" disabled={!sceneItemTitle.trim()}>
-            {editingSceneItem ? 'Update' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+
+
+
 
       <Snackbar
         open={snackbarOpen}

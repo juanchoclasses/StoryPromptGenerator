@@ -172,8 +172,9 @@ src/
 │   ├── StoriesPanel.tsx
 │   └── VersionInfo.tsx
 ├── services/           # Business logic and data management
+│   ├── BookService.ts
 │   ├── MigrationService.ts
-│   └── StoryService.ts
+│   └── PromptService.ts
 ├── types/             # TypeScript type definitions
 │   └── Story.ts
 └── App.tsx           # Main application component

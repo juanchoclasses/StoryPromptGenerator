@@ -22,7 +22,7 @@ import {
   DragIndicator as DragIndicatorIcon
 } from '@mui/icons-material';
 import type { Scene, Story } from '../types/Story';
-import { StoryService } from '../services/StoryService';
+import { BookService } from '../services/BookService';
 
 interface SceneListProps {
   story: Story | null;
@@ -66,8 +66,22 @@ export const SceneList: React.FC<SceneListProps> = ({
   const handleDeleteScene = (sceneId: string) => {
     if (!story) return;
     if (window.confirm('Are you sure you want to delete this scene?')) {
-      StoryService.deleteScene(story.id, sceneId);
-      const updatedStory = StoryService.getStoryById(story.id);
+      const activeBookData = BookService.getActiveBookData();
+      if (!activeBookData) return;
+      
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === story.id) {
+          const updatedScenes = s.scenes.filter(scene => scene.id !== sceneId);
+          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+        }
+        return s;
+      });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
+      
+      // Update local state
+      const updatedStory = updatedStories.find(s => s.id === story.id);
       if (updatedStory) {
         setScenes(updatedStory.scenes);
         onStoryUpdate();
@@ -78,17 +92,56 @@ export const SceneList: React.FC<SceneListProps> = ({
   const handleSaveScene = () => {
     if (!story || !sceneTitle.trim()) return;
 
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData) return;
+
     if (editingScene) {
-      StoryService.updateScene(story.id, editingScene.id, { 
-        title: sceneTitle.trim(), 
-        description: sceneDescription.trim() 
+      // Update existing scene
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === story.id) {
+          const updatedScenes = s.scenes.map(scene => {
+            if (scene.id === editingScene.id) {
+              return { 
+                ...scene, 
+                title: sceneTitle.trim(), 
+                description: sceneDescription.trim(),
+                updatedAt: new Date()
+              };
+            }
+            return scene;
+          });
+          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+        }
+        return s;
       });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
     } else {
-      StoryService.createScene(story.id, sceneTitle.trim(), sceneDescription.trim());
+      // Create new scene
+      const newScene: Scene = {
+        id: crypto.randomUUID(),
+        title: sceneTitle.trim(),
+        description: sceneDescription.trim(),
+        characterIds: [],
+        elementIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === story.id) {
+          return { ...s, scenes: [...s.scenes, newScene], updatedAt: new Date() };
+        }
+        return s;
+      });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
     }
     
     setOpenDialog(false);
-    const updatedStory = StoryService.getStoryById(story.id);
+    const updatedStory = activeBookData.stories.find(s => s.id === story.id);
     if (updatedStory) {
       setScenes(updatedStory.scenes);
       onStoryUpdate();
@@ -135,8 +188,18 @@ export const SceneList: React.FC<SceneListProps> = ({
     newScenes.splice(targetIndex, 0, draggedScene);
 
     // Update the story with the new scene order
-    const updatedStory = { ...story, scenes: newScenes };
-    StoryService.updateStory(story.id, updatedStory);
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData) return;
+    
+    const updatedStories = activeBookData.stories.map(s => {
+      if (s.id === story.id) {
+        return { ...s, scenes: newScenes, updatedAt: new Date() };
+      }
+      return s;
+    });
+    
+    const updatedData = { ...activeBookData, stories: updatedStories };
+    BookService.saveActiveBookData(updatedData);
     setScenes(newScenes);
     onStoryUpdate();
     setDraggedSceneId(null);
@@ -278,8 +341,9 @@ export const SceneList: React.FC<SceneListProps> = ({
                       </Typography>
                       <Box display="flex" flexWrap="wrap" gap={0.5}>
                         {scene.characterIds.map((characterId) => {
-                          const allCharacters = StoryService.getAllCharacters();
-        const character = allCharacters.find(c => c.id === characterId);
+                          const activeBookData = BookService.getActiveBookData();
+                          const allCharacters = activeBookData?.characters || [];
+                          const character = allCharacters.find(c => c.id === characterId);
                           return character ? (
                             <Chip
                               key={characterId}

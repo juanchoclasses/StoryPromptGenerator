@@ -21,7 +21,7 @@ import {
   Download as DownloadIcon,
   Upload as UploadIcon
 } from '@mui/icons-material';
-import { StoryService } from '../services/StoryService';
+import { BookService } from '../services/BookService';
 import type { Story, StoryData } from '../types/Story';
 
 interface StoriesPanelProps {
@@ -50,9 +50,19 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
     loadStories();
   }, []);
 
+  // Reload stories when active book changes
+  useEffect(() => {
+    loadStories();
+  }, [BookService.getActiveBookId()]);
+
   const loadStories = () => {
-    const allStories = StoryService.getAllStories();
-    setStories(allStories);
+    // Get the active book's data
+    const activeBookData = BookService.getActiveBookData();
+    if (activeBookData) {
+      setStories(activeBookData.stories);
+    } else {
+      setStories([]);
+    }
   };
 
   const handleAddStory = () => {
@@ -71,7 +81,16 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
 
   const handleDeleteStory = (storyId: string) => {
     if (window.confirm('Are you sure you want to delete this story? This action cannot be undone.')) {
-      StoryService.deleteStory(storyId);
+      const activeBookData = BookService.getActiveBookData();
+      if (!activeBookData) {
+        showSnackbar('No active book selected', 'error');
+        return;
+      }
+
+      const updatedStories = activeBookData.stories.filter(story => story.id !== storyId);
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
+      
       if (selectedStory?.id === storyId) {
         onStorySelect(null);
       }
@@ -84,17 +103,42 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
   const handleSaveStory = () => {
     if (!storyTitle.trim()) return;
 
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData) {
+      showSnackbar('No active book selected', 'error');
+      return;
+    }
+
     if (editingStory) {
-      StoryService.updateStory(editingStory.id, {
-        ...editingStory,
+      // Update existing story
+      const updatedStories = activeBookData.stories.map(story => 
+        story.id === editingStory.id 
+          ? { ...story, title: storyTitle.trim(), description: storyDescription.trim(), updatedAt: new Date() }
+          : story
+      );
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
+      onStorySelect(updatedStories.find(s => s.id === editingStory.id) || null);
+    } else {
+      // Create new story
+      const newStory: Story = {
+        id: crypto.randomUUID(),
         title: storyTitle.trim(),
         description: storyDescription.trim(),
+        backgroundSetup: '',
+        scenes: [],
+        createdAt: new Date(),
         updatedAt: new Date()
-      });
-          } else {
-        const newStory = StoryService.createStory(storyTitle.trim());
-        onStorySelect(newStory);
-      }
+      };
+      
+      const updatedData = { 
+        ...activeBookData, 
+        stories: [...activeBookData.stories, newStory] 
+      };
+      BookService.saveActiveBookData(updatedData);
+      onStorySelect(newStory);
+    }
 
     setOpenDialog(false);
     loadStories();
@@ -105,8 +149,8 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
   const getStoryStats = (story: Story) => {
     if (!story.scenes) return { characters: 0, scenes: 0 };
     
-    const allCharacters = StoryService.getAllCharacters();
-    const characters = allCharacters.length;
+    const activeBookData = BookService.getActiveBookData();
+    const characters = activeBookData?.characters.length || 0;
     const scenes = story.scenes.length;
 
     return { characters, scenes };

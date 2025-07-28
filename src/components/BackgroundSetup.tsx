@@ -8,7 +8,7 @@ import {
   Tooltip
 } from '@mui/material';
 import { Save as SaveIcon } from '@mui/icons-material';
-import { StoryService } from '../services/StoryService';
+import { BookService } from '../services/BookService';
 import type { Story } from '../types/Story';
 
 interface BackgroundSetupProps {
@@ -32,7 +32,18 @@ export const BackgroundSetup: React.FC<BackgroundSetupProps> = ({ story, onStory
 
   const handleSave = () => {
     if (story) {
-      StoryService.updateBackgroundSetup(story.id, backgroundSetup);
+      const activeBookData = BookService.getActiveBookData();
+      if (!activeBookData) return;
+      
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === story.id) {
+          return { ...s, backgroundSetup: backgroundSetup, updatedAt: new Date() };
+        }
+        return s;
+      });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
       setIsDirty(false);
       onStoryUpdate();
     }
@@ -45,7 +56,18 @@ export const BackgroundSetup: React.FC<BackgroundSetupProps> = ({ story, onStory
     // Auto-save after a short delay
     if (story) {
       setTimeout(() => {
-        StoryService.updateBackgroundSetup(story.id, event.target.value);
+        const activeBookData = BookService.getActiveBookData();
+        if (!activeBookData) return;
+        
+        const updatedStories = activeBookData.stories.map(s => {
+          if (s.id === story.id) {
+            return { ...s, backgroundSetup: event.target.value, updatedAt: new Date() };
+          }
+          return s;
+        });
+        
+        const updatedData = { ...activeBookData, stories: updatedStories };
+        BookService.saveActiveBookData(updatedData);
         setIsDirty(false);
         onStoryUpdate();
       }, 1000);

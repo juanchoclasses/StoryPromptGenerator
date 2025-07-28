@@ -19,9 +19,11 @@ import { SceneEditor } from './components/SceneEditor';
 import { StoriesPanel } from './components/StoriesPanel';
 import { CastManager } from './components/CastManager';
 import { ElementsManager } from './components/ElementsManager';
+import { FileManager } from './components/FileManager';
 import { VersionInfo } from './components/VersionInfo';
 import type { Scene, Story } from './types/Story';
-import { StoryService } from './services/StoryService';
+import type { StoryData } from './types/Story';
+import { BookService } from './services/BookService';
 
 const theme = createTheme({
   palette: {
@@ -41,6 +43,7 @@ function App() {
   const [activeTab, setActiveTab] = useState(0);
   const [storyTitle, setStoryTitle] = useState('');
   const [storyDescription, setStoryDescription] = useState('');
+  const [bookData, setBookData] = useState<StoryData | null>(null);
 
   const handleStorySelect = (story: Story | null) => {
     setSelectedStory(story);
@@ -62,17 +65,20 @@ function App() {
     setRefreshKey(prev => prev + 1);
     // Update selected story if it still exists
     if (selectedStory) {
-      const updatedStory = StoryService.getStoryById(selectedStory.id);
-      setSelectedStory(updatedStory);
-      // Update selected scene if it still exists
-      if (selectedScene && updatedStory) {
-        const updatedScene = updatedStory.scenes.find(s => s.id === selectedScene.id);
-        setSelectedScene(updatedScene || null);
-      }
-      // Update title and description state
-      if (updatedStory) {
-        setStoryTitle(updatedStory.title);
-        setStoryDescription(updatedStory.description || '');
+      const activeBookData = BookService.getActiveBookData();
+      if (activeBookData) {
+        const updatedStory = activeBookData.stories.find(s => s.id === selectedStory.id);
+        setSelectedStory(updatedStory || null);
+        // Update selected scene if it still exists
+        if (selectedScene && updatedStory) {
+          const updatedScene = updatedStory.scenes.find(s => s.id === selectedScene.id);
+          setSelectedScene(updatedScene || null);
+        }
+        // Update title and description state
+        if (updatedStory) {
+          setStoryTitle(updatedStory.title);
+          setStoryDescription(updatedStory.description || '');
+        }
       }
     }
   };
@@ -83,9 +89,21 @@ function App() {
     
     // Auto-save the story title
     if (selectedStory) {
-      const updatedStory = { ...selectedStory, title: newTitle, updatedAt: new Date() };
-      StoryService.updateStory(selectedStory.id, updatedStory);
-      setSelectedStory(updatedStory);
+      const activeBookData = BookService.getActiveBookData();
+      if (!activeBookData) return;
+      
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === selectedStory.id) {
+          return { ...s, title: newTitle, updatedAt: new Date() };
+        }
+        return s;
+      });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
+      
+      const updatedStory = updatedStories.find(s => s.id === selectedStory.id);
+      setSelectedStory(updatedStory || null);
     }
   };
 
@@ -95,18 +113,58 @@ function App() {
     
     // Auto-save the story description
     if (selectedStory) {
-      const updatedStory = { ...selectedStory, description: newDescription, updatedAt: new Date() };
-      StoryService.updateStory(selectedStory.id, updatedStory);
-      setSelectedStory(updatedStory);
+      const activeBookData = BookService.getActiveBookData();
+      if (!activeBookData) return;
+      
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === selectedStory.id) {
+          return { ...s, description: newDescription, updatedAt: new Date() };
+        }
+        return s;
+      });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
+      
+      const updatedStory = updatedStories.find(s => s.id === selectedStory.id);
+      setSelectedStory(updatedStory || null);
     }
   };
+
+  // Book management
+  const handleBookSelect = (bookId: string) => {
+    const data = BookService.getBookData(bookId);
+    if (data) {
+      setBookData(data);
+      setSelectedStory(null);
+      setSelectedScene(null);
+      setStoryTitle('');
+      setStoryDescription('');
+    }
+  };
+
+  const handleBookUpdate = () => {
+    setRefreshKey(prev => prev + 1);
+    // Reload current book data
+    const activeBookId = BookService.getActiveBookId();
+    if (activeBookId) {
+      const data = BookService.getBookData(activeBookId);
+      setBookData(data);
+    }
+  };
+
+  // Load initial book data
+  React.useEffect(() => {
+    const data = BookService.getActiveBookData();
+    setBookData(data);
+  }, []);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
   const navigateToStoryEditor = () => {
-    setActiveTab(3); // Story Editor tab
+    setActiveTab(4); // Story Editor tab
   };
 
   return (
@@ -125,14 +183,24 @@ function App() {
       <Container maxWidth="xl" sx={{ mt: 4, mb: 4, height: 'calc(100vh - 100px)' }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs value={activeTab} onChange={handleTabChange}>
-            <Tab label="Stories" />
-            <Tab label="Characters" disabled={!selectedStory} />
-            <Tab label="Elements" disabled={!selectedStory} />
+            <Tab label="Books" />
+            <Tab label="Stories" disabled={!bookData} />
+            <Tab label="Book Characters" disabled={!bookData} />
+            <Tab label="Book Elements" disabled={!bookData} />
             <Tab label="Story Editor" disabled={!selectedStory} />
           </Tabs>
         </Box>
 
         {activeTab === 0 && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <FileManager
+              onBookSelect={handleBookSelect}
+              onBookUpdate={handleBookUpdate}
+            />
+          </Box>
+        )}
+
+        {activeTab === 1 && bookData && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <StoriesPanel
               key={refreshKey}
@@ -144,25 +212,23 @@ function App() {
           </Box>
         )}
 
-        {activeTab === 1 && selectedStory && (
+        {activeTab === 2 && bookData && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <CastManager
-              story={selectedStory}
               onStoryUpdate={handleStoryUpdate}
             />
           </Box>
         )}
 
-        {activeTab === 2 && selectedStory && (
+        {activeTab === 3 && bookData && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <ElementsManager
-              story={selectedStory}
               onStoryUpdate={handleStoryUpdate}
             />
           </Box>
         )}
 
-        {activeTab === 3 && selectedStory && (
+        {activeTab === 4 && selectedStory && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Story Title and Description */}
             <Box sx={{ 

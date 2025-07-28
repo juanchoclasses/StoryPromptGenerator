@@ -22,15 +22,14 @@ import {
   Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
-import type { Story, StoryElement } from '../types/Story';
-import { StoryService } from '../services/StoryService';
+import type { StoryElement } from '../types/Story';
+import { BookService } from '../services/BookService';
 
 interface ElementsManagerProps {
-  story: Story | null;
   onStoryUpdate: () => void;
 }
 
-export const ElementsManager: React.FC<ElementsManagerProps> = ({ story, onStoryUpdate }) => {
+export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const [editingElement, setEditingElement] = useState<StoryElement | null>(null);
   const [elementName, setElementName] = useState('');
@@ -54,24 +53,43 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ story, onStory
   };
 
   const handleDeleteElement = (elementId: string) => {
-    if (!story) return;
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData) return;
+    
     if (window.confirm('Are you sure you want to delete this element? This will also remove it from all scenes.')) {
-      StoryService.deleteElement(elementId);
+      const updatedElements = activeBookData.elements.filter(element => element.id !== elementId);
+      const updatedData = { ...activeBookData, elements: updatedElements };
+      BookService.saveActiveBookData(updatedData);
       onStoryUpdate();
     }
   };
 
   const handleSaveElement = () => {
-    if (!story || !elementName.trim()) return;
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData || !elementName.trim()) return;
 
     if (editingElement) {
-      StoryService.updateElement(editingElement.id, {
+      // Update existing element
+      const updatedElements = activeBookData.elements.map(element => 
+        element.id === editingElement.id 
+          ? { ...element, name: elementName.trim(), description: elementDescription, category: elementCategory.trim() || undefined }
+          : element
+      );
+      const updatedData = { ...activeBookData, elements: updatedElements };
+      BookService.saveActiveBookData(updatedData);
+    } else {
+      // Create new element
+      const newElement: StoryElement = {
+        id: crypto.randomUUID(),
         name: elementName.trim(),
         description: elementDescription,
         category: elementCategory.trim() || undefined
-      });
-    } else {
-      StoryService.addElementToStory(elementName.trim(), elementDescription, elementCategory.trim() || undefined);
+      };
+      const updatedData = { 
+        ...activeBookData, 
+        elements: [...activeBookData.elements, newElement] 
+      };
+      BookService.saveActiveBookData(updatedData);
     }
 
     setOpenDialog(false);
@@ -79,11 +97,11 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ story, onStory
   };
 
   const getElementsByCategory = () => {
-    if (!story) return {};
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData) return {};
     
     const categories: { [key: string]: StoryElement[] } = {};
-    const allElements = StoryService.getAllElements();
-    allElements.forEach(element => {
+    activeBookData.elements.forEach((element: StoryElement) => {
       const category = element.category || 'Uncategorized';
       if (!categories[category]) {
         categories[category] = [];
@@ -94,11 +112,13 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ story, onStory
     return categories;
   };
 
-  if (!story) {
+  // Check if there's an active book instead of requiring a story
+  const activeBookData = BookService.getActiveBookData();
+  if (!activeBookData) {
     return (
       <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
         <Typography variant="h6" color="text.secondary">
-          Select a story to manage elements
+          Select a book to manage elements
         </Typography>
       </Paper>
     );
@@ -118,7 +138,7 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ story, onStory
       <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
                   <Typography variant="h5" component="h2">
-          Story Elements ({StoryService.getAllElements().length})
+          Story Elements ({activeBookData.elements.length})
         </Typography>
           <Button
             variant="contained"
@@ -149,13 +169,13 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ story, onStory
           background: '#a8a8a8',
         },
       }}>
-        {StoryService.getAllElements().length === 0 ? (
+        {activeBookData.elements.length === 0 ? (
           <Box textAlign="center" py={4}>
             <Typography variant="h6" color="text.secondary" gutterBottom>
               No elements yet
             </Typography>
             <Typography variant="body2" color="text.secondary" mb={2}>
-              Add elements to your story to use in scenes
+              Add elements to your book to use in scenes across all stories
             </Typography>
             <Button
               variant="contained"

@@ -22,15 +22,14 @@ import {
   Person as PersonIcon,
   ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
-import type { Character, Story } from '../types/Story';
-import { StoryService } from '../services/StoryService';
+import type { Character } from '../types/Story';
+import { BookService } from '../services/BookService';
 
 interface CastManagerProps {
-  story: Story | null;
   onStoryUpdate: () => void;
 }
 
-export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }) => {
+export const CastManager: React.FC<CastManagerProps> = ({ onStoryUpdate }) => {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
@@ -38,15 +37,17 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
   const [characterDescription, setCharacterDescription] = useState('');
 
   useEffect(() => {
-    if (story) {
-      setCharacters(StoryService.getAllCharacters());
+    const activeBookData = BookService.getActiveBookData();
+    if (activeBookData) {
+      setCharacters(activeBookData.characters);
     } else {
       setCharacters([]);
     }
-  }, [story]);
+  }, []);
 
   const handleAddCharacter = () => {
-    if (!story) return;
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData) return;
     setEditingCharacter(null);
     setCharacterName('');
     setCharacterDescription('');
@@ -61,36 +62,58 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
   };
 
   const handleDeleteCharacter = (characterId: string) => {
-    if (!story) return;
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData) return;
+    
     if (window.confirm('Are you sure you want to delete this character? This will also remove them from all scenes.')) {
-      StoryService.deleteCharacter(characterId);
-      setCharacters(StoryService.getAllCharacters());
+      const updatedCharacters = activeBookData.characters.filter(char => char.id !== characterId);
+      const updatedData = { ...activeBookData, characters: updatedCharacters };
+      BookService.saveActiveBookData(updatedData);
+      setCharacters(updatedCharacters);
       onStoryUpdate();
     }
   };
 
   const handleSaveCharacter = () => {
-    if (!story || !characterName.trim()) return;
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData || !characterName.trim()) return;
 
     if (editingCharacter) {
-      StoryService.updateCharacter(editingCharacter.id, {
+      // Update existing character
+      const updatedCharacters = activeBookData.characters.map(char => 
+        char.id === editingCharacter.id 
+          ? { ...char, name: characterName.trim(), description: characterDescription }
+          : char
+      );
+      const updatedData = { ...activeBookData, characters: updatedCharacters };
+      BookService.saveActiveBookData(updatedData);
+      setCharacters(updatedCharacters);
+    } else {
+      // Create new character
+      const newCharacter: Character = {
+        id: crypto.randomUUID(),
         name: characterName.trim(),
         description: characterDescription
-      });
-    } else {
-      StoryService.addCharacterToCast(characterName.trim(), characterDescription);
+      };
+      const updatedData = { 
+        ...activeBookData, 
+        characters: [...activeBookData.characters, newCharacter] 
+      };
+      BookService.saveActiveBookData(updatedData);
+      setCharacters(updatedData.characters);
     }
 
     setOpenDialog(false);
-    setCharacters(StoryService.getAllCharacters());
     onStoryUpdate();
   };
 
-  if (!story) {
+  // Check if there's an active book instead of requiring a story
+  const activeBookData = BookService.getActiveBookData();
+  if (!activeBookData) {
     return (
       <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
         <Typography variant="h6" color="text.secondary">
-          Select a story to manage cast
+          Select a book to manage characters
         </Typography>
       </Paper>
     );
@@ -149,7 +172,7 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
               No characters yet
             </Typography>
             <Typography variant="body2" color="text.secondary" mb={3}>
-              Add characters to your story's cast to use them in scenes
+              Add characters to your book's cast to use them in scenes across all stories
             </Typography>
             <Button
               variant="outlined"

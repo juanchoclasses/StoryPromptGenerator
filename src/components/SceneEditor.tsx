@@ -24,7 +24,7 @@ import {
   Person as PersonIcon
 } from '@mui/icons-material';
 import type { Scene, Story } from '../types/Story';
-import { StoryService } from '../services/StoryService';
+import { BookService } from '../services/BookService';
 
 interface SceneEditorProps {
   story: Story | null;
@@ -64,18 +64,25 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     
     // Auto-save the scene title
     if (story && currentScene) {
-      const updatedStory = { ...story };
-      const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
-      if (sceneIndex !== -1) {
-        updatedStory.scenes[sceneIndex] = {
-          ...updatedStory.scenes[sceneIndex],
-          title: newTitle,
-          updatedAt: new Date()
-        };
-        updatedStory.updatedAt = new Date();
-        StoryService.updateStory(story.id, updatedStory);
-        onStoryUpdate();
-      }
+      const activeBookData = BookService.getActiveBookData();
+      if (!activeBookData) return;
+      
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === story.id) {
+          const updatedScenes = s.scenes.map(scene => {
+            if (scene.id === currentScene.id) {
+              return { ...scene, title: newTitle, updatedAt: new Date() };
+            }
+            return scene;
+          });
+          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+        }
+        return s;
+      });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
+      onStoryUpdate();
     }
   };
 
@@ -85,18 +92,25 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     
     // Auto-save the scene description
     if (story && currentScene) {
-      const updatedStory = { ...story };
-      const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
-      if (sceneIndex !== -1) {
-        updatedStory.scenes[sceneIndex] = {
-          ...updatedStory.scenes[sceneIndex],
-          description: newDescription,
-          updatedAt: new Date()
-        };
-        updatedStory.updatedAt = new Date();
-        StoryService.updateStory(story.id, updatedStory);
-        onStoryUpdate();
-      }
+      const activeBookData = BookService.getActiveBookData();
+      if (!activeBookData) return;
+      
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === story.id) {
+          const updatedScenes = s.scenes.map(scene => {
+            if (scene.id === currentScene.id) {
+              return { ...scene, description: newDescription, updatedAt: new Date() };
+            }
+            return scene;
+          });
+          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+        }
+        return s;
+      });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
+      onStoryUpdate();
     }
   };
 
@@ -107,23 +121,28 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     const characterIds = typeof value === 'string' ? value.split(',') : value;
     setSelectedCharacters(characterIds);
     
-    // Update the scene's character IDs by updating the story
-    const updatedStory = { ...story };
-    const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
-    if (sceneIndex !== -1) {
-      updatedStory.scenes[sceneIndex] = {
-        ...updatedStory.scenes[sceneIndex],
-        characterIds: characterIds,
-        updatedAt: new Date()
-      };
-      updatedStory.updatedAt = new Date();
-      
-      // Update the story through the service
-      StoryService.updateStory(story.id, updatedStory);
-      
-      // Trigger update
-      onStoryUpdate();
-    }
+    // Update the scene's character IDs by updating the book data
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData) return;
+    
+    const updatedStories = activeBookData.stories.map(s => {
+      if (s.id === story.id) {
+        const updatedScenes = s.scenes.map(scene => {
+          if (scene.id === currentScene.id) {
+            return { ...scene, characterIds: characterIds, updatedAt: new Date() };
+          }
+          return scene;
+        });
+        return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+      }
+      return s;
+    });
+    
+    const updatedData = { ...activeBookData, stories: updatedStories };
+    BookService.saveActiveBookData(updatedData);
+    
+    // Trigger update
+    onStoryUpdate();
   };
 
   const handleElementSelection = (event: SelectChangeEvent<string[]>) => {
@@ -133,23 +152,28 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     const elementIds = typeof value === 'string' ? value.split(',') : value;
     setSelectedElements(elementIds);
     
-    // Update the scene's element IDs by updating the story
-    const updatedStory = { ...story };
-    const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
-    if (sceneIndex !== -1) {
-      updatedStory.scenes[sceneIndex] = {
-        ...updatedStory.scenes[sceneIndex],
-        elementIds: elementIds,
-        updatedAt: new Date()
-      };
-      updatedStory.updatedAt = new Date();
-      
-      // Update the story through the service
-      StoryService.updateStory(story.id, updatedStory);
-      
-      // Trigger update
-      onStoryUpdate();
-    }
+    // Update the scene's element IDs by updating the book data
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData) return;
+    
+    const updatedStories = activeBookData.stories.map(s => {
+      if (s.id === story.id) {
+        const updatedScenes = s.scenes.map(scene => {
+          if (scene.id === currentScene.id) {
+            return { ...scene, elementIds: elementIds, updatedAt: new Date() };
+          }
+          return scene;
+        });
+        return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+      }
+      return s;
+    });
+    
+    const updatedData = { ...activeBookData, stories: updatedStories };
+    BookService.saveActiveBookData(updatedData);
+    
+    // Trigger update
+    onStoryUpdate();
   };
 
 
@@ -160,7 +184,17 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     const selectedCast = availableCharacters.filter(char => currentScene.characterIds.includes(char.id));
     const selectedElements = availableElements.filter(elem => (currentScene.elementIds || []).includes(elem.id));
     
+    // Get the active book information
+    const bookCollection = BookService.getBookCollection();
+    const activeBookId = BookService.getActiveBookId();
+    const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
+    
     let prompt = `I need you to create me an image according to the following data.\n\n`;
+    
+    if (activeBook?.description) {
+      prompt += `## Book Description\n${activeBook.description}\n\n`;
+    }
+    
     prompt += `## Background Setup\n${story.backgroundSetup}\n\n`;
     prompt += `## Scene: ${currentScene.title}\n`;
     prompt += `${currentScene.description}\n\n`;
@@ -180,6 +214,54 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     }
 
     return prompt;
+  };
+
+  const updateSceneCharacterIds = (newCharacterIds: string[]) => {
+    if (story && currentScene) {
+      const activeBookData = BookService.getActiveBookData();
+      if (!activeBookData) return;
+      
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === story.id) {
+          const updatedScenes = s.scenes.map(scene => {
+            if (scene.id === currentScene.id) {
+              return { ...scene, characterIds: newCharacterIds, updatedAt: new Date() };
+            }
+            return scene;
+          });
+          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+        }
+        return s;
+      });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
+      onStoryUpdate();
+    }
+  };
+
+  const updateSceneElementIds = (newElementIds: string[]) => {
+    if (story && currentScene) {
+      const activeBookData = BookService.getActiveBookData();
+      if (!activeBookData) return;
+      
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === story.id) {
+          const updatedScenes = s.scenes.map(scene => {
+            if (scene.id === currentScene.id) {
+              return { ...scene, elementIds: newElementIds, updatedAt: new Date() };
+            }
+            return scene;
+          });
+          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+        }
+        return s;
+      });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
+      onStoryUpdate();
+    }
   };
 
   const handleCopyPrompt = async () => {
@@ -215,8 +297,9 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     );
   }
 
-  const availableCharacters = StoryService.getAllCharacters();
-  const availableElements = StoryService.getAllElements();
+      const activeBookData = BookService.getActiveBookData();
+    const availableCharacters = activeBookData?.characters || [];
+    const availableElements = activeBookData?.elements || [];
 
   return (
     <Paper elevation={2} sx={{ 
@@ -363,19 +446,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
                       onDelete={() => {
                         const newSelection = selectedCharacters.filter(id => id !== characterId);
                         setSelectedCharacters(newSelection);
-                        // Update the scene's character IDs
-                        if (story && currentScene) {
-                          const updatedStory = StoryService.getStoryById(story.id);
-                          if (updatedStory) {
-                            const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
-                            if (sceneIndex !== -1) {
-                              updatedStory.scenes[sceneIndex].characterIds = newSelection;
-                              updatedStory.scenes[sceneIndex].updatedAt = new Date();
-                              updatedStory.updatedAt = new Date();
-                              onStoryUpdate();
-                            }
-                          }
-                        }
+                        updateSceneCharacterIds(newSelection);
                       }}
                     />
                   ) : (
@@ -388,19 +459,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
                       onDelete={() => {
                         const newSelection = selectedCharacters.filter(id => id !== characterId);
                         setSelectedCharacters(newSelection);
-                        // Update the scene's character IDs
-                        if (story && currentScene) {
-                          const updatedStory = StoryService.getStoryById(story.id);
-                          if (updatedStory) {
-                            const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
-                            if (sceneIndex !== -1) {
-                              updatedStory.scenes[sceneIndex].characterIds = newSelection;
-                              updatedStory.scenes[sceneIndex].updatedAt = new Date();
-                              updatedStory.updatedAt = new Date();
-                              onStoryUpdate();
-                            }
-                          }
-                        }
+                        updateSceneCharacterIds(newSelection);
                       }}
                     />
                   );
@@ -493,19 +552,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
                       onDelete={() => {
                         const newSelection = selectedElements.filter(id => id !== elementId);
                         setSelectedElements(newSelection);
-                        // Update the scene's element IDs
-                        if (story && currentScene) {
-                          const updatedStory = StoryService.getStoryById(story.id);
-                          if (updatedStory) {
-                            const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
-                            if (sceneIndex !== -1) {
-                              updatedStory.scenes[sceneIndex].elementIds = newSelection;
-                              updatedStory.scenes[sceneIndex].updatedAt = new Date();
-                              updatedStory.updatedAt = new Date();
-                              onStoryUpdate();
-                            }
-                          }
-                        }
+                        updateSceneElementIds(newSelection);
                       }}
                     />
                   ) : (
@@ -518,19 +565,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
                       onDelete={() => {
                         const newSelection = selectedElements.filter(id => id !== elementId);
                         setSelectedElements(newSelection);
-                        // Update the scene's element IDs
-                        if (story && currentScene) {
-                          const updatedStory = StoryService.getStoryById(story.id);
-                          if (updatedStory) {
-                            const sceneIndex = updatedStory.scenes.findIndex(s => s.id === currentScene.id);
-                            if (sceneIndex !== -1) {
-                              updatedStory.scenes[sceneIndex].elementIds = newSelection;
-                              updatedStory.scenes[sceneIndex].updatedAt = new Date();
-                              updatedStory.updatedAt = new Date();
-                              onStoryUpdate();
-                            }
-                          }
-                        }
+                        updateSceneElementIds(newSelection);
                       }}
                     />
                   );

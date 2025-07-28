@@ -1,4 +1,4 @@
-import type { StoryData, Story, Scene, Character } from '../types/Story';
+import type { StoryData, Story, Scene, Character, StoryElement } from '../types/Story';
 import { CURRENT_VERSION } from '../types/Story';
 
 export interface MigrationResult {
@@ -166,24 +166,7 @@ export class MigrationService {
 
 
 
-  /**
-   * Migrate a story with characters to current format
-   */
-  private static migrateStoryWithCharacters(story: any): Story {
-    const { cast, scenes } = this.migrateScenesWithCharacters(story.scenes || []);
-    
-    return {
-      id: story.id || crypto.randomUUID(),
-      title: story.title || 'Untitled Story',
-      description: story.description || '',
-      backgroundSetup: story.backgroundSetup || '',
-      cast: cast,
-      elements: [], // Initialize empty elements array
-      scenes: scenes,
-      createdAt: new Date(story.createdAt || Date.now()),
-      updatedAt: new Date(story.updatedAt || Date.now())
-    };
-  }
+
 
   /**
    * Migrate scenes with characters to global cast

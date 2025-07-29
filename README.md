@@ -1,201 +1,235 @@
-# Story Prompt Editor
+# Story Prompt Generator
 
-A modern, feature-rich story prompt editor built with React, TypeScript, and Material UI. This application helps writers organize their stories with structured scenes, characters, and elements, making it easy to generate comprehensive prompts for AI writing tools.
+A comprehensive web application for creating, organizing, and generating AI image prompts for storytelling and creative projects. Built with React, TypeScript, and Material-UI.
 
-## Features
+## 🌟 Features
 
-### 📚 **Story Management**
-- **Multiple Stories**: Create and manage multiple stories in one application
-- **Story Organization**: Each story has its own background setup, cast, and scenes
+### 📚 Book Management
+- **Multi-book Organization**: Create and manage multiple books to organize your stories
+- **Book Metadata**: Add titles and descriptions to provide context for your creative projects
+- **Import/Export**: Backup and restore your books with JSON export/import functionality
+- **Data Migration**: Automatic migration from older data formats
+
+### 📖 Story Creation
+- **Story Structure**: Create stories with titles, descriptions, and background setups
+- **Scene Management**: Organize stories into individual scenes with detailed descriptions
 - **Auto-save**: All changes are automatically saved to local storage
-- **Version Control**: Data is versioned and automatically migrated between updates
+- **Version Control**: Built-in data versioning with automatic migration
 
-### 👥 **Cast of Characters**
-- **Global Cast**: Define characters once for the entire story
-- **Character Profiles**: Each character has a name and detailed description
-- **Reusable Characters**: Characters can be used across multiple scenes
-- **Character Management**: Add, edit, and delete characters from the story's cast
+### 🎭 Character Management
+- **Global Cast**: Define characters that can be used across multiple scenes and stories
+- **Character Details**: Add names and detailed descriptions for each character
+- **Scene Assignment**: Assign characters to specific scenes for focused storytelling
 
-### 🎬 **Scene Management**
-- **Scene Creation**: Create multiple scenes within each story
-- **Scene Descriptions**: Add detailed descriptions for each scene
-- **Character Selection**: Select which characters appear in each scene from the story's cast
-- **Scene Elements**: Add specific elements and events within each scene
+### 🎨 Element Management
+- **Story Elements**: Create objects, props, and environmental elements
+- **Categorization**: Organize elements with optional categories
+- **Scene Integration**: Add elements to scenes for rich visual descriptions
 
-### 📝 **Prompt Generation**
-- **Smart Prompts**: Generate comprehensive prompts combining background, scene details, and characters
-- **Clipboard Integration**: One-click copying to clipboard for use with AI tools
-- **Structured Format**: Prompts are formatted in clear, organized Markdown
+### 🤖 AI Prompt Generation
+- **Structured Prompts**: Generate comprehensive prompts for AI image generation
+- **Context-Aware**: Includes book description, background setup, scene details, characters, and elements
+- **Copy to Clipboard**: One-click prompt copying for easy use with AI services
+- **Rich Context**: Prompts include all relevant information for accurate image generation
 
-### 💾 **Data Persistence**
+### 💾 Data Management
 - **Local Storage**: All data is stored locally in your browser
 - **No Server Required**: Works completely offline
-- **Data Safety**: Automatic backups and version migration
-- **Cross-platform**: Works on any device with a modern browser
+- **Data Export**: Backup your entire book collection
+- **Migration Support**: Automatic upgrades from older data formats
 
-## Tech Stack
+## 🏗️ Architecture
 
+### Technology Stack
 - **Frontend**: React 19 with TypeScript
-- **UI Framework**: Material UI v7
-- **Build Tool**: Vite
-- **State Management**: React Hooks with local storage
-- **Styling**: Material UI theming system
+- **UI Framework**: Material-UI (MUI) with custom theming
+- **Build Tool**: Vite for fast development and optimized builds
+- **Deployment**: GitHub Pages for static hosting
 
-## Getting Started
+### Project Structure
+```
+src/
+├── components/          # React components
+│   ├── BackgroundSetup.tsx    # Story background editor
+│   ├── CastManager.tsx        # Character management
+│   ├── ElementsManager.tsx    # Story elements management
+│   ├── FileManager.tsx        # Book management interface
+│   ├── SceneEditor.tsx        # Scene editing and prompt generation
+│   ├── SceneList.tsx          # Scene navigation
+│   ├── StoriesPanel.tsx       # Story management
+│   └── VersionInfo.tsx        # Version display
+├── services/           # Business logic and data management
+│   ├── BookService.ts         # Book and data management
+│   ├── MigrationService.ts    # Data version migration
+│   └── PromptService.ts       # Prompt management
+├── types/             # TypeScript type definitions
+│   ├── Book.ts               # Book-related types
+│   ├── Prompt.ts             # Prompt-related types
+│   └── Story.ts              # Story and scene types
+└── App.tsx           # Main application component
+```
 
-### Prerequisites
-- Node.js (version 18 or higher)
-- npm or yarn
+### Data Models
 
-### Installation
+#### Book Structure
+```typescript
+interface Book {
+  id: string;
+  title: string;
+  description?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd prompter
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-
-4. **Open your browser**
-   Navigate to `http://localhost:5173`
-
-## Usage
-
-### Creating Your First Story
-
-1. **Open the Stories Tab**
-   - Click on the "Stories" tab in the main navigation
-   - Click "Add New Story" to create your first story
-
-2. **Add Characters to the Cast**
-   - In the "Cast of Characters" section, click "Add Character"
-   - Enter the character's name and description
-   - Repeat for all characters in your story
-
-3. **Set the Background**
-   - Switch to the "Story Editor" tab
-   - In the "Background Setup" section, describe your story's world and setting
-
-4. **Create Scenes**
-   - In the "Scenes" panel, click "Add Scene"
-   - Give your scene a title and description
-   - Select which characters appear in this scene from the cast
-
-5. **Add Scene Elements**
-   - Select a scene to edit its details
-   - Add specific elements, events, or plot points for the scene
-   - These will be included in your generated prompts
-
-6. **Generate Prompts**
-   - Click "Get Prompt" on any scene to generate a comprehensive prompt
-   - The prompt will include background, scene details, and character information
-   - Use this prompt with your favorite AI writing tool
-
-### Data Structure
-
-Each story contains:
-
+#### Story Structure
 ```typescript
 interface Story {
   id: string;
   title: string;
   description?: string;
   backgroundSetup: string;
-  cast: Character[];           // Global cast of characters
-  elements: StoryElement[];    // Global elements for the story
   scenes: Scene[];
   createdAt: Date;
   updatedAt: Date;
 }
+```
 
-interface Character {
-  id: string;
-  name: string;
-  description: string;
-}
-
-interface StoryElement {
-  id: string;
-  name: string;
-  description: string;
-  category?: string;
-}
-
+#### Scene Structure
+```typescript
 interface Scene {
   id: string;
   title: string;
   description: string;
-  characterIds: string[];      // References to characters in cast
-  elementIds: string[];        // References to elements in story
+  characterIds: string[];      // References to characters
+  elementIds: string[];        // References to elements
   createdAt: Date;
   updatedAt: Date;
 }
 ```
 
-### Data Persistence
+## 🚀 Getting Started
 
-- **Storage Location**: Browser's local storage (`localStorage`)
-- **Storage Key**: `story-data`
-- **Format**: JSON with versioning support
-- **Auto-save**: Changes are saved automatically
-- **Migration**: Data is automatically migrated between versions
+### Prerequisites
+- Node.js (version 16 or higher)
+- npm or yarn package manager
 
-### Version Control
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/juanchoclasses/StoryPromptGenerator.git
+   cd StoryPromptGenerator
+   ```
 
-The application includes a robust versioning system:
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-- **Current Version**: 1.0.0
-- **Automatic Migration**: Old data formats are automatically upgraded
-- **Backward Compatibility**: All previous data formats are supported
-- **Version Display**: Current data version is shown in the app bar
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-## Development
+4. Open your browser and navigate to `http://localhost:5173`
 
-### Project Structure
-
+### Building for Production
+```bash
+npm run build
 ```
-src/
-├── components/          # React components
-│   ├── BackgroundSetup.tsx
-│   ├── CastManager.tsx
-│   ├── SceneEditor.tsx
-│   ├── SceneList.tsx
-│   ├── StoriesPanel.tsx
-│   └── VersionInfo.tsx
-├── services/           # Business logic and data management
-│   ├── BookService.ts
-│   ├── MigrationService.ts
-│   └── PromptService.ts
-├── types/             # TypeScript type definitions
-│   └── Story.ts
-└── App.tsx           # Main application component
+
+### Deployment
+The application is automatically deployed to GitHub Pages:
+```bash
+npm run deploy
 ```
+
+## 📖 Usage Guide
+
+### Creating Your First Book
+1. Open the application and navigate to the "Books" tab
+2. Click "New Book" to create your first book
+3. Enter a title and optional description
+4. Click "Create" to save your book
+
+### Adding Stories
+1. Select a book from the Books tab
+2. Navigate to the "Stories" tab
+3. Click "New Story" to create your first story
+4. Enter a title and description for your story
+
+### Managing Characters
+1. Navigate to the "Book Characters" tab
+2. Click "Add Character" to create new characters
+3. Provide a name and detailed description
+4. Characters can be assigned to scenes in the Story Editor
+
+### Managing Elements
+1. Navigate to the "Book Elements" tab
+2. Click "Add Element" to create story elements
+3. Provide a name, description, and optional category
+4. Elements can be assigned to scenes in the Story Editor
+
+### Creating Scenes
+1. Select a story in the Stories tab
+2. Click "New Scene" to add a scene
+3. Enter a title and description for the scene
+4. Assign characters and elements to the scene
+
+### Generating Prompts
+1. Navigate to the "Story Editor" tab
+2. Select a scene from the scene list
+3. Customize the scene details, characters, and elements
+4. Click "Get Prompt" to generate and copy the AI prompt
+
+## 🔧 Development
 
 ### Available Scripts
-
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
-- `npm run type-check` - Run TypeScript type checking
+- `npm run deploy` - Deploy to GitHub Pages
 
-## Contributing
+### Code Style
+- TypeScript for type safety
+- ESLint for code linting
+- Material-UI for consistent UI components
+- Functional components with React hooks
+
+### Data Persistence
+- All data is stored in browser localStorage
+- Automatic data migration between versions
+- Export/import functionality for data backup
+
+## 🌐 Live Application
+
+The application is live at: **[https://juanchoclasses.github.io/StoryPromptGenerator](https://juanchoclasses.github.io/StoryPromptGenerator)**
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## License
+## 📝 License
 
 This project is open source and available under the [MIT License](LICENSE).
+
+## 🆘 Support
+
+If you encounter any issues or have questions:
+1. Check the [GitHub Issues](https://github.com/juanchoclasses/StoryPromptGenerator/issues)
+2. Create a new issue with detailed information about your problem
+3. Include browser version and any error messages
+
+## 🔄 Version History
+
+- **v2.0.0**: Complete rewrite with book-based organization
+- **v1.0.0**: Initial release with story management
+
+---
+
+**Built with ❤️ using React, TypeScript, and Material-UI**

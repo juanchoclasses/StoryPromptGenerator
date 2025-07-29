@@ -21,6 +21,7 @@ import { CastManager } from './components/CastManager';
 import { ElementsManager } from './components/ElementsManager';
 import { FileManager } from './components/FileManager';
 import { VersionInfo } from './components/VersionInfo';
+import { AboutPanel } from './components/AboutPanel';
 import type { Scene, Story } from './types/Story';
 import type { StoryData } from './types/Story';
 import { BookService } from './services/BookService';
@@ -188,6 +189,7 @@ function App() {
             <Tab label="Book Characters" disabled={!bookData} />
             <Tab label="Book Elements" disabled={!bookData} />
             <Tab label="Story Editor" disabled={!selectedStory} />
+            <Tab label="About" />
           </Tabs>
         </Box>
 
@@ -293,6 +295,12 @@ function App() {
                 />
               </Box>
             </Box>
+          </Box>
+        )}
+
+        {activeTab === 5 && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <AboutPanel />
           </Box>
         )}
       </Container>

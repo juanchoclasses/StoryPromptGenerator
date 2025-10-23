@@ -303,15 +303,29 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       'SceneDescription': currentScene.description || ''
     };
     
-    let prompt = `I need you to create me an image according to the following data.\n\n`;
+    let prompt = `Create an illustration in the whimsical Dr. Seuss style with the following requirements:
+
+STYLE DIRECTIVES:
+- Use vibrant, playful cartoon characters with exaggerated features
+- Apply a soft, cheerful color palette typical of children's books
+- Include clear, bold outlines around all elements
+- Render in detailed 2D art style with a hand-drawn feel
+- Emphasize whimsy and imagination in the composition
+
+TECHNICAL REQUIREMENTS:
+- Aspect ratio: 3:4 (portrait orientation for booklet printing)
+- Do NOT include any text, titles, or labels in the image
+- Focus solely on visual storytelling
+
+SCENE CONTENT:
+`;
     
     if (activeBook?.description) {
-      prompt += `## Book Description\n${activeBook.description}\n\n`;
+      prompt += `\n## Book Context\n${activeBook.description}\n\n`;
     }
     
     prompt += `## Background Setup\n${story.backgroundSetup}\n\n`;
-    prompt += `## Scene: ${currentScene.title}\n`;
-    prompt += `${currentScene.description}\n\n`;
+    prompt += `## Scene Description\n${currentScene.description}\n\n`;
     
     if (selectedCast.length > 0) {
       prompt += `## Characters in this Scene\n`;
@@ -417,12 +431,12 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             // Replace macros in the text panel
             const panelText = replaceMacros(textPanel, macros);
             
-            // Overlay text onto image (using standard 1024x1024 dimensions)
-            // Note: Assumes most AI-generated images are 1024x1024
+            // Overlay text onto image (using 3:4 portrait aspect ratio)
+            // Standard dimensions: 768x1024 or scaled accordingly
             finalImageUrl = await overlayTextOnImage(
               result.imageUrl,
               panelText,
-              1024,
+              768,
               1024
             );
           } catch (overlayError) {

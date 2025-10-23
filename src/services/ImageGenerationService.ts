@@ -45,7 +45,10 @@ export class ImageGenerationService {
               role: 'user',
               content: options.prompt
             }
-          ]
+          ],
+          image_config: {
+            aspect_ratio: '3:4' // Portrait orientation for booklet printing
+          }
         })
       });
 

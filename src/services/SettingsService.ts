@@ -10,7 +10,7 @@ export class SettingsService {
     const stored = localStorage.getItem(SETTINGS_KEY);
     if (!stored) {
       return {
-        imageGenerationModel: 'openai/gpt-4o'
+        imageGenerationModel: 'google/gemini-2.5-flash-image-preview'
       };
     }
     
@@ -19,7 +19,7 @@ export class SettingsService {
     } catch (error) {
       console.error('Error parsing settings:', error);
       return {
-        imageGenerationModel: 'openai/gpt-4o'
+        imageGenerationModel: 'google/gemini-2.5-flash-image-preview'
       };
     }
   }
@@ -45,7 +45,7 @@ export class SettingsService {
   }
 
   static getImageGenerationModel(): string {
-    return this.getSettings().imageGenerationModel || 'openai/gpt-4o';
+    return this.getSettings().imageGenerationModel || 'google/gemini-2.5-flash-image-preview';
   }
 
   static setImageGenerationModel(model: string): void {

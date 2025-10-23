@@ -72,11 +72,18 @@ export class ImageGenerationService {
         };
       }
 
-      // Handle different response formats
+      // Per OpenRouter docs, images are in message.images array
       let imageUrl: string | undefined;
 
-      // Check for content array (multimodal response)
-      if (Array.isArray(message.content)) {
+      // Primary format: message.images array (official OpenRouter format)
+      if (message.images && Array.isArray(message.images) && message.images.length > 0) {
+        const firstImage = message.images[0];
+        if (firstImage.image_url?.url) {
+          imageUrl = firstImage.image_url.url;
+        }
+      }
+      // Fallback: Check for content array (alternative multimodal response format)
+      else if (Array.isArray(message.content)) {
         for (const item of message.content) {
           if (item.type === 'image_url' && item.image_url?.url) {
             imageUrl = item.image_url.url;
@@ -84,18 +91,18 @@ export class ImageGenerationService {
           }
         }
       }
-      // Check for string content
+      // Fallback: Check string content for URLs
       else if (typeof message.content === 'string') {
         const content = message.content;
         
-        // Check if it's a URL
-        if (content.startsWith('http://') || content.startsWith('https://')) {
-          imageUrl = content;
-        } 
-        // Check if it's a data URL
-        else if (content.startsWith('data:image/')) {
+        // Check if it's a data URL (base64 image)
+        if (content.startsWith('data:image/')) {
           imageUrl = content;
         }
+        // Check if it's a URL
+        else if (content.startsWith('http://') || content.startsWith('https://')) {
+          imageUrl = content;
+        } 
         // Check if it contains a URL in markdown or text
         else {
           const urlMatch = content.match(/https?:\/\/[^\s)]+\.(png|jpg|jpeg|gif|webp)/i);
@@ -108,7 +115,7 @@ export class ImageGenerationService {
       if (!imageUrl) {
         return {
           success: false,
-          error: `Could not extract image from API response. The model may not support image generation.\n\nResponse received:\n${JSON.stringify(message, null, 2)}`
+          error: `Could not extract image from API response. The model may not support image generation.\n\nResponse received:\n${JSON.stringify(message, null, 2)}\n\nTip: Make sure you're using an image-capable model like 'google/gemini-2.5-flash-image-preview'`
         };
       }
 

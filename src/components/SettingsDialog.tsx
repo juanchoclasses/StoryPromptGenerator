@@ -23,13 +23,11 @@ interface SettingsDialogProps {
 }
 
 const IMAGE_MODELS = [
-  { value: 'openai/gpt-4o', label: 'OpenAI GPT-4o (Recommended - Image Generation)' },
+  { value: 'google/gemini-2.5-flash-image-preview', label: 'Google Gemini 2.5 Flash Image (Recommended)' },
+  { value: 'google/gemini-2.0-flash-exp:image-generation', label: 'Google Gemini 2.0 Flash Image' },
+  { value: 'google/gemini-flash-1.5-exp', label: 'Google Gemini Flash 1.5 Experimental' },
+  { value: 'openai/gpt-4o', label: 'OpenAI GPT-4o (Multimodal)' },
   { value: 'openai/gpt-4o-2024-11-20', label: 'OpenAI GPT-4o (Latest)' },
-  { value: 'openai/gpt-4-turbo', label: 'OpenAI GPT-4 Turbo' },
-  { value: 'openai/gpt-4-vision-preview', label: 'OpenAI GPT-4 Vision' },
-  { value: 'google/gemini-pro-1.5', label: 'Google Gemini Pro 1.5' },
-  { value: 'google/gemini-flash-1.5', label: 'Google Gemini Flash 1.5' },
-  { value: 'anthropic/claude-3.5-sonnet', label: 'Anthropic Claude 3.5 Sonnet' },
 ];
 
 export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose }) => {
@@ -41,7 +39,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
     if (open) {
       const settings = SettingsService.getAllSettings();
       setApiKey(settings.openRouterApiKey || '');
-      setModel(settings.imageGenerationModel || 'openai/gpt-4o');
+      setModel(settings.imageGenerationModel || 'google/gemini-2.5-flash-image-preview');
       setSaved(false);
     }
   }, [open]);
@@ -88,9 +86,9 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
           
           <Alert severity="info" sx={{ mb: 2 }}>
             <Typography variant="caption">
-              <strong>How it works:</strong> OpenRouter uses multimodal AI models (like GPT-4o) that can generate 
-              images when the request includes the "image" modality. The quality and capability vary by model. 
-              GPT-4o is recommended for best results.
+              <strong>How it works:</strong> OpenRouter supports image generation through models with "image" 
+              in their output modalities. Images are returned as base64-encoded data URLs. 
+              Gemini 2.5 Flash Image is recommended for best results.
             </Typography>
           </Alert>
 
@@ -123,8 +121,12 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
 
           <Alert severity="info" sx={{ mt: 2 }}>
             <Typography variant="caption">
-              <strong>Note:</strong> Different models have different capabilities and pricing. 
-              Check OpenRouter's documentation for details on each model.
+              <strong>Pricing:</strong> Image generation costs vary by model. Gemini models typically charge 
+              per 1K characters of input. Check the{' '}
+              <Link href="https://openrouter.ai/models" target="_blank" rel="noopener">
+                Models page
+              </Link>
+              {' '}for current pricing.
             </Typography>
           </Alert>
         </Box>

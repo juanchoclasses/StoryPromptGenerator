@@ -204,14 +204,18 @@ export async function overlayTextOnImage(
   // Load the base image
   const baseImg = await loadImage(imageDataUrl);
   
+  // Use actual image dimensions from loaded image
+  const actualImageWidth = baseImg.naturalWidth;
+  const actualImageHeight = baseImg.naturalHeight;
+  
   // Use provided config or defaults
   const widthPercent = config?.widthPercentage ?? 100;
   const heightPercent = config?.heightPercentage ?? 15;
   const position = config?.position ?? 'bottom-center';
   
-  // Calculate panel dimensions
-  const panelWidth = Math.round(imageWidth * (widthPercent / 100));
-  const panelHeight = Math.round(imageHeight * (heightPercent / 100));
+  // Calculate panel dimensions based on ACTUAL image size
+  const panelWidth = Math.round(actualImageWidth * (widthPercent / 100));
+  const panelHeight = Math.round(actualImageHeight * (heightPercent / 100));
   
   // Create text panel with provided or default styling
   const panel = await createTextPanel(text, {
@@ -235,7 +239,7 @@ export async function overlayTextOnImage(
   const gutterLeft = config?.gutterLeft ?? 0;
   const gutterRight = config?.gutterRight ?? 0;
   
-  // Calculate position based on config
+  // Calculate position based on config using ACTUAL image dimensions
   let x = 0;
   let y = 0;
   
@@ -243,20 +247,20 @@ export async function overlayTextOnImage(
   if (position.includes('left')) {
     x = gutterLeft;
   } else if (position.includes('right')) {
-    x = imageWidth - panelWidth - gutterRight;
+    x = actualImageWidth - panelWidth - gutterRight;
   } else if (position.includes('center')) {
     // Center with consideration for asymmetric gutters
-    x = gutterLeft + (imageWidth - panelWidth - gutterLeft - gutterRight) / 2;
+    x = gutterLeft + (actualImageWidth - panelWidth - gutterLeft - gutterRight) / 2;
   }
   
   // Vertical positioning
   if (position.includes('top')) {
     y = gutterTop;
   } else if (position.includes('bottom')) {
-    y = imageHeight - panelHeight - gutterBottom;
+    y = actualImageHeight - panelHeight - gutterBottom;
   } else if (position.includes('middle')) {
     // Middle with consideration for asymmetric gutters
-    y = gutterTop + (imageHeight - panelHeight - gutterTop - gutterBottom) / 2;
+    y = gutterTop + (actualImageHeight - panelHeight - gutterTop - gutterBottom) / 2;
   }
   
   const compositeOptions: CompositeOptions = { x, y };

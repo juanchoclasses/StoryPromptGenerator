@@ -14,7 +14,9 @@ import {
   Select,
   MenuItem,
   Link,
-  Divider
+  Divider,
+  FormControlLabel,
+  Switch
 } from '@mui/material';
 import { 
   Folder as FolderIcon, 
@@ -43,12 +45,14 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
   const [saved, setSaved] = useState(false);
   const [saveDirectory, setSaveDirectory] = useState<string | null>(null);
   const [isSelectingDirectory, setIsSelectingDirectory] = useState(false);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
 
   useEffect(() => {
     if (open) {
       const settings = SettingsService.getAllSettings();
       setApiKey(settings.openRouterApiKey || '');
       setModel(settings.imageGenerationModel || 'google/gemini-2.5-flash-image');
+      setAutoSaveEnabled(settings.autoSaveImages ?? false);
       setSaved(false);
       
       // Load current directory
@@ -61,7 +65,8 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
   const handleSave = () => {
     SettingsService.updateSettings({
       openRouterApiKey: apiKey.trim() || undefined,
-      imageGenerationModel: model
+      imageGenerationModel: model,
+      autoSaveImages: autoSaveEnabled
     });
     setSaved(true);
     setTimeout(() => {
@@ -168,9 +173,25 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
             Auto-Save Images
           </Typography>
 
+          <FormControlLabel
+            control={
+              <Switch
+                checked={autoSaveEnabled}
+                onChange={(e) => setAutoSaveEnabled(e.target.checked)}
+                color="primary"
+              />
+            }
+            label={
+              <Typography variant="body2">
+                Enable automatic saving after image generation
+              </Typography>
+            }
+            sx={{ mb: 2 }}
+          />
+
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Select a parent directory where images will be automatically saved. 
-            Each book will get its own subdirectory.
+            Select a parent directory where images will be saved. 
+            Each book will get its own subdirectory. Use the Save button on images to save manually.
           </Typography>
 
           {!FileSystemService.isSupported() && (

@@ -31,13 +31,14 @@ import {
   ContentCopy as CopyIcon,
   Person as PersonIcon,
   Image as ImageIcon,
-  Download as DownloadIcon,
-  ErrorOutline as ErrorIcon
+  ErrorOutline as ErrorIcon,
+  Save as SaveIcon
 } from '@mui/icons-material';
 import type { Scene, Story } from '../types/Story';
 import { BookService } from '../services/BookService';
 import { ImageGenerationService } from '../services/ImageGenerationService';
 import { FileSystemService } from '../services/FileSystemService';
+import { SettingsService } from '../services/SettingsService';
 
 interface SceneEditorProps {
   story: Story | null;
@@ -327,8 +328,10 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       if (result.success && result.imageUrl) {
         setGeneratedImageUrl(result.imageUrl);
         
-        // Auto-save to file system if directory is configured
-        if (story && currentScene) {
+        // Auto-save to file system if enabled and directory is configured
+        const autoSaveEnabled = SettingsService.isAutoSaveEnabled();
+        
+        if (autoSaveEnabled && story && currentScene) {
           const bookCollection = BookService.getBookCollection();
           const activeBookId = BookService.getActiveBookId();
           const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
@@ -341,15 +344,15 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             );
             
             if (saveResult.success) {
-              setSnackbarMessage(`Image generated and saved to: ${saveResult.path}`);
+              setSnackbarMessage(`Image generated and auto-saved to: ${saveResult.path}`);
             } else {
-              setSnackbarMessage('Image generated successfully! (Auto-save not configured)');
+              setSnackbarMessage('Image generated successfully! Use Save button to save to directory.');
             }
           } else {
             setSnackbarMessage('Image generated successfully!');
           }
         } else {
-          setSnackbarMessage('Image generated successfully!');
+          setSnackbarMessage('Image generated successfully! Use Save button to save.');
         }
         
         setSnackbarSeverity('success');
@@ -372,15 +375,40 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     }
   };
 
-  const handleDownloadImage = () => {
-    if (!generatedImageUrl) return;
+  const handleSaveImage = async () => {
+    if (!generatedImageUrl || !story || !currentScene) return;
     
+    // Try to save to configured directory first
+    const bookCollection = BookService.getBookCollection();
+    const activeBookId = BookService.getActiveBookId();
+    const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
+    
+    if (activeBook) {
+      const saveResult = await FileSystemService.saveImage(
+        generatedImageUrl,
+        activeBook.title,
+        currentScene.title
+      );
+      
+      if (saveResult.success) {
+        setSnackbarMessage(`Image saved to: ${saveResult.path}`);
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+        return;
+      }
+    }
+    
+    // Fallback to browser download if no directory configured or save failed
     const link = document.createElement('a');
     link.href = generatedImageUrl;
     link.download = `${currentScene?.title || 'scene'}-${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    setSnackbarMessage('Image downloaded to your Downloads folder');
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
   };
 
   const handleCopyError = async () => {
@@ -734,10 +762,11 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             <CardActions>
               <Button
                 size="small"
-                startIcon={<DownloadIcon />}
-                onClick={handleDownloadImage}
+                startIcon={<SaveIcon />}
+                onClick={handleSaveImage}
+                variant="contained"
               >
-                Download Image
+                Save Image
               </Button>
               <Button
                 size="small"

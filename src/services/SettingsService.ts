@@ -3,6 +3,7 @@ const SETTINGS_KEY = 'app-settings';
 export interface AppSettings {
   openRouterApiKey?: string;
   imageGenerationModel?: string;
+  autoSaveImages?: boolean;
 }
 
 export class SettingsService {
@@ -62,6 +63,16 @@ export class SettingsService {
     const settings = this.getSettings();
     const updated = { ...settings, ...updates };
     this.saveSettings(updated);
+  }
+
+  static isAutoSaveEnabled(): boolean {
+    return this.getSettings().autoSaveImages ?? false; // Default: OFF
+  }
+
+  static setAutoSaveEnabled(enabled: boolean): void {
+    const settings = this.getSettings();
+    settings.autoSaveImages = enabled;
+    this.saveSettings(settings);
   }
 }
 

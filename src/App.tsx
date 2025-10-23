@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Container,
   Box,
@@ -49,8 +49,8 @@ function App() {
   const [storyTitle, setStoryTitle] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageHistory, setImageHistory] = useState<GeneratedImage[]>([]);
-  const [imageSaveHandler, setImageSaveHandler] = useState<(() => void) | null>(null);
-  const [imageClearHandler, setImageClearHandler] = useState<(() => void) | null>(null);
+  const imageSaveHandlerRef = useRef<(() => void) | null>(null);
+  const imageClearHandlerRef = useRef<(() => void) | null>(null);
   const [storyDescription, setStoryDescription] = useState('');
   const [bookData, setBookData] = useState<StoryData | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -73,8 +73,8 @@ function App() {
 
   const handleImageStateChange = useCallback((url: string | null, onSave: () => void, onClear: () => void) => {
     setImageUrl(url);
-    setImageSaveHandler(() => onSave);
-    setImageClearHandler(() => onClear);
+    imageSaveHandlerRef.current = onSave;
+    imageClearHandlerRef.current = onClear;
   }, []);
 
   // Update imageHistory when selectedScene changes
@@ -381,8 +381,8 @@ function App() {
                 <ImagePanel
                   imageUrl={imageUrl}
                   imageHistory={imageHistory}
-                  onSave={() => imageSaveHandler && imageSaveHandler()}
-                  onClear={() => imageClearHandler && imageClearHandler()}
+                  onSave={() => imageSaveHandlerRef.current && imageSaveHandlerRef.current()}
+                  onClear={() => imageClearHandlerRef.current && imageClearHandlerRef.current()}
                   onDeleteImage={handleDeleteImage}
                   onSaveSpecificImage={handleSaveSpecificImage}
                 />

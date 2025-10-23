@@ -19,7 +19,11 @@ import {
   CircularProgress,
   Card,
   CardMedia,
-  CardActions
+  CardActions,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import {
@@ -27,7 +31,8 @@ import {
   ContentCopy as CopyIcon,
   Person as PersonIcon,
   Image as ImageIcon,
-  Download as DownloadIcon
+  Download as DownloadIcon,
+  ErrorOutline as ErrorIcon
 } from '@mui/icons-material';
 import type { Scene, Story } from '../types/Story';
 import { BookService } from '../services/BookService';
@@ -52,6 +57,9 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
 
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorDialogMessage, setErrorDialogMessage] = useState('');
 
   useEffect(() => {
     if (selectedScene) {
@@ -321,15 +329,18 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
       } else {
-        setSnackbarMessage(result.error || 'Failed to generate image');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
+        // Show error in dialog instead of snackbar
+        setErrorDialogMessage(result.error || 'Failed to generate image');
+        setErrorDialogOpen(true);
       }
     } catch (error) {
       console.error('Error generating image:', error);
-      setSnackbarMessage('An unexpected error occurred');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      setErrorDialogMessage(
+        error instanceof Error 
+          ? `An unexpected error occurred:\n\n${error.message}\n\n${error.stack || ''}` 
+          : 'An unexpected error occurred'
+      );
+      setErrorDialogOpen(true);
     } finally {
       setIsGeneratingImage(false);
     }
@@ -344,6 +355,20 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleCopyError = async () => {
+    try {
+      await navigator.clipboard.writeText(errorDialogMessage);
+      setSnackbarMessage('Error message copied to clipboard');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Failed to copy error:', error);
+      setSnackbarMessage('Failed to copy to clipboard');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
   };
 
   if (!story) {
@@ -708,6 +733,98 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      {/* Error Dialog */}
+      <Dialog 
+        open={errorDialogOpen} 
+        onClose={() => setErrorDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            m: 0
+          }
+        }}
+      >
+        <DialogTitle 
+          sx={{ 
+            bgcolor: 'error.main', 
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
+          <ErrorIcon />
+          Image Generation Error
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            An error occurred while generating the image
+          </Alert>
+          
+          <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
+            Error Details:
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            rows={8}
+            value={errorDialogMessage}
+            variant="outlined"
+            InputProps={{
+              readOnly: true,
+              sx: {
+                fontFamily: 'monospace',
+                fontSize: '0.875rem',
+                bgcolor: 'grey.50'
+              }
+            }}
+            sx={{ mb: 3 }}
+          />
+
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+              Common solutions:
+            </Typography>
+            <Typography variant="body2" component="div">
+              <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                <li>Check that your OpenRouter API key is valid</li>
+                <li>Verify you have sufficient credits in your OpenRouter account</li>
+                <li>Try a different model (some models may be unavailable)</li>
+                <li>Ensure your scene has a description</li>
+                <li>Check the OpenRouter status page for service issues</li>
+              </ul>
+            </Typography>
+          </Alert>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button 
+            onClick={handleCopyError}
+            startIcon={<CopyIcon />}
+            sx={{ mr: 'auto' }}
+          >
+            Copy Error
+          </Button>
+          <Button onClick={() => setErrorDialogOpen(false)}>
+            OK
+          </Button>
+          <Button 
+            onClick={() => {
+              setErrorDialogOpen(false);
+              handleGenerateImage();
+            }} 
+            variant="contained"
+            disabled={isGeneratingImage}
+          >
+            Retry
+          </Button>
+        </DialogActions>
+      </Dialog>
       </Box>
     </Paper>
   );

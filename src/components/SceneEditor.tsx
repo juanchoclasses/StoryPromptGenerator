@@ -700,7 +700,8 @@ SCENE CONTENT:
     if (onImageStateChange) {
       onImageStateChange(generatedImageUrl, handleSaveImage, () => setGeneratedImageUrl(null));
     }
-  }, [generatedImageUrl, handleSaveImage, onImageStateChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [generatedImageUrl, handleSaveImage]);
 
   if (!story) {
     return (

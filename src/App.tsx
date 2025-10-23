@@ -108,8 +108,24 @@ function App() {
     
     const updatedData = { ...activeBookData, stories: updatedStories };
     BookService.saveActiveBookData(updatedData);
+    
+    // Update the imageHistory state immediately to refresh the UI
+    const newHistory = imageHistory.filter(img => img.id !== imageId);
+    setImageHistory(newHistory);
+    
+    // If the deleted image was the currently displayed one, clear it or show the next one
+    const deletedImage = imageHistory.find(img => img.id === imageId);
+    if (deletedImage && imageUrl === deletedImage.url) {
+      // Show the most recent remaining image, or null if none left
+      if (newHistory.length > 0) {
+        setImageUrl(newHistory[newHistory.length - 1].url);
+      } else {
+        setImageUrl(null);
+      }
+    }
+    
     setRefreshKey(prev => prev + 1);
-  }, [selectedStory, selectedScene]);
+  }, [selectedStory, selectedScene, imageHistory, imageUrl]);
 
   const handleSaveSpecificImage = useCallback(async (imageUrl: string) => {
     if (!selectedStory || !selectedScene) return;

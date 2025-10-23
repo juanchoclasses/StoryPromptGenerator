@@ -42,6 +42,7 @@ import { BookService } from '../services/BookService';
 import { ImageGenerationService } from '../services/ImageGenerationService';
 import { FileSystemService } from '../services/FileSystemService';
 import { SettingsService } from '../services/SettingsService';
+import { overlayTextOnImage } from '../services/OverlayService';
 
 interface SceneEditorProps {
   story: Story | null;
@@ -403,7 +404,37 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       const result = await ImageGenerationService.generateImage({ prompt });
       
       if (result.success && result.imageUrl) {
-        setGeneratedImageUrl(result.imageUrl);
+        let finalImageUrl = result.imageUrl;
+        
+        // Apply text overlay if textPanel has content
+        if (textPanel && textPanel.trim()) {
+          try {
+            // Define macros for text panel replacement
+            const macros = {
+              'SceneDescription': currentScene?.description || ''
+            };
+            
+            // Replace macros in the text panel
+            const panelText = replaceMacros(textPanel, macros);
+            
+            // Overlay text onto image (using standard 1024x1024 dimensions)
+            // Note: Assumes most AI-generated images are 1024x1024
+            finalImageUrl = await overlayTextOnImage(
+              result.imageUrl,
+              panelText,
+              1024,
+              1024
+            );
+          } catch (overlayError) {
+            console.error('Error overlaying text:', overlayError);
+            // Continue with original image if overlay fails
+            setSnackbarMessage('Warning: Text overlay failed, showing original image');
+            setSnackbarSeverity('error');
+            setSnackbarOpen(true);
+          }
+        }
+        
+        setGeneratedImageUrl(finalImageUrl);
         
         // Auto-save to file system if enabled and directory is configured
         const autoSaveEnabled = SettingsService.isAutoSaveEnabled();

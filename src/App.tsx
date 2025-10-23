@@ -10,9 +10,11 @@ import {
   createTheme,
   Tabs,
   Tab,
-  TextField
+  TextField,
+  IconButton,
+  Tooltip
 } from '@mui/material';
-import { Book as BookIcon } from '@mui/icons-material';
+import { Book as BookIcon, Settings as SettingsIcon } from '@mui/icons-material';
 import { BackgroundSetup } from './components/BackgroundSetup';
 import { SceneList } from './components/SceneList';
 import { SceneEditor } from './components/SceneEditor';
@@ -22,6 +24,7 @@ import { ElementsManager } from './components/ElementsManager';
 import { FileManager } from './components/FileManager';
 import { VersionInfo } from './components/VersionInfo';
 import { AboutPanel } from './components/AboutPanel';
+import { SettingsDialog } from './components/SettingsDialog';
 import type { Scene, Story } from './types/Story';
 import type { StoryData } from './types/Story';
 import { BookService } from './services/BookService';
@@ -45,6 +48,7 @@ function App() {
   const [storyTitle, setStoryTitle] = useState('');
   const [storyDescription, setStoryDescription] = useState('');
   const [bookData, setBookData] = useState<StoryData | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const handleStorySelect = (story: Story | null) => {
     setSelectedStory(story);
@@ -174,12 +178,26 @@ function App() {
       <AppBar position="static">
         <Toolbar>
           <BookIcon sx={{ mr: 2 }} />
-          <Typography variant="h6" component="div">
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Story Prompt Editor
           </Typography>
+          <Tooltip title="Settings">
+            <IconButton 
+              color="inherit" 
+              onClick={() => setSettingsOpen(true)}
+              sx={{ mr: 2 }}
+            >
+              <SettingsIcon />
+            </IconButton>
+          </Tooltip>
           <VersionInfo />
         </Toolbar>
       </AppBar>
+      
+      <SettingsDialog 
+        open={settingsOpen} 
+        onClose={() => setSettingsOpen(false)} 
+      />
       
       <Container maxWidth="xl" sx={{ mt: 4, mb: 4, height: 'calc(100vh - 100px)' }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>

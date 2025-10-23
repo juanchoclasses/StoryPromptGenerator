@@ -15,16 +15,23 @@ import {
   MenuItem,
   OutlinedInput,
   Snackbar,
-  Alert
+  Alert,
+  CircularProgress,
+  Card,
+  CardMedia,
+  CardActions
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import {
   ExpandMore as ExpandMoreIcon,
   ContentCopy as CopyIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  Image as ImageIcon,
+  Download as DownloadIcon
 } from '@mui/icons-material';
 import type { Scene, Story } from '../types/Story';
 import { BookService } from '../services/BookService';
+import { ImageGenerationService } from '../services/ImageGenerationService';
 
 interface SceneEditorProps {
   story: Story | null;
@@ -41,6 +48,10 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (selectedScene) {
@@ -49,12 +60,14 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       setSelectedElements(selectedScene.elementIds || []);
       setSceneTitle(selectedScene.title);
       setSceneDescription(selectedScene.description || '');
+      setGeneratedImageUrl(null); // Clear image when switching scenes
     } else {
       setCurrentScene(null);
       setSelectedCharacters([]);
       setSelectedElements([]);
       setSceneTitle('');
       setSceneDescription('');
+      setGeneratedImageUrl(null);
     }
   }, [selectedScene]);
 
@@ -284,12 +297,53 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     try {
       await navigator.clipboard.writeText(prompt);
       setSnackbarMessage('Prompt copied to clipboard!');
+      setSnackbarSeverity('success');
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Failed to copy prompt:', error);
       setSnackbarMessage('Failed to copy prompt');
+      setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
+  };
+
+  const handleGenerateImage = async () => {
+    const prompt = generatePrompt();
+    setIsGeneratingImage(true);
+    setGeneratedImageUrl(null);
+
+    try {
+      const result = await ImageGenerationService.generateImage({ prompt });
+      
+      if (result.success && result.imageUrl) {
+        setGeneratedImageUrl(result.imageUrl);
+        setSnackbarMessage('Image generated successfully!');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+      } else {
+        setSnackbarMessage(result.error || 'Failed to generate image');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+      }
+    } catch (error) {
+      console.error('Error generating image:', error);
+      setSnackbarMessage('An unexpected error occurred');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
+  const handleDownloadImage = () => {
+    if (!generatedImageUrl) return;
+    
+    const link = document.createElement('a');
+    link.href = generatedImageUrl;
+    link.download = `${currentScene?.title || 'scene'}-${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (!story) {
@@ -342,13 +396,23 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
               }}
             />
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<CopyIcon />}
-            onClick={handleCopyPrompt}
-          >
-            Get Prompt
-          </Button>
+          <Box display="flex" gap={1}>
+            <Button
+              variant="outlined"
+              startIcon={<CopyIcon />}
+              onClick={handleCopyPrompt}
+            >
+              Get Prompt
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={isGeneratingImage ? <CircularProgress size={20} color="inherit" /> : <ImageIcon />}
+              onClick={handleGenerateImage}
+              disabled={isGeneratingImage}
+            >
+              {isGeneratingImage ? 'Generating...' : 'Generate Image'}
+            </Button>
+          </Box>
         </Box>
 
         <TextField
@@ -599,16 +663,48 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         </AccordionDetails>
       </Accordion>
 
-
-
-
+      {/* Generated Image Display */}
+      {generatedImageUrl && (
+        <Box mt={3}>
+          <Typography variant="h6" gutterBottom>
+            Generated Image
+          </Typography>
+          <Card>
+            <CardMedia
+              component="img"
+              image={generatedImageUrl}
+              alt="Generated scene image"
+              sx={{ 
+                maxHeight: 600, 
+                objectFit: 'contain',
+                backgroundColor: '#f5f5f5'
+              }}
+            />
+            <CardActions>
+              <Button
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={handleDownloadImage}
+              >
+                Download Image
+              </Button>
+              <Button
+                size="small"
+                onClick={() => setGeneratedImageUrl(null)}
+              >
+                Clear
+              </Button>
+            </CardActions>
+          </Card>
+        </Box>
+      )}
 
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}
         onClose={() => setSnackbarOpen(false)}
       >
-        <Alert onClose={() => setSnackbarOpen(false)} severity="success">
+        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity}>
           {snackbarMessage}
         </Alert>
       </Snackbar>

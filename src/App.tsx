@@ -295,7 +295,7 @@ function App() {
             {/* Main Content - Horizontal Layout */}
             <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', lg: 'row' } }}>
               {/* Left Panel - Scene List */}
-              <Box sx={{ flex: { lg: '0 0 300px' }, minWidth: 0 }}>
+              <Box sx={{ flex: { lg: '0 0 400px' }, minWidth: 0 }}>
                 <SceneList
                   story={selectedStory}
                   selectedSceneId={selectedScene?.id}

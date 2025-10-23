@@ -261,7 +261,7 @@ export const SceneList: React.FC<SceneListProps> = ({
   }
 
   return (
-    <Paper elevation={2} sx={{ p: 3, height: 'fit-content', maxHeight: 'calc(100vh - 200px)', overflow: 'auto' }}>
+    <Paper elevation={2} sx={{ p: 3, height: 'fit-content' }}>
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
         <Typography variant="h5" component="h2">
           Scenes
@@ -275,12 +275,13 @@ export const SceneList: React.FC<SceneListProps> = ({
         </Button>
       </Box>
 
-      {scenes.length === 0 ? (
-        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-          No scenes created yet. Click "Add Scene" to get started.
-        </Typography>
-      ) : (
-        <List>
+      <Box sx={{ maxHeight: '550px', overflow: 'auto' }}>
+        {scenes.length === 0 ? (
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+            No scenes created yet. Click "Add Scene" to get started.
+          </Typography>
+        ) : (
+          <List>
           {scenes.map((scene) => {
             if (!scene || !scene.id) return null;
             return (
@@ -319,9 +320,6 @@ export const SceneList: React.FC<SceneListProps> = ({
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {scene.characterIds?.length || 0} characters
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Updated: {scene.updatedAt.toLocaleDateString()}
                     </Typography>
                   </Box>
                   <Box display="flex" gap={0.5}>
@@ -417,7 +415,8 @@ export const SceneList: React.FC<SceneListProps> = ({
           );
         })}
       </List>
-      )}
+        )}
+      </Box>
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
         <DialogTitle>

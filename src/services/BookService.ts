@@ -103,7 +103,7 @@ export class BookService {
       id: crypto.randomUUID(),
       title,
       description,
-      aspectRatio: aspectRatio || '3:4', // Default to 3:4 portrait
+      aspectRatio: aspectRatio || '9:16', // Default to 9:16 portrait (ChatGPT compatible)
       panelConfig,
       createdAt: new Date(),
       updatedAt: new Date()

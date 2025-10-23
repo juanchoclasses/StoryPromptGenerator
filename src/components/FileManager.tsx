@@ -46,11 +46,11 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
   const [editingBook, setEditingBook] = useState<BookMetadata | null>(null);
   const [newBookTitle, setNewBookTitle] = useState('');
   const [newBookDescription, setNewBookDescription] = useState('');
-  const [newBookAspectRatio, setNewBookAspectRatio] = useState('3:4');
+  const [newBookAspectRatio, setNewBookAspectRatio] = useState('9:16');
   const [newBookPanelConfig, setNewBookPanelConfig] = useState<PanelConfig>(DEFAULT_PANEL_CONFIG);
   const [editBookTitle, setEditBookTitle] = useState('');
   const [editBookDescription, setEditBookDescription] = useState('');
-  const [editBookAspectRatio, setEditBookAspectRatio] = useState('3:4');
+  const [editBookAspectRatio, setEditBookAspectRatio] = useState('9:16');
   const [editBookPanelConfig, setEditBookPanelConfig] = useState<PanelConfig>(DEFAULT_PANEL_CONFIG);
   const [panelConfigDialogOpen, setPanelConfigDialogOpen] = useState(false);
   const [panelConfigDialogMode, setPanelConfigDialogMode] = useState<'create' | 'edit'>('create');
@@ -173,7 +173,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
     if (newBook) {
       setNewBookTitle('');
       setNewBookDescription('');
-      setNewBookAspectRatio('3:4');
+      setNewBookAspectRatio('9:16');
       setNewBookPanelConfig(DEFAULT_PANEL_CONFIG);
       setOpenCreateDialog(false);
       loadBooks();
@@ -202,7 +202,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
       setEditingBook(null);
       setEditBookTitle('');
       setEditBookDescription('');
-      setEditBookAspectRatio('3:4');
+      setEditBookAspectRatio('9:16');
       setEditBookPanelConfig(DEFAULT_PANEL_CONFIG);
       loadBooks();
       onBookUpdate();
@@ -293,7 +293,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
     setEditingBook(book);
     setEditBookTitle(book.title);
     setEditBookDescription(book.description || '');
-    setEditBookAspectRatio(book.aspectRatio || '3:4');
+    setEditBookAspectRatio(book.aspectRatio || '9:16');
     setEditBookPanelConfig(book.panelConfig || DEFAULT_PANEL_CONFIG);
     setOpenEditDialog(true);
   };
@@ -496,10 +496,8 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
               onChange={(e) => setNewBookAspectRatio(e.target.value)}
             >
               <MenuItem value="1:1">1:1 (Square)</MenuItem>
-              <MenuItem value="3:4">3:4 (Portrait - Booklet)</MenuItem>
-              <MenuItem value="4:3">4:3 (Landscape)</MenuItem>
-              <MenuItem value="16:9">16:9 (Widescreen)</MenuItem>
-              <MenuItem value="9:16">9:16 (Vertical)</MenuItem>
+              <MenuItem value="16:9">16:9 (Wide)</MenuItem>
+              <MenuItem value="9:16">9:16 (Portrait)</MenuItem>
             </Select>
           </FormControl>
           <Box sx={{ mt: 2 }}>
@@ -550,10 +548,8 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
               onChange={(e) => setEditBookAspectRatio(e.target.value)}
             >
               <MenuItem value="1:1">1:1 (Square)</MenuItem>
-              <MenuItem value="3:4">3:4 (Portrait - Booklet)</MenuItem>
-              <MenuItem value="4:3">4:3 (Landscape)</MenuItem>
-              <MenuItem value="16:9">16:9 (Widescreen)</MenuItem>
-              <MenuItem value="9:16">9:16 (Vertical)</MenuItem>
+              <MenuItem value="16:9">16:9 (Wide)</MenuItem>
+              <MenuItem value="9:16">9:16 (Portrait)</MenuItem>
             </Select>
           </FormControl>
           <Box sx={{ mt: 2 }}>

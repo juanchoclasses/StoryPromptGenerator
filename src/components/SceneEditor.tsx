@@ -324,30 +324,19 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     return result;
   };
 
-  // Convert aspect ratio string to dimensions (assumes 1024px base for longest side)
+  // Convert aspect ratio string to dimensions (ChatGPT/OpenAI standard sizes)
   const getImageDimensionsFromAspectRatio = (aspectRatio: string): { width: number; height: number } => {
-    const [widthRatio, heightRatio] = aspectRatio.split(':').map(Number);
-    
-    if (!widthRatio || !heightRatio) {
-      return { width: 768, height: 1024 }; // Default to 3:4
-    }
-    
-    // Use 1024 as the base for the longer dimension
-    if (widthRatio > heightRatio) {
-      // Landscape
-      return {
-        width: 1024,
-        height: Math.round((1024 * heightRatio) / widthRatio)
-      };
-    } else if (heightRatio > widthRatio) {
-      // Portrait
-      return {
-        width: Math.round((1024 * widthRatio) / heightRatio),
-        height: 1024
-      };
-    } else {
-      // Square
-      return { width: 1024, height: 1024 };
+    // Use ChatGPT/OpenAI standard image sizes
+    switch (aspectRatio) {
+      case '1:1':
+        return { width: 1024, height: 1024 }; // Square
+      case '16:9':
+        return { width: 1792, height: 1024 }; // Wide
+      case '9:16':
+        return { width: 1024, height: 1792 }; // Portrait
+      default:
+        // Fallback to 9:16 portrait
+        return { width: 1024, height: 1792 };
     }
   };
 
@@ -367,19 +356,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       'SceneDescription': currentScene.description || ''
     };
     
-    let prompt = `Create an illustration in the whimsical Dr. Seuss style with the following requirements:
+    let prompt = `Create an illustration with the following requirements:
 
-STYLE DIRECTIVES:
-- Use vibrant, playful cartoon characters with exaggerated features
-- Apply a soft, cheerful color palette typical of children's books
-- Include clear, bold outlines around all elements
-- Render in detailed 2D art style with a hand-drawn feel
-- Emphasize whimsy and imagination in the composition
-
-TECHNICAL REQUIREMENTS:
-- Aspect ratio: 3:4 (portrait orientation for booklet printing)
-- Do NOT include any text, titles, or labels in the image
-- Focus solely on visual storytelling
 
 SCENE CONTENT:
 `;

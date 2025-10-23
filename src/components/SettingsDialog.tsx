@@ -23,13 +23,13 @@ interface SettingsDialogProps {
 }
 
 const IMAGE_MODELS = [
-  { value: 'openai/gpt-4o', label: 'OpenAI GPT-4o (Recommended - Text to Image)' },
+  { value: 'openai/gpt-4o', label: 'OpenAI GPT-4o (Recommended - Image Generation)' },
+  { value: 'openai/gpt-4o-2024-11-20', label: 'OpenAI GPT-4o (Latest)' },
   { value: 'openai/gpt-4-turbo', label: 'OpenAI GPT-4 Turbo' },
-  { value: 'anthropic/claude-3.5-sonnet', label: 'Anthropic Claude 3.5 Sonnet' },
+  { value: 'openai/gpt-4-vision-preview', label: 'OpenAI GPT-4 Vision' },
   { value: 'google/gemini-pro-1.5', label: 'Google Gemini Pro 1.5' },
   { value: 'google/gemini-flash-1.5', label: 'Google Gemini Flash 1.5' },
-  { value: 'meta-llama/llama-3.2-90b-vision-instruct', label: 'Meta Llama 3.2 90B Vision' },
-  { value: 'x-ai/grok-vision-beta', label: 'xAI Grok Vision Beta' },
+  { value: 'anthropic/claude-3.5-sonnet', label: 'Anthropic Claude 3.5 Sonnet' },
 ];
 
 export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose }) => {
@@ -79,19 +79,18 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
           </Typography>
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Configure your OpenRouter API key to generate content from your scene prompts.
+            Configure your OpenRouter API key to generate images from your scene prompts.
             Get your API key from{' '}
             <Link href="https://openrouter.ai/keys" target="_blank" rel="noopener">
               openrouter.ai/keys
             </Link>
           </Typography>
           
-          <Alert severity="warning" sx={{ mb: 2 }}>
+          <Alert severity="info" sx={{ mb: 2 }}>
             <Typography variant="caption">
-              <strong>Note:</strong> OpenRouter primarily provides text generation models. 
-              For actual image generation, you may need to use the generated descriptions with a 
-              separate image generation service (DALL-E, Midjourney, Stable Diffusion, etc.).
-              Some models like GPT-4o can provide image URLs if the prompt requests it.
+              <strong>How it works:</strong> OpenRouter uses multimodal AI models (like GPT-4o) that can generate 
+              images when the request includes the "image" modality. The quality and capability vary by model. 
+              GPT-4o is recommended for best results.
             </Typography>
           </Alert>
 

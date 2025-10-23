@@ -39,6 +39,7 @@ export class ImageGenerationService {
         },
         body: JSON.stringify({
           model: model,
+          modalities: ['image', 'text'], // Enable image generation
           messages: [
             {
               role: 'user',
@@ -59,21 +60,34 @@ export class ImageGenerationService {
 
       const result = await response.json();
       
-      // Check if the response contains image data
-      const content = result.choices?.[0]?.message?.content;
+      console.log('OpenRouter response:', JSON.stringify(result, null, 2));
       
-      if (!content) {
+      // Check if the response contains image data
+      const message = result.choices?.[0]?.message;
+      
+      if (!message) {
         return {
           success: false,
-          error: 'No content received from API'
+          error: 'No message received from API'
         };
       }
 
       // Handle different response formats
-      // Some models return URLs, some return base64 data
       let imageUrl: string | undefined;
 
-      if (typeof content === 'string') {
+      // Check for content array (multimodal response)
+      if (Array.isArray(message.content)) {
+        for (const item of message.content) {
+          if (item.type === 'image_url' && item.image_url?.url) {
+            imageUrl = item.image_url.url;
+            break;
+          }
+        }
+      }
+      // Check for string content
+      else if (typeof message.content === 'string') {
+        const content = message.content;
+        
         // Check if it's a URL
         if (content.startsWith('http://') || content.startsWith('https://')) {
           imageUrl = content;
@@ -84,7 +98,7 @@ export class ImageGenerationService {
         }
         // Check if it contains a URL in markdown or text
         else {
-          const urlMatch = content.match(/https?:\/\/[^\s)]+/);
+          const urlMatch = content.match(/https?:\/\/[^\s)]+\.(png|jpg|jpeg|gif|webp)/i);
           if (urlMatch) {
             imageUrl = urlMatch[0];
           }
@@ -94,7 +108,7 @@ export class ImageGenerationService {
       if (!imageUrl) {
         return {
           success: false,
-          error: 'Could not extract image from API response. The model may not support image generation.'
+          error: `Could not extract image from API response. The model may not support image generation.\n\nResponse received:\n${JSON.stringify(message, null, 2)}`
         };
       }
 

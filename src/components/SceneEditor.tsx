@@ -80,13 +80,33 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
 
   useEffect(() => {
     if (selectedScene) {
+      // Reload scene from local storage to get the latest data including saved image
+      const activeBookData = BookService.getActiveBookData();
+      if (activeBookData && story) {
+        const currentStory = activeBookData.stories.find(s => s.id === story.id);
+        if (currentStory) {
+          const freshScene = currentStory.scenes.find(scene => scene.id === selectedScene.id);
+          if (freshScene) {
+            setCurrentScene(freshScene);
+            setSelectedCharacters(freshScene.characterIds);
+            setSelectedElements(freshScene.elementIds || []);
+            setSceneTitle(freshScene.title);
+            setSceneDescription(freshScene.description || '');
+            setTextPanel(freshScene.textPanel || '');
+            setGeneratedImageUrl(freshScene.lastGeneratedImage || null); // Load saved image or clear
+            return;
+          }
+        }
+      }
+      
+      // Fallback to selectedScene prop if we can't reload from storage
       setCurrentScene(selectedScene);
       setSelectedCharacters(selectedScene.characterIds);
       setSelectedElements(selectedScene.elementIds || []);
       setSceneTitle(selectedScene.title);
       setSceneDescription(selectedScene.description || '');
       setTextPanel(selectedScene.textPanel || '');
-      setGeneratedImageUrl(selectedScene.lastGeneratedImage || null); // Load saved image or clear
+      setGeneratedImageUrl(selectedScene.lastGeneratedImage || null);
     } else {
       setCurrentScene(null);
       setSelectedCharacters([]);
@@ -96,7 +116,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       setTextPanel('');
       setGeneratedImageUrl(null);
     }
-  }, [selectedScene]);
+  }, [selectedScene, story]);
 
   const handleSceneTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = event.target.value;
@@ -547,6 +567,7 @@ SCENE CONTENT:
             
             const updatedData = { ...activeBookData, stories: updatedStories };
             BookService.saveActiveBookData(updatedData);
+            onStoryUpdate(); // Notify parent to refresh
           }
         }
         

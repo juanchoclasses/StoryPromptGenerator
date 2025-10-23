@@ -23,7 +23,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Tooltip
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import {
@@ -32,7 +33,9 @@ import {
   Person as PersonIcon,
   Image as ImageIcon,
   ErrorOutline as ErrorIcon,
-  Save as SaveIcon
+  Save as SaveIcon,
+  Code as CodeIcon,
+  TextFields as TextFieldsIcon
 } from '@mui/icons-material';
 import type { Scene, Story } from '../types/Story';
 import { BookService } from '../services/BookService';
@@ -52,6 +55,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const [selectedElements, setSelectedElements] = useState<string[]>([]);
   const [sceneTitle, setSceneTitle] = useState('');
   const [sceneDescription, setSceneDescription] = useState('');
+  const [textPanel, setTextPanel] = useState('');
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -62,6 +66,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorDialogMessage, setErrorDialogMessage] = useState('');
+  
+  const textPanelFieldRef = React.useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (selectedScene) {
@@ -70,6 +76,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       setSelectedElements(selectedScene.elementIds || []);
       setSceneTitle(selectedScene.title);
       setSceneDescription(selectedScene.description || '');
+      setTextPanel(selectedScene.textPanel || '');
       setGeneratedImageUrl(null); // Clear image when switching scenes
     } else {
       setCurrentScene(null);
@@ -77,6 +84,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       setSelectedElements([]);
       setSceneTitle('');
       setSceneDescription('');
+      setTextPanel('');
       setGeneratedImageUrl(null);
     }
   }, [selectedScene]);
@@ -135,6 +143,75 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       BookService.saveActiveBookData(updatedData);
       onStoryUpdate();
     }
+  };
+
+  const handleTextPanelChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newTextPanel = event.target.value;
+    setTextPanel(newTextPanel);
+    
+    // Auto-save the text panel
+    if (story && currentScene) {
+      const activeBookData = BookService.getActiveBookData();
+      if (!activeBookData) return;
+      
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === story.id) {
+          const updatedScenes = s.scenes.map(scene => {
+            if (scene.id === currentScene.id) {
+              return { ...scene, textPanel: newTextPanel, updatedAt: new Date() };
+            }
+            return scene;
+          });
+          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+        }
+        return s;
+      });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
+      onStoryUpdate();
+    }
+  };
+
+  const insertMacroToTextPanel = (macro: string) => {
+    const textarea = textPanelFieldRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textPanel;
+    
+    const newText = text.substring(0, start) + macro + text.substring(end);
+    setTextPanel(newText);
+    
+    // Trigger auto-save
+    if (story && currentScene) {
+      const activeBookData = BookService.getActiveBookData();
+      if (!activeBookData) return;
+      
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === story.id) {
+          const updatedScenes = s.scenes.map(scene => {
+            if (scene.id === currentScene.id) {
+              return { ...scene, textPanel: newText, updatedAt: new Date() };
+            }
+            return scene;
+          });
+          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+        }
+        return s;
+      });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
+      onStoryUpdate();
+    }
+    
+    // Set cursor position after the inserted macro
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + macro.length, start + macro.length);
+    }, 0);
   };
 
   const handleCharacterSelection = (event: SelectChangeEvent<string[]>) => {
@@ -506,7 +583,50 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           sx={{ mb: 2 }}
         />
 
+      </Box>
 
+      {/* Text Panel Section */}
+      <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+          <Box display="flex" alignItems="center" gap={1}>
+            <TextFieldsIcon color="primary" />
+            <Typography variant="h6">
+              Text Panel (for image overlay)
+            </Typography>
+          </Box>
+          <Tooltip title="Insert Scene Description macro">
+            <Button
+              size="small"
+              startIcon={<CodeIcon />}
+              onClick={() => insertMacroToTextPanel('{SceneDescription}')}
+              variant="outlined"
+            >
+              {'{SceneDescription}'}
+            </Button>
+          </Tooltip>
+        </Box>
+        
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+          Text to display on the generated image. Use macros like {'{SceneDescription}'} for dynamic content.
+        </Typography>
+
+        <TextField
+          inputRef={textPanelFieldRef}
+          fullWidth
+          multiline
+          rows={4}
+          variant="outlined"
+          placeholder="Enter text for image overlay... Use {SceneDescription} to insert scene description."
+          value={textPanel}
+          onChange={handleTextPanelChange}
+          sx={{ 
+            bgcolor: 'white',
+            '& .MuiInputBase-root': {
+              fontFamily: 'monospace',
+              fontSize: '0.9rem'
+            }
+          }}
+        />
       </Box>
 
       {/* Scrollable Content */}

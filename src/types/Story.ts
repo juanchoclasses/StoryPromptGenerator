@@ -15,6 +15,7 @@ export interface Scene {
   id: string;
   title: string;
   description: string;
+  textPanel?: string; // Text to overlay on generated image (supports macros)
   characterIds: string[]; // References to characters in the story's cast
   elementIds: string[]; // References to elements in the story's elements
   createdAt: Date;

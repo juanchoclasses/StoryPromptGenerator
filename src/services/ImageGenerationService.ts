@@ -115,7 +115,7 @@ export class ImageGenerationService {
       if (!imageUrl) {
         return {
           success: false,
-          error: `Could not extract image from API response. The model may not support image generation.\n\nResponse received:\n${JSON.stringify(message, null, 2)}\n\nTip: Make sure you're using an image-capable model like 'google/gemini-2.5-flash-image-preview'`
+          error: `Could not extract image from API response. The model may not support image generation.\n\nResponse received:\n${JSON.stringify(message, null, 2)}\n\nTip: Make sure you're using an image-capable model like 'google/gemini-2.5-flash-image' or 'openai/gpt-5-image-mini'`
         };
       }
 

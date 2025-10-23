@@ -10,7 +10,7 @@ export class SettingsService {
     const stored = localStorage.getItem(SETTINGS_KEY);
     if (!stored) {
       return {
-        imageGenerationModel: 'google/gemini-2.5-flash-image-preview'
+        imageGenerationModel: 'google/gemini-2.5-flash-image'
       };
     }
     
@@ -19,7 +19,7 @@ export class SettingsService {
     } catch (error) {
       console.error('Error parsing settings:', error);
       return {
-        imageGenerationModel: 'google/gemini-2.5-flash-image-preview'
+        imageGenerationModel: 'google/gemini-2.5-flash-image'
       };
     }
   }
@@ -45,7 +45,7 @@ export class SettingsService {
   }
 
   static getImageGenerationModel(): string {
-    return this.getSettings().imageGenerationModel || 'google/gemini-2.5-flash-image-preview';
+    return this.getSettings().imageGenerationModel || 'google/gemini-2.5-flash-image';
   }
 
   static setImageGenerationModel(model: string): void {

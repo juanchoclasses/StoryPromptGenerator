@@ -23,11 +23,11 @@ interface SettingsDialogProps {
 }
 
 const IMAGE_MODELS = [
-  { value: 'google/gemini-2.5-flash-image-preview', label: 'Google Gemini 2.5 Flash Image (Recommended)' },
-  { value: 'google/gemini-2.0-flash-exp:image-generation', label: 'Google Gemini 2.0 Flash Image' },
-  { value: 'google/gemini-flash-1.5-exp', label: 'Google Gemini Flash 1.5 Experimental' },
+  { value: 'google/gemini-2.5-flash-image', label: 'Google Gemini 2.5 Flash Image (Recommended - $0.03/K imgs)' },
+  { value: 'google/gemini-2.5-flash-image-preview', label: 'Google Gemini 2.5 Flash Image Preview ($0.03/K imgs)' },
+  { value: 'openai/gpt-5-image-mini', label: 'OpenAI GPT-5 Image Mini (Fast - $0.008/K imgs)' },
+  { value: 'openai/gpt-5-image', label: 'OpenAI GPT-5 Image (Premium)' },
   { value: 'openai/gpt-4o', label: 'OpenAI GPT-4o (Multimodal)' },
-  { value: 'openai/gpt-4o-2024-11-20', label: 'OpenAI GPT-4o (Latest)' },
 ];
 
 export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose }) => {
@@ -39,7 +39,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
     if (open) {
       const settings = SettingsService.getAllSettings();
       setApiKey(settings.openRouterApiKey || '');
-      setModel(settings.imageGenerationModel || 'google/gemini-2.5-flash-image-preview');
+      setModel(settings.imageGenerationModel || 'google/gemini-2.5-flash-image');
       setSaved(false);
     }
   }, [open]);
@@ -88,7 +88,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
             <Typography variant="caption">
               <strong>How it works:</strong> OpenRouter supports image generation through models with "image" 
               in their output modalities. Images are returned as base64-encoded data URLs. 
-              Gemini 2.5 Flash Image is recommended for best results.
+              Gemini 2.5 Flash Image (Nano Banana) is recommended for quality, or GPT-5 Image Mini for faster/cheaper generation.
             </Typography>
           </Alert>
 

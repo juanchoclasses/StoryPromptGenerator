@@ -37,6 +37,7 @@ import {
 import type { Scene, Story } from '../types/Story';
 import { BookService } from '../services/BookService';
 import { ImageGenerationService } from '../services/ImageGenerationService';
+import { FileSystemService } from '../services/FileSystemService';
 
 interface SceneEditorProps {
   story: Story | null;
@@ -325,7 +326,32 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       
       if (result.success && result.imageUrl) {
         setGeneratedImageUrl(result.imageUrl);
-        setSnackbarMessage('Image generated successfully!');
+        
+        // Auto-save to file system if directory is configured
+        if (story && currentScene) {
+          const bookCollection = BookService.getBookCollection();
+          const activeBookId = BookService.getActiveBookId();
+          const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
+          
+          if (activeBook) {
+            const saveResult = await FileSystemService.saveImage(
+              result.imageUrl,
+              activeBook.title,
+              currentScene.title
+            );
+            
+            if (saveResult.success) {
+              setSnackbarMessage(`Image generated and saved to: ${saveResult.path}`);
+            } else {
+              setSnackbarMessage('Image generated successfully! (Auto-save not configured)');
+            }
+          } else {
+            setSnackbarMessage('Image generated successfully!');
+          }
+        } else {
+          setSnackbarMessage('Image generated successfully!');
+        }
+        
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
       } else {

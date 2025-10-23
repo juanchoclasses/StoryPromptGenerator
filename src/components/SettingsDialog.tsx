@@ -13,9 +13,16 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Link
+  Link,
+  Divider
 } from '@mui/material';
+import { 
+  Folder as FolderIcon, 
+  FolderOpen as FolderOpenIcon,
+  CheckCircle as CheckIcon 
+} from '@mui/icons-material';
 import { SettingsService } from '../services/SettingsService';
+import { FileSystemService } from '../services/FileSystemService';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -34,6 +41,8 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState('');
   const [saved, setSaved] = useState(false);
+  const [saveDirectory, setSaveDirectory] = useState<string | null>(null);
+  const [isSelectingDirectory, setIsSelectingDirectory] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -41,6 +50,11 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
       setApiKey(settings.openRouterApiKey || '');
       setModel(settings.imageGenerationModel || 'google/gemini-2.5-flash-image');
       setSaved(false);
+      
+      // Load current directory
+      FileSystemService.getDirectoryPath().then(path => {
+        setSaveDirectory(path);
+      });
     }
   }, [open]);
 
@@ -58,6 +72,23 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
   const handleClear = () => {
     SettingsService.clearApiKey();
     setApiKey('');
+    setSaved(true);
+  };
+
+  const handleSelectDirectory = async () => {
+    setIsSelectingDirectory(true);
+    const result = await FileSystemService.selectDirectory();
+    setIsSelectingDirectory(false);
+    
+    if (result.success && result.path) {
+      setSaveDirectory(result.path);
+      setSaved(true);
+    }
+  };
+
+  const handleClearDirectory = async () => {
+    await FileSystemService.clearDirectory();
+    setSaveDirectory(null);
     setSaved(true);
   };
 
@@ -129,6 +160,78 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
               {' '}for current pricing.
             </Typography>
           </Alert>
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* Auto-Save Directory Section */}
+          <Typography variant="h6" gutterBottom>
+            Auto-Save Images
+          </Typography>
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Select a parent directory where images will be automatically saved. 
+            Each book will get its own subdirectory.
+          </Typography>
+
+          {!FileSystemService.isSupported() && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              <Typography variant="caption">
+                File System Access API is not supported in your browser. 
+                Please use Chrome, Edge, or Opera for automatic saving.
+              </Typography>
+            </Alert>
+          )}
+
+          {FileSystemService.isSupported() && (
+            <>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <Button
+                  variant={saveDirectory ? 'outlined' : 'contained'}
+                  startIcon={saveDirectory ? <FolderOpenIcon /> : <FolderIcon />}
+                  onClick={handleSelectDirectory}
+                  disabled={isSelectingDirectory}
+                >
+                  {isSelectingDirectory ? 'Selecting...' : saveDirectory ? 'Change Directory' : 'Select Directory'}
+                </Button>
+                {saveDirectory && (
+                  <Button
+                    variant="text"
+                    color="error"
+                    onClick={handleClearDirectory}
+                  >
+                    Clear
+                  </Button>
+                )}
+              </Box>
+
+              {saveDirectory && (
+                <Alert severity="success" icon={<CheckIcon />} sx={{ mb: 2 }}>
+                  <Box>
+                    <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
+                      Auto-save enabled
+                    </Typography>
+                    <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                      <FolderOpenIcon fontSize="small" />
+                      {saveDirectory}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                      Images will be automatically saved to: {saveDirectory}/[BookTitle]/[scene-name]_[timestamp].png
+                    </Typography>
+                  </Box>
+                </Alert>
+              )}
+
+              {!saveDirectory && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  <Typography variant="caption">
+                    <strong>How it works:</strong> Select a parent folder once. 
+                    Each book will automatically create its own subfolder. 
+                    Generated images will save there automatically without downloads.
+                  </Typography>
+                </Alert>
+              )}
+            </>
+          )}
         </Box>
       </DialogContent>
       <DialogActions>

@@ -188,6 +188,7 @@ export async function overlayTextOnImage(
     textAlign?: 'left' | 'center' | 'right';
     widthPercentage?: number;
     heightPercentage?: number;
+    autoHeight?: boolean;
     position?: string;
     backgroundColor?: string;
     fontColor?: string;
@@ -215,7 +216,48 @@ export async function overlayTextOnImage(
   
   // Calculate panel dimensions based on ACTUAL image size
   const panelWidth = Math.round(actualImageWidth * (widthPercent / 100));
-  const panelHeight = Math.round(actualImageHeight * (heightPercent / 100));
+  let panelHeight = Math.round(actualImageHeight * (heightPercent / 100));
+  
+  // If autoHeight is enabled, calculate optimal height to fit all text
+  if (config?.autoHeight) {
+    // Import and use text measurement inline to avoid circular dependency
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    ctx.font = `${config?.fontSize ?? Math.round(panelHeight / 6)}px ${config?.fontFamily ?? "Arial, sans-serif"}`;
+    
+    const padding = config?.padding ?? 20;
+    const innerWidth = panelWidth - (padding * 2);
+    const lineHeight = config?.fontSize ? Math.round(config.fontSize * 1.3) : Math.round(panelHeight / 5);
+    
+    // Count lines
+    const paragraphs = text.split(/\r?\n/);
+    let lineCount = 0;
+    
+    for (const paragraph of paragraphs) {
+      if (!paragraph.trim()) {
+        lineCount++;
+        continue;
+      }
+      
+      const words = paragraph.split(/\s+/);
+      let line = "";
+      
+      for (const word of words) {
+        const test = line ? line + " " + word : word;
+        const w = ctx.measureText(test).width;
+        if (w <= innerWidth) {
+          line = test;
+        } else {
+          if (line) lineCount++;
+          line = word;
+        }
+      }
+      if (line) lineCount++;
+    }
+    
+    // Calculate required height
+    panelHeight = (lineCount * lineHeight) + (padding * 2);
+  }
   
   // Create text panel with provided or default styling
   const panel = await createTextPanel(text, {

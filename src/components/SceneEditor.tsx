@@ -44,6 +44,7 @@ import { FileSystemService } from '../services/FileSystemService';
 import { SettingsService } from '../services/SettingsService';
 import { overlayTextOnImage } from '../services/OverlayService';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
+import { measureTextFit } from '../services/TextMeasurementService';
 
 interface SceneEditorProps {
   story: Story | null;
@@ -68,6 +69,12 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorDialogMessage, setErrorDialogMessage] = useState('');
+  const [textFitDialogOpen, setTextFitDialogOpen] = useState(false);
+  const [textFitInfo, setTextFitInfo] = useState<{
+    requiredHeightPercentage: number;
+    lineCount: number;
+    currentHeightPercentage: number;
+  } | null>(null);
   
   const textPanelFieldRef = React.useRef<HTMLTextAreaElement>(null);
 
@@ -438,15 +445,43 @@ SCENE CONTENT:
   };
 
   const handleGenerateImage = async () => {
-    const prompt = generatePrompt();
-    setIsGeneratingImage(true);
-    setGeneratedImageUrl(null);
-
-    // Get the active book to retrieve aspect ratio
+    // Get the active book to retrieve aspect ratio and panel config
     const bookCollection = BookService.getBookCollection();
     const activeBookId = BookService.getActiveBookId();
     const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
     const aspectRatio = activeBook?.aspectRatio || '3:4';
+    const panelConfig = activeBook?.panelConfig || DEFAULT_PANEL_CONFIG;
+
+    // Pre-check text fit if textPanel has content and autoHeight is disabled
+    if (textPanel && textPanel.trim() && !panelConfig.autoHeight) {
+      const imageDimensions = getImageDimensionsFromAspectRatio(aspectRatio);
+      const macros = {
+        'SceneDescription': currentScene?.description || ''
+      };
+      const panelText = replaceMacros(textPanel, macros);
+      
+      const fitResult = measureTextFit(
+        panelText,
+        imageDimensions.width,
+        imageDimensions.height,
+        panelConfig
+      );
+
+      if (!fitResult.fits) {
+        // Text doesn't fit - show confirmation dialog
+        setTextFitInfo({
+          requiredHeightPercentage: fitResult.requiredHeightPercentage,
+          lineCount: fitResult.lineCount,
+          currentHeightPercentage: panelConfig.heightPercentage
+        });
+        setTextFitDialogOpen(true);
+        return; // Don't proceed with generation
+      }
+    }
+
+    const prompt = generatePrompt();
+    setIsGeneratingImage(true);
+    setGeneratedImageUrl(null);
 
     try {
       const result = await ImageGenerationService.generateImage({ 
@@ -1085,6 +1120,69 @@ SCENE CONTENT:
             disabled={isGeneratingImage}
           >
             Retry
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Text Fit Warning Dialog */}
+      <Dialog
+        open={textFitDialogOpen}
+        onClose={() => setTextFitDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ bgcolor: 'warning.main', color: 'white' }}>
+          Text Panel Size Warning
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            The text panel content is too large to fit in the current panel size.
+          </Alert>
+          {textFitInfo && (
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" gutterBottom>
+                <strong>Current panel height:</strong> {textFitInfo.currentHeightPercentage}%
+              </Typography>
+              <Typography variant="body2" gutterBottom>
+                <strong>Required height:</strong> {textFitInfo.requiredHeightPercentage}%
+              </Typography>
+              <Typography variant="body2" gutterBottom>
+                <strong>Number of text lines:</strong> {textFitInfo.lineCount}
+              </Typography>
+            </Box>
+          )}
+          <Typography variant="body2" color="text.secondary">
+            Would you like to proceed anyway? Text may be clipped. 
+            Alternatively, you can enable "Auto Height" in the panel configuration, 
+            or reduce your text or increase the panel height percentage.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTextFitDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              setTextFitDialogOpen(false);
+              // Navigate to file manager to edit panel config
+              setSnackbarMessage('Please adjust panel height in Book Settings or enable Auto Height');
+              setSnackbarSeverity('success');
+              setSnackbarOpen(true);
+            }}
+            color="primary"
+          >
+            Adjust Settings
+          </Button>
+          <Button
+            onClick={() => {
+              setTextFitDialogOpen(false);
+              // Force generation with clipped text
+              handleGenerateImage();
+            }}
+            variant="contained"
+            color="warning"
+          >
+            Generate Anyway
           </Button>
         </DialogActions>
       </Dialog>

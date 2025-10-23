@@ -15,6 +15,7 @@ export interface PanelConfig {
   textAlign: 'left' | 'center' | 'right';
   widthPercentage: number;      // 0-100, percentage of image width
   heightPercentage: number;     // 0-100, percentage of image height
+  autoHeight: boolean;          // if true, height adjusts to fit all text
   position: PanelPosition;      // where on the image to place the panel
   backgroundColor: string;      // hex color, e.g., "#000000cc"
   fontColor: string;            // hex color, e.g., "#ffffff"
@@ -64,6 +65,7 @@ export const DEFAULT_PANEL_CONFIG: PanelConfig = {
   textAlign: 'center',
   widthPercentage: 100,
   heightPercentage: 15,
+  autoHeight: false,
   position: 'bottom-center',
   backgroundColor: '#000000cc',
   fontColor: '#ffffff',

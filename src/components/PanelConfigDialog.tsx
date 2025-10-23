@@ -14,7 +14,9 @@ import {
   Typography,
   Box,
   Slider,
-  Tooltip
+  Tooltip,
+  Switch,
+  FormControlLabel
 } from '@mui/material';
 import type { PanelConfig, PanelPosition } from '../types/Book';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
@@ -174,14 +176,31 @@ export const PanelConfigDialog: React.FC<PanelConfigDialogProps> = ({
 
             {/* Height Percentage */}
             <Grid item xs={12}>
+              <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+                <Typography gutterBottom sx={{ mb: 0 }}>
+                  Height: {config.autoHeight ? 'Auto' : `${config.heightPercentage}%`}
+                </Typography>
+                <Tooltip title="When enabled, panel height automatically adjusts to fit all text content." arrow>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={config.autoHeight}
+                        onChange={(e) => setConfig({ ...config, autoHeight: e.target.checked })}
+                        color="primary"
+                      />
+                    }
+                    label="Auto Height"
+                  />
+                </Tooltip>
+              </Box>
               <Tooltip title="Panel height as a percentage of the image height. 15-20% works well for text panels." arrow placement="top">
                 <Box>
-                  <Typography gutterBottom>Height: {config.heightPercentage}%</Typography>
                   <Slider
                     value={config.heightPercentage}
                     onChange={(_, value) => setConfig({ ...config, heightPercentage: value as number })}
                     min={5}
                     max={50}
+                    disabled={config.autoHeight}
                     marks={[
                       { value: 10, label: '10%' },
                       { value: 20, label: '20%' },

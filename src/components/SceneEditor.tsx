@@ -86,7 +86,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       setSceneTitle(selectedScene.title);
       setSceneDescription(selectedScene.description || '');
       setTextPanel(selectedScene.textPanel || '');
-      setGeneratedImageUrl(null); // Clear image when switching scenes
+      setGeneratedImageUrl(selectedScene.lastGeneratedImage || null); // Load saved image or clear
     } else {
       setCurrentScene(null);
       setSelectedCharacters([]);
@@ -527,6 +527,28 @@ SCENE CONTENT:
         }
         
         setGeneratedImageUrl(finalImageUrl);
+        
+        // Save generated image to scene in local storage
+        if (story && currentScene) {
+          const activeBookData = BookService.getActiveBookData();
+          if (activeBookData) {
+            const updatedStories = activeBookData.stories.map(s => {
+              if (s.id === story.id) {
+                const updatedScenes = s.scenes.map(scene => {
+                  if (scene.id === currentScene.id) {
+                    return { ...scene, lastGeneratedImage: finalImageUrl, updatedAt: new Date() };
+                  }
+                  return scene;
+                });
+                return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+              }
+              return s;
+            });
+            
+            const updatedData = { ...activeBookData, stories: updatedStories };
+            BookService.saveActiveBookData(updatedData);
+          }
+        }
         
         // Auto-save to file system if enabled and directory is configured
         const autoSaveEnabled = SettingsService.isAutoSaveEnabled();

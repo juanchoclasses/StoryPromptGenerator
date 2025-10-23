@@ -19,7 +19,8 @@ import {
   Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
-  DragIndicator as DragIndicatorIcon
+  DragIndicator as DragIndicatorIcon,
+  ContentCopy as ContentCopyIcon
 } from '@mui/icons-material';
 import type { Scene, Story } from '../types/Story';
 import { BookService } from '../services/BookService';
@@ -86,6 +87,46 @@ export const SceneList: React.FC<SceneListProps> = ({
         setScenes(updatedStory.scenes);
         onStoryUpdate();
       }
+    }
+  };
+
+  const handleDuplicateScene = (sceneId: string) => {
+    if (!story) return;
+    
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData) return;
+    
+    const sceneToDuplicate = scenes.find(scene => scene.id === sceneId);
+    if (!sceneToDuplicate) return;
+    
+    // Create a duplicate with a new ID
+    const duplicatedScene: Scene = {
+      ...sceneToDuplicate,
+      id: crypto.randomUUID(),
+      title: `${sceneToDuplicate.title} (Copy)`,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    const updatedStories = activeBookData.stories.map(s => {
+      if (s.id === story.id) {
+        // Find the index of the original scene and insert the duplicate right after it
+        const sceneIndex = s.scenes.findIndex(scene => scene.id === sceneId);
+        const newScenes = [...s.scenes];
+        newScenes.splice(sceneIndex + 1, 0, duplicatedScene);
+        return { ...s, scenes: newScenes, updatedAt: new Date() };
+      }
+      return s;
+    });
+    
+    const updatedData = { ...activeBookData, stories: updatedStories };
+    BookService.saveActiveBookData(updatedData);
+    
+    // Update local state
+    const updatedStory = updatedStories.find(s => s.id === story.id);
+    if (updatedStory) {
+      setScenes(updatedStory.scenes);
+      onStoryUpdate();
     }
   };
 
@@ -305,6 +346,18 @@ export const SceneList: React.FC<SceneListProps> = ({
                       </IconButton>
                     </Tooltip>
 
+                    <Tooltip title="Duplicate scene">
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDuplicateScene(scene.id);
+                        }}
+                        size="small"
+                      >
+                        <ContentCopyIcon />
+                      </IconButton>
+                    </Tooltip>
+
                     <Tooltip title="Delete scene">
                       <IconButton
                         onClick={(e) => {
@@ -328,7 +381,7 @@ export const SceneList: React.FC<SceneListProps> = ({
                       <Typography variant="subtitle2" color="primary">
                         Description:
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', whiteSpace: 'pre-line' }}>
                         {scene.description}
                       </Typography>
                     </Box>

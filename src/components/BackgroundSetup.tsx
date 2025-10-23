@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   TextField,
@@ -19,57 +19,73 @@ interface BackgroundSetupProps {
 export const BackgroundSetup: React.FC<BackgroundSetupProps> = ({ story, onStoryUpdate }) => {
   const [backgroundSetup, setBackgroundSetup] = useState('');
   const [isDirty, setIsDirty] = useState(false);
+  const autoSaveTimerRef = useRef<number | null>(null);
+  const isEditingRef = useRef(false);
 
   useEffect(() => {
-    if (story) {
+    // Only update from story prop if we're not actively editing
+    if (story && !isEditingRef.current) {
       setBackgroundSetup(story.backgroundSetup);
       setIsDirty(false);
-    } else {
+    } else if (!story) {
       setBackgroundSetup('');
       setIsDirty(false);
     }
   }, [story]);
 
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, []);
+
+  const performSave = (value: string) => {
+    if (!story) return;
+    
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData) return;
+    
+    const updatedStories = activeBookData.stories.map(s => {
+      if (s.id === story.id) {
+        return { ...s, backgroundSetup: value, updatedAt: new Date() };
+      }
+      return s;
+    });
+    
+    const updatedData = { ...activeBookData, stories: updatedStories };
+    BookService.saveActiveBookData(updatedData);
+    setIsDirty(false);
+    
+    // Mark that we're done editing so the next story update can refresh the state
+    isEditingRef.current = false;
+  };
+
   const handleSave = () => {
     if (story) {
-      const activeBookData = BookService.getActiveBookData();
-      if (!activeBookData) return;
-      
-      const updatedStories = activeBookData.stories.map(s => {
-        if (s.id === story.id) {
-          return { ...s, backgroundSetup: backgroundSetup, updatedAt: new Date() };
-        }
-        return s;
-      });
-      
-      const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
-      setIsDirty(false);
+      performSave(backgroundSetup);
       onStoryUpdate();
     }
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setBackgroundSetup(event.target.value);
+    const newValue = event.target.value;
+    setBackgroundSetup(newValue);
     setIsDirty(true);
+    isEditingRef.current = true;
+    
+    // Clear existing timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
     
     // Auto-save after a short delay
     if (story) {
-      setTimeout(() => {
-        const activeBookData = BookService.getActiveBookData();
-        if (!activeBookData) return;
-        
-        const updatedStories = activeBookData.stories.map(s => {
-          if (s.id === story.id) {
-            return { ...s, backgroundSetup: event.target.value, updatedAt: new Date() };
-          }
-          return s;
-        });
-        
-        const updatedData = { ...activeBookData, stories: updatedStories };
-        BookService.saveActiveBookData(updatedData);
-        setIsDirty(false);
-        onStoryUpdate();
+      autoSaveTimerRef.current = setTimeout(() => {
+        performSave(newValue);
+        // Don't call onStoryUpdate() here to avoid triggering parent re-render
       }, 1000);
     }
   };

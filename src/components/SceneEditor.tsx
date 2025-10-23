@@ -178,6 +178,14 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
 
 
 
+  const replaceMacros = (text: string, macros: { [key: string]: string }): string => {
+    let result = text;
+    for (const [macro, value] of Object.entries(macros)) {
+      result = result.replace(new RegExp(`\\{${macro}\\}`, 'g'), value);
+    }
+    return result;
+  };
+
   const generatePrompt = () => {
     if (!story || !currentScene) return '';
 
@@ -188,6 +196,11 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     const bookCollection = BookService.getBookCollection();
     const activeBookId = BookService.getActiveBookId();
     const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
+    
+    // Define available macros
+    const macros = {
+      'SceneDescription': currentScene.description || ''
+    };
     
     let prompt = `I need you to create me an image according to the following data.\n\n`;
     
@@ -202,14 +215,16 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     if (selectedCast.length > 0) {
       prompt += `## Characters in this Scene\n`;
       selectedCast.forEach(character => {
-        prompt += `[Character Definition: ${character.name}]\n${character.description}\n\n`;
+        const characterDescription = replaceMacros(character.description, macros);
+        prompt += `[Character Definition: ${character.name}]\n${characterDescription}\n\n`;
       });
     }
     
     if (selectedElements.length > 0) {
       prompt += `## Elements in this Scene\n`;
       selectedElements.forEach(element => {
-        prompt += `[Object Definition: ${element.name}]\n${element.description}\n\n`;
+        const elementDescription = replaceMacros(element.description, macros);
+        prompt += `[Object Definition: ${element.name}]\n${elementDescription}\n\n`;
       });
     }
 

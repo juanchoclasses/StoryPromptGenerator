@@ -224,9 +224,9 @@ export const CastManager: React.FC<CastManagerProps> = ({ onStoryUpdate }) => {
                   </Box>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Box sx={{ whiteSpace: 'pre-line' }}>
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
                     {character.description}
-                  </Box>
+                  </Typography>
                 </AccordionDetails>
               </Accordion>
             ))}

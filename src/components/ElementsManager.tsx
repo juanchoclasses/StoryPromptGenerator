@@ -20,7 +20,8 @@ import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  ExpandMore as ExpandMoreIcon
+  ExpandMore as ExpandMoreIcon,
+  Code as CodeIcon
 } from '@mui/icons-material';
 import type { StoryElement } from '../types/Story';
 import { BookService } from '../services/BookService';
@@ -35,6 +36,7 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate 
   const [elementName, setElementName] = useState('');
   const [elementDescription, setElementDescription] = useState('');
   const [elementCategory, setElementCategory] = useState('');
+  const descriptionFieldRef = React.useRef<HTMLTextAreaElement>(null);
 
   const handleAddElement = () => {
     setEditingElement(null);
@@ -50,6 +52,24 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate 
     setElementDescription(element.description);
     setElementCategory(element.category || '');
     setOpenDialog(true);
+  };
+
+  const insertMacro = (macro: string) => {
+    const textarea = descriptionFieldRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = elementDescription;
+    
+    const newText = text.substring(0, start) + macro + text.substring(end);
+    setElementDescription(newText);
+    
+    // Set cursor position after the inserted macro
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + macro.length, start + macro.length);
+    }, 0);
   };
 
   const handleDeleteElement = (elementId: string) => {
@@ -242,9 +262,9 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate 
                           </Box>
                         </AccordionSummary>
                         <AccordionDetails>
-                          <Box sx={{ whiteSpace: 'pre-line' }}>
+                          <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
                             {element.description}
-                          </Box>
+                          </Typography>
                         </AccordionDetails>
                       </Accordion>
                     ))}
@@ -273,18 +293,36 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate 
             placeholder="Enter element name..."
             sx={{ mb: 2 }}
           />
-          <TextField
-            margin="dense"
-            label="Description"
-            fullWidth
-            multiline
-            rows={3}
-            variant="outlined"
-            value={elementDescription}
-            onChange={(e) => setElementDescription(e.target.value)}
-            placeholder="Describe this element..."
-            sx={{ mb: 2 }}
-          />
+          
+          <Box sx={{ mb: 2 }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+              <Typography variant="caption" color="text.secondary">
+                Description (use macros to insert dynamic content)
+              </Typography>
+              <Tooltip title="Insert Scene Description macro">
+                <Button
+                  size="small"
+                  startIcon={<CodeIcon />}
+                  onClick={() => insertMacro('{SceneDescription}')}
+                  variant="outlined"
+                >
+                  {'{SceneDescription}'}
+                </Button>
+              </Tooltip>
+            </Box>
+            <TextField
+              inputRef={descriptionFieldRef}
+              label="Description"
+              fullWidth
+              multiline
+              rows={4}
+              variant="outlined"
+              value={elementDescription}
+              onChange={(e) => setElementDescription(e.target.value)}
+              placeholder="Describe this element... Use {SceneDescription} to reference the scene description."
+            />
+          </Box>
+          
           <TextField
             margin="dense"
             label="Category (Optional)"

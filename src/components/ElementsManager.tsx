@@ -259,6 +259,7 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate 
                           <Box display="flex" gap={1} onClick={(e) => e.stopPropagation()}>
                             <Tooltip title="Edit element">
                               <IconButton
+                                component="div"
                                 onClick={() => handleEditElement(element)}
                                 size="small"
                               >
@@ -267,6 +268,7 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate 
                             </Tooltip>
                             <Tooltip title="Delete element">
                               <IconButton
+                                component="div"
                                 onClick={() => handleDeleteElement(element.id)}
                                 color="error"
                                 size="small"

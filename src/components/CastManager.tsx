@@ -206,6 +206,7 @@ export const CastManager: React.FC<CastManagerProps> = ({ onStoryUpdate }) => {
                   <Box display="flex" gap={1} onClick={(e) => e.stopPropagation()}>
                     <Tooltip title="Edit character">
                       <IconButton
+                        component="div"
                         onClick={() => handleEditCharacter(character)}
                         size="small"
                       >
@@ -214,6 +215,7 @@ export const CastManager: React.FC<CastManagerProps> = ({ onStoryUpdate }) => {
                     </Tooltip>
                     <Tooltip title="Delete character">
                       <IconButton
+                        component="div"
                         onClick={() => handleDeleteCharacter(character.id)}
                         color="error"
                         size="small"

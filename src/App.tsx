@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Box,
@@ -71,20 +71,22 @@ function App() {
     setSelectedScene(scene);
   };
 
-  const handleImageStateChange = (url: string | null, onSave: () => void, onClear: () => void) => {
+  const handleImageStateChange = useCallback((url: string | null, onSave: () => void, onClear: () => void) => {
     setImageUrl(url);
     setImageSaveHandler(() => onSave);
     setImageClearHandler(() => onClear);
-    
-    // Load imageHistory from selectedScene
+  }, []);
+
+  // Update imageHistory when selectedScene changes
+  useEffect(() => {
     if (selectedScene && selectedScene.imageHistory) {
       setImageHistory(selectedScene.imageHistory);
     } else {
       setImageHistory([]);
     }
-  };
+  }, [selectedScene]);
 
-  const handleDeleteImage = (imageId: string) => {
+  const handleDeleteImage = useCallback((imageId: string) => {
     if (!selectedStory || !selectedScene) return;
     
     const activeBookData = BookService.getActiveBookData();
@@ -106,10 +108,10 @@ function App() {
     
     const updatedData = { ...activeBookData, stories: updatedStories };
     BookService.saveActiveBookData(updatedData);
-    handleStoryUpdate();
-  };
+    setRefreshKey(prev => prev + 1);
+  }, [selectedStory, selectedScene]);
 
-  const handleSaveSpecificImage = async (imageUrl: string) => {
+  const handleSaveSpecificImage = useCallback(async (imageUrl: string) => {
     if (!selectedStory || !selectedScene) return;
     
     const bookCollection = BookService.getBookCollection();
@@ -124,7 +126,7 @@ function App() {
         selectedScene.title
       );
     }
-  };
+  }, [selectedStory, selectedScene]);
 
   const handleStoryUpdate = () => {
     setRefreshKey(prev => prev + 1);

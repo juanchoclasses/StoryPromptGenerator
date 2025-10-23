@@ -47,12 +47,13 @@ export const ImagePanel: React.FC<ImagePanelProps> = ({
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
-  const handleCopyImage = async () => {
-    if (!imageUrl) return;
+  const handleCopyImage = async (urlToCopy?: string) => {
+    const targetUrl = urlToCopy || imageUrl;
+    if (!targetUrl) return;
 
     try {
       // Fetch the image as a blob
-      const response = await fetch(imageUrl);
+      const response = await fetch(targetUrl);
       const blob = await response.blob();
       
       // Copy to clipboard using the Clipboard API

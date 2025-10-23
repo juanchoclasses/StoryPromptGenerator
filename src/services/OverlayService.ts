@@ -195,6 +195,10 @@ export async function overlayTextOnImage(
     borderWidth?: number;
     borderRadius?: number;
     padding?: number;
+    gutterTop?: number;
+    gutterBottom?: number;
+    gutterLeft?: number;
+    gutterRight?: number;
   }
 ): Promise<string> {
   // Load the base image
@@ -225,26 +229,34 @@ export async function overlayTextOnImage(
     textAlign: (config?.textAlign as CanvasTextAlign) ?? "center"
   });
   
+  // Get gutter values (default to 0)
+  const gutterTop = config?.gutterTop ?? 0;
+  const gutterBottom = config?.gutterBottom ?? 0;
+  const gutterLeft = config?.gutterLeft ?? 0;
+  const gutterRight = config?.gutterRight ?? 0;
+  
   // Calculate position based on config
   let x = 0;
   let y = 0;
   
   // Horizontal positioning
   if (position.includes('left')) {
-    x = 0;
+    x = gutterLeft;
   } else if (position.includes('right')) {
-    x = imageWidth - panelWidth;
+    x = imageWidth - panelWidth - gutterRight;
   } else if (position.includes('center')) {
-    x = (imageWidth - panelWidth) / 2;
+    // Center with consideration for asymmetric gutters
+    x = gutterLeft + (imageWidth - panelWidth - gutterLeft - gutterRight) / 2;
   }
   
   // Vertical positioning
   if (position.includes('top')) {
-    y = 0;
+    y = gutterTop;
   } else if (position.includes('bottom')) {
-    y = imageHeight - panelHeight;
+    y = imageHeight - panelHeight - gutterBottom;
   } else if (position.includes('middle')) {
-    y = (imageHeight - panelHeight) / 2;
+    // Middle with consideration for asymmetric gutters
+    y = gutterTop + (imageHeight - panelHeight - gutterTop - gutterBottom) / 2;
   }
   
   const compositeOptions: CompositeOptions = { x, y };

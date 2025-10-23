@@ -22,6 +22,10 @@ export interface PanelConfig {
   borderWidth: number;          // in pixels
   borderRadius: number;         // in pixels for rounded corners
   padding: number;              // inner padding in pixels
+  gutterTop: number;            // top margin from image edge in pixels
+  gutterBottom: number;         // bottom margin from image edge in pixels
+  gutterLeft: number;           // left margin from image edge in pixels
+  gutterRight: number;          // right margin from image edge in pixels
 }
 
 export interface Book {
@@ -66,5 +70,9 @@ export const DEFAULT_PANEL_CONFIG: PanelConfig = {
   borderColor: '#ffffff',
   borderWidth: 2,
   borderRadius: 8,
-  padding: 20
+  padding: 20,
+  gutterTop: 0,
+  gutterBottom: 0,
+  gutterLeft: 0,
+  gutterRight: 0
 }; 

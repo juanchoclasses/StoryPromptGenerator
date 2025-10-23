@@ -315,6 +315,69 @@ export const PanelConfigDialog: React.FC<PanelConfigDialogProps> = ({
                 />
               </Tooltip>
             </Grid>
+
+            {/* Gutter Section Header */}
+            <Grid item xs={12}>
+              <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+                Gutter / Margins (Distance from Image Edges)
+              </Typography>
+            </Grid>
+
+            {/* Gutter Top */}
+            <Grid item xs={12} sm={6}>
+              <Tooltip title="Distance from top edge of image. Set to 0 to be flush with the top." arrow placement="top">
+                <TextField
+                  fullWidth
+                  label="Top Gutter (px)"
+                  type="number"
+                  value={config.gutterTop}
+                  onChange={(e) => setConfig({ ...config, gutterTop: Number(e.target.value) })}
+                  inputProps={{ min: 0, max: 200 }}
+                />
+              </Tooltip>
+            </Grid>
+
+            {/* Gutter Bottom */}
+            <Grid item xs={12} sm={6}>
+              <Tooltip title="Distance from bottom edge of image. Set to 0 to be flush with the bottom." arrow placement="top">
+                <TextField
+                  fullWidth
+                  label="Bottom Gutter (px)"
+                  type="number"
+                  value={config.gutterBottom}
+                  onChange={(e) => setConfig({ ...config, gutterBottom: Number(e.target.value) })}
+                  inputProps={{ min: 0, max: 200 }}
+                />
+              </Tooltip>
+            </Grid>
+
+            {/* Gutter Left */}
+            <Grid item xs={12} sm={6}>
+              <Tooltip title="Distance from left edge of image. Set to 0 to be flush with the left side." arrow placement="top">
+                <TextField
+                  fullWidth
+                  label="Left Gutter (px)"
+                  type="number"
+                  value={config.gutterLeft}
+                  onChange={(e) => setConfig({ ...config, gutterLeft: Number(e.target.value) })}
+                  inputProps={{ min: 0, max: 200 }}
+                />
+              </Tooltip>
+            </Grid>
+
+            {/* Gutter Right */}
+            <Grid item xs={12} sm={6}>
+              <Tooltip title="Distance from right edge of image. Set to 0 to be flush with the right side." arrow placement="top">
+                <TextField
+                  fullWidth
+                  label="Right Gutter (px)"
+                  type="number"
+                  value={config.gutterRight}
+                  onChange={(e) => setConfig({ ...config, gutterRight: Number(e.target.value) })}
+                  inputProps={{ min: 0, max: 200 }}
+                />
+              </Tooltip>
+            </Grid>
           </Grid>
         </Box>
       </DialogContent>

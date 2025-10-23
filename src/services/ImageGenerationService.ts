@@ -3,6 +3,7 @@ import { SettingsService } from './SettingsService';
 export interface ImageGenerationOptions {
   prompt: string;
   model?: string;
+  aspectRatio?: string;
 }
 
 export interface ImageGenerationResult {
@@ -47,7 +48,7 @@ export class ImageGenerationService {
             }
           ],
           image_config: {
-            aspect_ratio: '3:4' // Portrait orientation for booklet printing
+            aspect_ratio: options.aspectRatio || '3:4' // Use book's aspect ratio or default to 3:4
           }
         })
       });

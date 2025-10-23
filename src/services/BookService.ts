@@ -23,10 +23,10 @@ export class BookService {
     try {
       const data = JSON.parse(stored);
       return {
-        books: data.books?.map((book: any) => ({
+        books: data.books?.map((book: Record<string, unknown>) => ({
           ...book,
-          createdAt: new Date(book.createdAt || Date.now()),
-          updatedAt: new Date(book.updatedAt || Date.now())
+          createdAt: new Date((book.createdAt as string | number) || Date.now()),
+          updatedAt: new Date((book.updatedAt as string | number) || Date.now())
         })) || [],
         activeBookId: data.activeBookId || null,
         lastUpdated: new Date(data.lastUpdated || Date.now())
@@ -97,12 +97,13 @@ export class BookService {
   /**
    * Create a new book
    */
-  static createBook(title: string, description?: string): Book {
+  static createBook(title: string, description?: string, aspectRatio?: string): Book {
     const collection = this.getBookCollection();
     const newBook: Book = {
       id: crypto.randomUUID(),
       title,
       description,
+      aspectRatio: aspectRatio || '3:4', // Default to 3:4 portrait
       createdAt: new Date(),
       updatedAt: new Date()
     };

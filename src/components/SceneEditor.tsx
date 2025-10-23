@@ -287,6 +287,33 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     return result;
   };
 
+  // Convert aspect ratio string to dimensions (assumes 1024px base for longest side)
+  const getImageDimensionsFromAspectRatio = (aspectRatio: string): { width: number; height: number } => {
+    const [widthRatio, heightRatio] = aspectRatio.split(':').map(Number);
+    
+    if (!widthRatio || !heightRatio) {
+      return { width: 768, height: 1024 }; // Default to 3:4
+    }
+    
+    // Use 1024 as the base for the longer dimension
+    if (widthRatio > heightRatio) {
+      // Landscape
+      return {
+        width: 1024,
+        height: Math.round((1024 * heightRatio) / widthRatio)
+      };
+    } else if (heightRatio > widthRatio) {
+      // Portrait
+      return {
+        width: Math.round((1024 * widthRatio) / heightRatio),
+        height: 1024
+      };
+    } else {
+      // Square
+      return { width: 1024, height: 1024 };
+    }
+  };
+
   const generatePrompt = () => {
     if (!story || !currentScene) return '';
 
@@ -414,8 +441,17 @@ SCENE CONTENT:
     setIsGeneratingImage(true);
     setGeneratedImageUrl(null);
 
+    // Get the active book to retrieve aspect ratio
+    const bookCollection = BookService.getBookCollection();
+    const activeBookId = BookService.getActiveBookId();
+    const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
+    const aspectRatio = activeBook?.aspectRatio || '3:4';
+
     try {
-      const result = await ImageGenerationService.generateImage({ prompt });
+      const result = await ImageGenerationService.generateImage({ 
+        prompt,
+        aspectRatio 
+      });
       
       if (result.success && result.imageUrl) {
         let finalImageUrl = result.imageUrl;
@@ -431,13 +467,15 @@ SCENE CONTENT:
             // Replace macros in the text panel
             const panelText = replaceMacros(textPanel, macros);
             
-            // Overlay text onto image (using 3:4 portrait aspect ratio)
-            // Standard dimensions: 768x1024 or scaled accordingly
+            // Calculate image dimensions based on aspect ratio
+            const imageDimensions = getImageDimensionsFromAspectRatio(aspectRatio);
+            
+            // Overlay text onto image
             finalImageUrl = await overlayTextOnImage(
               result.imageUrl,
               panelText,
-              768,
-              1024
+              imageDimensions.width,
+              imageDimensions.height
             );
           } catch (overlayError) {
             console.error('Error overlaying text:', overlayError);

@@ -25,6 +25,7 @@ import {
   Upload as UploadIcon,
   Book as BookIcon
 } from '@mui/icons-material';
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { BookService } from '../services/BookService';
 import { MigrationService } from '../services/MigrationService';
 import type { BookMetadata } from '../types/Book';
@@ -42,8 +43,10 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
   const [editingBook, setEditingBook] = useState<BookMetadata | null>(null);
   const [newBookTitle, setNewBookTitle] = useState('');
   const [newBookDescription, setNewBookDescription] = useState('');
+  const [newBookAspectRatio, setNewBookAspectRatio] = useState('3:4');
   const [editBookTitle, setEditBookTitle] = useState('');
   const [editBookDescription, setEditBookDescription] = useState('');
+  const [editBookAspectRatio, setEditBookAspectRatio] = useState('3:4');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
@@ -154,10 +157,15 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
       return;
     }
 
-    const newBook = BookService.createBook(newBookTitle.trim(), newBookDescription.trim() || undefined);
+    const newBook = BookService.createBook(
+      newBookTitle.trim(), 
+      newBookDescription.trim() || undefined,
+      newBookAspectRatio
+    );
     if (newBook) {
       setNewBookTitle('');
       setNewBookDescription('');
+      setNewBookAspectRatio('3:4');
       setOpenCreateDialog(false);
       loadBooks();
       onBookUpdate();
@@ -175,7 +183,8 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
 
     const updated = BookService.updateBook(editingBook.id, {
       title: editBookTitle.trim(),
-      description: editBookDescription.trim() || undefined
+      description: editBookDescription.trim() || undefined,
+      aspectRatio: editBookAspectRatio
     });
 
     if (updated) {
@@ -183,6 +192,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
       setEditingBook(null);
       setEditBookTitle('');
       setEditBookDescription('');
+      setEditBookAspectRatio('3:4');
       loadBooks();
       onBookUpdate();
       showSnackbar('Book updated successfully', 'success');
@@ -272,6 +282,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
     setEditingBook(book);
     setEditBookTitle(book.title);
     setEditBookDescription(book.description || '');
+    setEditBookAspectRatio(book.aspectRatio || '3:4');
     setOpenEditDialog(true);
   };
 
@@ -450,7 +461,22 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
             rows={3}
             value={newBookDescription}
             onChange={(e) => setNewBookDescription(e.target.value)}
+            sx={{ mb: 2 }}
           />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Image Aspect Ratio</InputLabel>
+            <Select
+              value={newBookAspectRatio}
+              label="Image Aspect Ratio"
+              onChange={(e) => setNewBookAspectRatio(e.target.value)}
+            >
+              <MenuItem value="1:1">1:1 (Square)</MenuItem>
+              <MenuItem value="3:4">3:4 (Portrait - Booklet)</MenuItem>
+              <MenuItem value="4:3">4:3 (Landscape)</MenuItem>
+              <MenuItem value="16:9">16:9 (Widescreen)</MenuItem>
+              <MenuItem value="9:16">9:16 (Vertical)</MenuItem>
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenCreateDialog(false)}>Cancel</Button>
@@ -479,7 +505,22 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
             rows={3}
             value={editBookDescription}
             onChange={(e) => setEditBookDescription(e.target.value)}
+            sx={{ mb: 2 }}
           />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Image Aspect Ratio</InputLabel>
+            <Select
+              value={editBookAspectRatio}
+              label="Image Aspect Ratio"
+              onChange={(e) => setEditBookAspectRatio(e.target.value)}
+            >
+              <MenuItem value="1:1">1:1 (Square)</MenuItem>
+              <MenuItem value="3:4">3:4 (Portrait - Booklet)</MenuItem>
+              <MenuItem value="4:3">4:3 (Landscape)</MenuItem>
+              <MenuItem value="16:9">16:9 (Widescreen)</MenuItem>
+              <MenuItem value="9:16">9:16 (Vertical)</MenuItem>
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>

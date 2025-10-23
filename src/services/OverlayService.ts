@@ -54,26 +54,41 @@ function roundedRectPath(
   ctx.closePath();
 }
 
-// Word-wrap text into lines that fit a max width
+// Word-wrap text into lines that fit a max width, preserving explicit line breaks
 function wrapText(
   ctx: CanvasRenderingContext2D,
   text: string,
   maxWidth: number
 ): string[] {
-  const words = text.split(/\s+/);
   const lines: string[] = [];
-  let line = "";
-  for (const word of words) {
-    const test = line ? line + " " + word : word;
-    const w = ctx.measureText(test).width;
-    if (w <= maxWidth) {
-      line = test;
-    } else {
-      if (line) lines.push(line);
-      line = word;
+  
+  // First split on explicit line breaks to preserve them
+  const paragraphs = text.split(/\r?\n/);
+  
+  for (const paragraph of paragraphs) {
+    if (!paragraph.trim()) {
+      // Preserve empty lines
+      lines.push("");
+      continue;
     }
+    
+    // Word-wrap this paragraph
+    const words = paragraph.split(/\s+/);
+    let line = "";
+    
+    for (const word of words) {
+      const test = line ? line + " " + word : word;
+      const w = ctx.measureText(test).width;
+      if (w <= maxWidth) {
+        line = test;
+      } else {
+        if (line) lines.push(line);
+        line = word;
+      }
+    }
+    if (line) lines.push(line);
   }
-  if (line) lines.push(line);
+  
   return lines;
 }
 

@@ -225,12 +225,31 @@ export class MigrationService {
         ...story,
         createdAt: new Date(story.createdAt || Date.now()),
         updatedAt: new Date(story.updatedAt || Date.now()),
-        scenes: story.scenes.map((scene: any) => ({
-          ...scene,
-          elementIds: scene.elementIds || [], // Ensure elementIds array exists
-          createdAt: new Date(scene.createdAt || Date.now()),
-          updatedAt: new Date(scene.updatedAt || Date.now())
-        }))
+        scenes: story.scenes.map((scene: any) => {
+          // Migrate lastGeneratedImage to imageHistory if needed
+          let imageHistory = scene.imageHistory || [];
+          
+          // If there's a lastGeneratedImage but no imageHistory, create one
+          if (scene.lastGeneratedImage && imageHistory.length === 0) {
+            imageHistory = [{
+              id: crypto.randomUUID(),
+              url: scene.lastGeneratedImage,
+              modelName: 'Unknown (migrated)',
+              timestamp: new Date(scene.updatedAt || Date.now())
+            }];
+          }
+          
+          return {
+            ...scene,
+            elementIds: scene.elementIds || [], // Ensure elementIds array exists
+            imageHistory: imageHistory.map((img: any) => ({
+              ...img,
+              timestamp: new Date(img.timestamp || Date.now())
+            })),
+            createdAt: new Date(scene.createdAt || Date.now()),
+            updatedAt: new Date(scene.updatedAt || Date.now())
+          };
+        })
       })),
       characters: data.characters || [],
       elements: data.elements || []

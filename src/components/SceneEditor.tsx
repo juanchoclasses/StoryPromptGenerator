@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -17,9 +17,6 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
-  Card,
-  CardMedia,
-  CardActions,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -33,7 +30,6 @@ import {
   Person as PersonIcon,
   Image as ImageIcon,
   ErrorOutline as ErrorIcon,
-  Save as SaveIcon,
   Code as CodeIcon,
   TextFields as TextFieldsIcon
 } from '@mui/icons-material';
@@ -50,9 +46,10 @@ interface SceneEditorProps {
   story: Story | null;
   selectedScene: Scene | null;
   onStoryUpdate: () => void;
+  onImageStateChange?: (imageUrl: string | null, onSave: () => void, onClear: () => void) => void;
 }
 
-export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, onStoryUpdate }) => {
+export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, onStoryUpdate, onImageStateChange }) => {
   const [currentScene, setCurrentScene] = useState<Scene | null>(null);
   const [selectedCharacters, setSelectedCharacters] = useState<string[]>([]);
   const [selectedElements, setSelectedElements] = useState<string[]>([]);
@@ -93,7 +90,11 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             setSceneTitle(freshScene.title);
             setSceneDescription(freshScene.description || '');
             setTextPanel(freshScene.textPanel || '');
-            setGeneratedImageUrl(freshScene.lastGeneratedImage || null); // Load saved image or clear
+            // Load most recent image from history, fallback to lastGeneratedImage for backward compatibility
+            const mostRecentImage = freshScene.imageHistory && freshScene.imageHistory.length > 0
+              ? freshScene.imageHistory[freshScene.imageHistory.length - 1].url
+              : freshScene.lastGeneratedImage || null;
+            setGeneratedImageUrl(mostRecentImage);
             return;
           }
         }
@@ -106,7 +107,11 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       setSceneTitle(selectedScene.title);
       setSceneDescription(selectedScene.description || '');
       setTextPanel(selectedScene.textPanel || '');
-      setGeneratedImageUrl(selectedScene.lastGeneratedImage || null);
+      // Load most recent image from history, fallback to lastGeneratedImage for backward compatibility
+      const mostRecentImage = selectedScene.imageHistory && selectedScene.imageHistory.length > 0
+        ? selectedScene.imageHistory[selectedScene.imageHistory.length - 1].url
+        : selectedScene.lastGeneratedImage || null;
+      setGeneratedImageUrl(mostRecentImage);
     } else {
       setCurrentScene(null);
       setSelectedCharacters([]);
@@ -552,11 +557,33 @@ SCENE CONTENT:
         if (story && currentScene) {
           const activeBookData = BookService.getActiveBookData();
           if (activeBookData) {
+            // Get current model name for the image metadata
+            const currentModel = SettingsService.getImageGenerationModel();
+            
+            // Create new GeneratedImage entry
+            const newGeneratedImage = {
+              id: crypto.randomUUID(),
+              url: finalImageUrl,
+              modelName: currentModel,
+              timestamp: new Date()
+            };
+            
             const updatedStories = activeBookData.stories.map(s => {
               if (s.id === story.id) {
                 const updatedScenes = s.scenes.map(scene => {
                   if (scene.id === currentScene.id) {
-                    return { ...scene, lastGeneratedImage: finalImageUrl, updatedAt: new Date() };
+                    // Get existing imageHistory or create new array
+                    const existingHistory = scene.imageHistory || [];
+                    
+                    // Add new image to history (keep last 20 images max)
+                    const updatedHistory = [...existingHistory, newGeneratedImage].slice(-20);
+                    
+                    return { 
+                      ...scene, 
+                      lastGeneratedImage: finalImageUrl, // Keep for backward compatibility
+                      imageHistory: updatedHistory,
+                      updatedAt: new Date() 
+                    };
                   }
                   return scene;
                 });
@@ -618,7 +645,7 @@ SCENE CONTENT:
     }
   };
 
-  const handleSaveImage = async () => {
+  const handleSaveImage = useCallback(async () => {
     if (!generatedImageUrl || !story || !currentScene) return;
     
     // Try to save to configured directory first
@@ -652,7 +679,7 @@ SCENE CONTENT:
     setSnackbarMessage('Image downloaded to your Downloads folder');
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
-  };
+  }, [generatedImageUrl, story, currentScene]);
 
   const handleCopyError = async () => {
     try {
@@ -667,6 +694,13 @@ SCENE CONTENT:
       setSnackbarOpen(true);
     }
   };
+
+  // Notify parent component about image state changes
+  useEffect(() => {
+    if (onImageStateChange) {
+      onImageStateChange(generatedImageUrl, handleSaveImage, () => setGeneratedImageUrl(null));
+    }
+  }, [generatedImageUrl, handleSaveImage, onImageStateChange]);
 
   if (!story) {
     return (
@@ -1027,43 +1061,6 @@ SCENE CONTENT:
           )}
         </AccordionDetails>
       </Accordion>
-
-      {/* Generated Image Display */}
-      {generatedImageUrl && (
-        <Box mt={3}>
-          <Typography variant="h6" gutterBottom>
-            Generated Image
-          </Typography>
-          <Card>
-            <CardMedia
-              component="img"
-              image={generatedImageUrl}
-              alt="Generated scene image"
-              sx={{ 
-                maxHeight: 600, 
-                objectFit: 'contain',
-                backgroundColor: '#f5f5f5'
-              }}
-            />
-            <CardActions>
-              <Button
-                size="small"
-                startIcon={<SaveIcon />}
-                onClick={handleSaveImage}
-                variant="contained"
-              >
-                Save Image
-              </Button>
-              <Button
-                size="small"
-                onClick={() => setGeneratedImageUrl(null)}
-              >
-                Clear
-              </Button>
-            </CardActions>
-          </Card>
-        </Box>
-      )}
 
       <Snackbar
         open={snackbarOpen}

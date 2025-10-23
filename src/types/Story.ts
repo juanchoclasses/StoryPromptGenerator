@@ -11,12 +11,21 @@ export interface StoryElement {
   category?: string; // Optional category for organization
 }
 
+export interface GeneratedImage {
+  id: string;
+  url: string; // Data URL of the image
+  modelName: string; // AI model used to generate this image
+  timestamp: Date;
+  promptHash?: string; // Optional: hash of prompt to detect changes
+}
+
 export interface Scene {
   id: string;
   title: string;
   description: string;
   textPanel?: string; // Text to overlay on generated image (supports macros)
-  lastGeneratedImage?: string; // Data URL of last generated image
+  lastGeneratedImage?: string; // DEPRECATED: Kept for backward compatibility
+  imageHistory?: GeneratedImage[]; // Array of all generated images for this scene
   characterIds: string[]; // References to characters in the story's cast
   elementIds: string[]; // References to elements in the story's elements
   createdAt: Date;

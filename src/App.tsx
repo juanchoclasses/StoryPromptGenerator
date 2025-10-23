@@ -25,7 +25,8 @@ import { FileManager } from './components/FileManager';
 import { VersionInfo } from './components/VersionInfo';
 import { AboutPanel } from './components/AboutPanel';
 import { SettingsDialog } from './components/SettingsDialog';
-import type { Scene, Story } from './types/Story';
+import { ImagePanel } from './components/ImagePanel';
+import type { Scene, Story, GeneratedImage } from './types/Story';
 import type { StoryData } from './types/Story';
 import { BookService } from './services/BookService';
 
@@ -46,6 +47,10 @@ function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState(0);
   const [storyTitle, setStoryTitle] = useState('');
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageHistory, setImageHistory] = useState<GeneratedImage[]>([]);
+  const [imageSaveHandler, setImageSaveHandler] = useState<(() => void) | null>(null);
+  const [imageClearHandler, setImageClearHandler] = useState<(() => void) | null>(null);
   const [storyDescription, setStoryDescription] = useState('');
   const [bookData, setBookData] = useState<StoryData | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -64,6 +69,61 @@ function App() {
 
   const handleSceneSelect = (scene: Scene) => {
     setSelectedScene(scene);
+  };
+
+  const handleImageStateChange = (url: string | null, onSave: () => void, onClear: () => void) => {
+    setImageUrl(url);
+    setImageSaveHandler(() => onSave);
+    setImageClearHandler(() => onClear);
+    
+    // Load imageHistory from selectedScene
+    if (selectedScene && selectedScene.imageHistory) {
+      setImageHistory(selectedScene.imageHistory);
+    } else {
+      setImageHistory([]);
+    }
+  };
+
+  const handleDeleteImage = (imageId: string) => {
+    if (!selectedStory || !selectedScene) return;
+    
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData) return;
+    
+    const updatedStories = activeBookData.stories.map(s => {
+      if (s.id === selectedStory.id) {
+        const updatedScenes = s.scenes.map(scene => {
+          if (scene.id === selectedScene.id) {
+            const updatedHistory = (scene.imageHistory || []).filter(img => img.id !== imageId);
+            return { ...scene, imageHistory: updatedHistory, updatedAt: new Date() };
+          }
+          return scene;
+        });
+        return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+      }
+      return s;
+    });
+    
+    const updatedData = { ...activeBookData, stories: updatedStories };
+    BookService.saveActiveBookData(updatedData);
+    handleStoryUpdate();
+  };
+
+  const handleSaveSpecificImage = async (imageUrl: string) => {
+    if (!selectedStory || !selectedScene) return;
+    
+    const bookCollection = BookService.getBookCollection();
+    const activeBookId = BookService.getActiveBookId();
+    const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
+    
+    if (activeBook) {
+      const { FileSystemService } = await import('./services/FileSystemService');
+      await FileSystemService.saveImage(
+        imageUrl,
+        activeBook.title,
+        selectedScene.title
+      );
+    }
   };
 
   const handleStoryUpdate = () => {
@@ -292,7 +352,7 @@ function App() {
               onStoryUpdate={handleStoryUpdate} 
             />
             
-            {/* Main Content - Horizontal Layout */}
+            {/* Main Content - Three Column Layout */}
             <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', lg: 'row' } }}>
               {/* Left Panel - Scene List */}
               <Box sx={{ flex: { lg: '0 0 400px' }, minWidth: 0 }}>
@@ -304,12 +364,25 @@ function App() {
                 />
               </Box>
               
-              {/* Right Panel - Scene Editor */}
+              {/* Middle Panel - Scene Editor */}
               <Box sx={{ flex: { lg: '1' }, minWidth: 0 }}>
                 <SceneEditor
                   story={selectedStory}
                   selectedScene={selectedScene}
                   onStoryUpdate={handleStoryUpdate}
+                  onImageStateChange={handleImageStateChange}
+                />
+              </Box>
+
+              {/* Right Panel - Generated Image */}
+              <Box sx={{ flex: { lg: '0 0 400px' }, minWidth: 0 }}>
+                <ImagePanel
+                  imageUrl={imageUrl}
+                  imageHistory={imageHistory}
+                  onSave={() => imageSaveHandler && imageSaveHandler()}
+                  onClear={() => imageClearHandler && imageClearHandler()}
+                  onDeleteImage={handleDeleteImage}
+                  onSaveSpecificImage={handleSaveSpecificImage}
                 />
               </Box>
             </Box>

@@ -41,6 +41,7 @@ import { SettingsService } from '../services/SettingsService';
 import { overlayTextOnImage } from '../services/OverlayService';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 import { measureTextFit } from '../services/TextMeasurementService';
+import { ModelSelectionDialog } from './ModelSelectionDialog';
 
 interface SceneEditorProps {
   story: Story | null;
@@ -72,9 +73,11 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     lineCount: number;
     currentHeightPercentage: number;
   } | null>(null);
+  const [modelSelectionOpen, setModelSelectionOpen] = useState(false);
   
   const textPanelFieldRef = React.useRef<HTMLTextAreaElement>(null);
   const lastNotifiedImageUrl = useRef<string | null>(null);
+  const lastSelectedModel = useRef<string | null>(null);
 
   useEffect(() => {
     if (selectedScene) {
@@ -470,7 +473,16 @@ SCENE CONTENT:
     }
   };
 
-  const handleGenerateImage = async () => {
+  // Show model selection dialog when Generate Image is clicked
+  const handleGenerateImage = () => {
+    setModelSelectionOpen(true);
+  };
+
+  // Actually perform the image generation with the selected model
+  const performImageGeneration = async (modelName: string) => {
+    // Store the selected model for potential retry
+    lastSelectedModel.current = modelName;
+    
     // Get the active book to retrieve aspect ratio and panel config
     const bookCollection = BookService.getBookCollection();
     const activeBookId = BookService.getActiveBookId();
@@ -512,7 +524,8 @@ SCENE CONTENT:
     try {
       const result = await ImageGenerationService.generateImage({ 
         prompt,
-        aspectRatio 
+        aspectRatio,
+        model: modelName  // Use the selected model
       });
       
       if (result.success && result.imageUrl) {
@@ -558,14 +571,11 @@ SCENE CONTENT:
         if (story && currentScene) {
           const activeBookData = BookService.getActiveBookData();
           if (activeBookData) {
-            // Get current model name for the image metadata
-            const currentModel = SettingsService.getImageGenerationModel();
-            
-            // Create new GeneratedImage entry
+            // Create new GeneratedImage entry with the model that was used
             const newGeneratedImage = {
               id: crypto.randomUUID(),
               url: finalImageUrl,
-              modelName: currentModel,
+              modelName: modelName,
               timestamp: new Date()
             };
             
@@ -1220,8 +1230,9 @@ SCENE CONTENT:
           <Button
             onClick={() => {
               setTextFitDialogOpen(false);
-              // Force generation with clipped text
-              handleGenerateImage();
+              // Force generation with clipped text using last selected model or default
+              const modelToUse = lastSelectedModel.current || SettingsService.getImageGenerationModel();
+              performImageGeneration(modelToUse);
             }}
             variant="contained"
             color="warning"
@@ -1230,6 +1241,13 @@ SCENE CONTENT:
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Model Selection Dialog */}
+      <ModelSelectionDialog
+        open={modelSelectionOpen}
+        onClose={() => setModelSelectionOpen(false)}
+        onConfirm={performImageGeneration}
+      />
       </Box>
     </Paper>
   );

@@ -1,4 +1,4 @@
-import type { Book, BookCollection } from '../types/Book';
+import type { Book, BookCollection, PanelConfig } from '../types/Book';
 import type { StoryData } from '../types/Story';
 import { CURRENT_VERSION } from '../types/Story';
 import { MigrationService } from './MigrationService';
@@ -97,13 +97,14 @@ export class BookService {
   /**
    * Create a new book
    */
-  static createBook(title: string, description?: string, aspectRatio?: string): Book {
+  static createBook(title: string, description?: string, aspectRatio?: string, panelConfig?: PanelConfig): Book {
     const collection = this.getBookCollection();
     const newBook: Book = {
       id: crypto.randomUUID(),
       title,
       description,
       aspectRatio: aspectRatio || '3:4', // Default to 3:4 portrait
+      panelConfig,
       createdAt: new Date(),
       updatedAt: new Date()
     };

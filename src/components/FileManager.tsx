@@ -28,7 +28,10 @@ import {
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { BookService } from '../services/BookService';
 import { MigrationService } from '../services/MigrationService';
-import type { BookMetadata } from '../types/Book';
+import type { BookMetadata, PanelConfig } from '../types/Book';
+import { DEFAULT_PANEL_CONFIG } from '../types/Book';
+import { PanelConfigDialog } from './PanelConfigDialog';
+import { Settings as SettingsIcon } from '@mui/icons-material';
 
 interface FileManagerProps {
   onBookSelect: (bookId: string) => void;
@@ -44,9 +47,13 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
   const [newBookTitle, setNewBookTitle] = useState('');
   const [newBookDescription, setNewBookDescription] = useState('');
   const [newBookAspectRatio, setNewBookAspectRatio] = useState('3:4');
+  const [newBookPanelConfig, setNewBookPanelConfig] = useState<PanelConfig>(DEFAULT_PANEL_CONFIG);
   const [editBookTitle, setEditBookTitle] = useState('');
   const [editBookDescription, setEditBookDescription] = useState('');
   const [editBookAspectRatio, setEditBookAspectRatio] = useState('3:4');
+  const [editBookPanelConfig, setEditBookPanelConfig] = useState<PanelConfig>(DEFAULT_PANEL_CONFIG);
+  const [panelConfigDialogOpen, setPanelConfigDialogOpen] = useState(false);
+  const [panelConfigDialogMode, setPanelConfigDialogMode] = useState<'create' | 'edit'>('create');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
@@ -160,12 +167,14 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
     const newBook = BookService.createBook(
       newBookTitle.trim(), 
       newBookDescription.trim() || undefined,
-      newBookAspectRatio
+      newBookAspectRatio,
+      newBookPanelConfig
     );
     if (newBook) {
       setNewBookTitle('');
       setNewBookDescription('');
       setNewBookAspectRatio('3:4');
+      setNewBookPanelConfig(DEFAULT_PANEL_CONFIG);
       setOpenCreateDialog(false);
       loadBooks();
       onBookUpdate();
@@ -184,7 +193,8 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
     const updated = BookService.updateBook(editingBook.id, {
       title: editBookTitle.trim(),
       description: editBookDescription.trim() || undefined,
-      aspectRatio: editBookAspectRatio
+      aspectRatio: editBookAspectRatio,
+      panelConfig: editBookPanelConfig
     });
 
     if (updated) {
@@ -193,6 +203,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
       setEditBookTitle('');
       setEditBookDescription('');
       setEditBookAspectRatio('3:4');
+      setEditBookPanelConfig(DEFAULT_PANEL_CONFIG);
       loadBooks();
       onBookUpdate();
       showSnackbar('Book updated successfully', 'success');
@@ -283,7 +294,21 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
     setEditBookTitle(book.title);
     setEditBookDescription(book.description || '');
     setEditBookAspectRatio(book.aspectRatio || '3:4');
+    setEditBookPanelConfig(book.panelConfig || DEFAULT_PANEL_CONFIG);
     setOpenEditDialog(true);
+  };
+
+  const handleOpenPanelConfig = (mode: 'create' | 'edit') => {
+    setPanelConfigDialogMode(mode);
+    setPanelConfigDialogOpen(true);
+  };
+
+  const handleSavePanelConfig = (config: PanelConfig) => {
+    if (panelConfigDialogMode === 'create') {
+      setNewBookPanelConfig(config);
+    } else {
+      setEditBookPanelConfig(config);
+    }
   };
 
   return (
@@ -477,6 +502,16 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
               <MenuItem value="9:16">9:16 (Vertical)</MenuItem>
             </Select>
           </FormControl>
+          <Box sx={{ mt: 2 }}>
+            <Button
+              startIcon={<SettingsIcon />}
+              onClick={() => handleOpenPanelConfig('create')}
+              variant="outlined"
+              fullWidth
+            >
+              Configure Text Panel Overlay
+            </Button>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenCreateDialog(false)}>Cancel</Button>
@@ -521,12 +556,30 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
               <MenuItem value="9:16">9:16 (Vertical)</MenuItem>
             </Select>
           </FormControl>
+          <Box sx={{ mt: 2 }}>
+            <Button
+              startIcon={<SettingsIcon />}
+              onClick={() => handleOpenPanelConfig('edit')}
+              variant="outlined"
+              fullWidth
+            >
+              Configure Text Panel Overlay
+            </Button>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
           <Button onClick={handleEditBook} variant="contained">Save</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Panel Config Dialog */}
+      <PanelConfigDialog
+        open={panelConfigDialogOpen}
+        onClose={() => setPanelConfigDialogOpen(false)}
+        initialConfig={panelConfigDialogMode === 'create' ? newBookPanelConfig : editBookPanelConfig}
+        onSave={handleSavePanelConfig}
+      />
 
       {/* Snackbar */}
       <Snackbar

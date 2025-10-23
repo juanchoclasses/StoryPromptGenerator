@@ -166,36 +166,73 @@ export async function overlayTextOnImage(
   imageDataUrl: string,
   text: string,
   imageWidth: number,
-  imageHeight: number
+  imageHeight: number,
+  config?: {
+    fontFamily?: string;
+    fontSize?: number;
+    textAlign?: 'left' | 'center' | 'right';
+    widthPercentage?: number;
+    heightPercentage?: number;
+    position?: string;
+    backgroundColor?: string;
+    fontColor?: string;
+    borderColor?: string;
+    borderWidth?: number;
+    borderRadius?: number;
+    padding?: number;
+  }
 ): Promise<string> {
   // Load the base image
   const baseImg = await loadImage(imageDataUrl);
   
-  // Calculate panel dimensions (full width, 15% height at bottom)
-  const panelWidth = imageWidth;
-  const panelHeight = Math.round(imageHeight * 0.15);
+  // Use provided config or defaults
+  const widthPercent = config?.widthPercentage ?? 100;
+  const heightPercent = config?.heightPercentage ?? 15;
+  const position = config?.position ?? 'bottom-center';
   
-  // Create text panel with default styling
+  // Calculate panel dimensions
+  const panelWidth = Math.round(imageWidth * (widthPercent / 100));
+  const panelHeight = Math.round(imageHeight * (heightPercent / 100));
+  
+  // Create text panel with provided or default styling
   const panel = await createTextPanel(text, {
     width: panelWidth,
     height: panelHeight,
-    bgColor: "#000000cc",      // Semi-transparent black
-    borderColor: "#ffffff",     // White border
-    borderWidth: 2,
-    borderRadius: 8,
-    padding: 20,
-    fontFamily: "Arial, sans-serif",
-    fontSize: Math.round(panelHeight / 6), // Responsive font size
-    fontColor: "#ffffff",       // White text
-    lineHeight: Math.round(panelHeight / 5),
-    textAlign: "center"
+    bgColor: config?.backgroundColor ?? "#000000cc",
+    borderColor: config?.borderColor ?? "#ffffff",
+    borderWidth: config?.borderWidth ?? 2,
+    borderRadius: config?.borderRadius ?? 8,
+    padding: config?.padding ?? 20,
+    fontFamily: config?.fontFamily ?? "Arial, sans-serif",
+    fontSize: config?.fontSize ?? Math.round(panelHeight / 6),
+    fontColor: config?.fontColor ?? "#ffffff",
+    lineHeight: config?.fontSize ? Math.round(config.fontSize * 1.3) : Math.round(panelHeight / 5),
+    textAlign: (config?.textAlign as CanvasTextAlign) ?? "center"
   });
   
-  // Position panel at bottom center
-  const compositeOptions: CompositeOptions = {
-    x: 0,
-    y: imageHeight - panelHeight
-  };
+  // Calculate position based on config
+  let x = 0;
+  let y = 0;
+  
+  // Horizontal positioning
+  if (position.includes('left')) {
+    x = 0;
+  } else if (position.includes('right')) {
+    x = imageWidth - panelWidth;
+  } else if (position.includes('center')) {
+    x = (imageWidth - panelWidth) / 2;
+  }
+  
+  // Vertical positioning
+  if (position.includes('top')) {
+    y = 0;
+  } else if (position.includes('bottom')) {
+    y = imageHeight - panelHeight;
+  } else if (position.includes('middle')) {
+    y = (imageHeight - panelHeight) / 2;
+  }
+  
+  const compositeOptions: CompositeOptions = { x, y };
   
   // Composite and return new image URL
   return await composeImageWithPanel(baseImg, panel, compositeOptions);

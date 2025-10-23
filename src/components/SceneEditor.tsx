@@ -43,6 +43,7 @@ import { ImageGenerationService } from '../services/ImageGenerationService';
 import { FileSystemService } from '../services/FileSystemService';
 import { SettingsService } from '../services/SettingsService';
 import { overlayTextOnImage } from '../services/OverlayService';
+import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 
 interface SceneEditorProps {
   story: Story | null;
@@ -470,12 +471,16 @@ SCENE CONTENT:
             // Calculate image dimensions based on aspect ratio
             const imageDimensions = getImageDimensionsFromAspectRatio(aspectRatio);
             
-            // Overlay text onto image
+            // Get panel config from book or use defaults
+            const panelConfig = activeBook?.panelConfig || DEFAULT_PANEL_CONFIG;
+            
+            // Overlay text onto image with book's panel configuration
             finalImageUrl = await overlayTextOnImage(
               result.imageUrl,
               panelText,
               imageDimensions.width,
-              imageDimensions.height
+              imageDimensions.height,
+              panelConfig
             );
           } catch (overlayError) {
             console.error('Error overlaying text:', overlayError);

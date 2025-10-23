@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -74,6 +74,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   } | null>(null);
   
   const textPanelFieldRef = React.useRef<HTMLTextAreaElement>(null);
+  const lastNotifiedImageUrl = useRef<string | null>(null);
 
   useEffect(() => {
     if (selectedScene) {
@@ -697,7 +698,9 @@ SCENE CONTENT:
 
   // Notify parent component about image state changes
   useEffect(() => {
-    if (onImageStateChange) {
+    // Only notify if the URL has actually changed to prevent infinite loops
+    if (onImageStateChange && generatedImageUrl !== lastNotifiedImageUrl.current) {
+      lastNotifiedImageUrl.current = generatedImageUrl;
       onImageStateChange(generatedImageUrl, handleSaveImage, () => setGeneratedImageUrl(null));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

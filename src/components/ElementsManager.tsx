@@ -14,7 +14,8 @@ import {
   Chip,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Autocomplete
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -130,6 +131,20 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate 
     });
     
     return categories;
+  };
+
+  const getExistingCategories = (): string[] => {
+    const activeBookData = BookService.getActiveBookData();
+    if (!activeBookData) return [];
+    
+    const categorySet = new Set<string>();
+    activeBookData.elements.forEach((element: StoryElement) => {
+      if (element.category && element.category.trim() !== '') {
+        categorySet.add(element.category);
+      }
+    });
+    
+    return Array.from(categorySet).sort();
   };
 
   // Check if there's an active book instead of requiring a story
@@ -323,14 +338,21 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate 
             />
           </Box>
           
-          <TextField
-            margin="dense"
-            label="Category (Optional)"
-            fullWidth
-            variant="outlined"
+          <Autocomplete
+            freeSolo
+            options={getExistingCategories()}
             value={elementCategory}
-            onChange={(e) => setElementCategory(e.target.value)}
-            placeholder="e.g., Props, Locations, Events..."
+            onChange={(_, newValue) => setElementCategory(newValue || '')}
+            onInputChange={(_, newInputValue) => setElementCategory(newInputValue)}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                margin="dense"
+                label="Category (Optional)"
+                variant="outlined"
+                placeholder="e.g., Props, Locations, Events..."
+              />
+            )}
           />
         </DialogContent>
         <DialogActions>

@@ -129,6 +129,8 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
         title: storyTitle.trim(),
         description: storyDescription.trim(),
         backgroundSetup: '',
+        characters: [], // Initialize empty characters array for this story
+        elements: [], // Initialize empty elements array for this story
         scenes: [],
         createdAt: new Date(),
         updatedAt: new Date()

@@ -50,8 +50,6 @@ export interface BookMetadata {
   createdAt: Date;
   updatedAt: Date;
   storyCount: number;
-  characterCount: number;
-  elementCount: number;
 }
 
 export interface BookCollection {

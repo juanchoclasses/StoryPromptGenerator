@@ -24,14 +24,15 @@ import {
   ExpandMore as ExpandMoreIcon,
   Code as CodeIcon
 } from '@mui/icons-material';
-import type { StoryElement } from '../types/Story';
+import type { StoryElement, Story } from '../types/Story';
 import { BookService } from '../services/BookService';
 
 interface ElementsManagerProps {
+  story: Story | null;
   onStoryUpdate: () => void;
 }
 
-export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate }) => {
+export const ElementsManager: React.FC<ElementsManagerProps> = ({ story, onStoryUpdate }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const [editingElement, setEditingElement] = useState<StoryElement | null>(null);
   const [elementName, setElementName] = useState('');
@@ -74,30 +75,39 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate 
   };
 
   const handleDeleteElement = (elementId: string) => {
+    if (!story) return;
     const activeBookData = BookService.getActiveBookData();
     if (!activeBookData) return;
     
     if (window.confirm('Are you sure you want to delete this element? This will also remove it from all scenes.')) {
-      const updatedElements = activeBookData.elements.filter(element => element.id !== elementId);
-      const updatedData = { ...activeBookData, elements: updatedElements };
+      const updatedElements = story.elements.filter(element => element.id !== elementId);
+      
+      // Update the story in the book data
+      const updatedStories = activeBookData.stories.map(s => 
+        s.id === story.id 
+          ? { ...s, elements: updatedElements, updatedAt: new Date() }
+          : s
+      );
+      const updatedData = { ...activeBookData, stories: updatedStories };
       BookService.saveActiveBookData(updatedData);
       onStoryUpdate();
     }
   };
 
   const handleSaveElement = () => {
+    if (!story) return;
     const activeBookData = BookService.getActiveBookData();
     if (!activeBookData || !elementName.trim()) return;
 
+    let updatedElements: StoryElement[];
+    
     if (editingElement) {
       // Update existing element
-      const updatedElements = activeBookData.elements.map(element => 
+      updatedElements = story.elements.map(element => 
         element.id === editingElement.id 
           ? { ...element, name: elementName.trim(), description: elementDescription, category: elementCategory.trim() || undefined }
           : element
       );
-      const updatedData = { ...activeBookData, elements: updatedElements };
-      BookService.saveActiveBookData(updatedData);
     } else {
       // Create new element
       const newElement: StoryElement = {
@@ -106,23 +116,27 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate 
         description: elementDescription,
         category: elementCategory.trim() || undefined
       };
-      const updatedData = { 
-        ...activeBookData, 
-        elements: [...activeBookData.elements, newElement] 
-      };
-      BookService.saveActiveBookData(updatedData);
+      updatedElements = [...story.elements, newElement];
     }
+    
+    // Update the story in the book data
+    const updatedStories = activeBookData.stories.map(s => 
+      s.id === story.id 
+        ? { ...s, elements: updatedElements, updatedAt: new Date() }
+        : s
+    );
+    const updatedData = { ...activeBookData, stories: updatedStories };
+    BookService.saveActiveBookData(updatedData);
 
     setOpenDialog(false);
     onStoryUpdate();
   };
 
   const getElementsByCategory = () => {
-    const activeBookData = BookService.getActiveBookData();
-    if (!activeBookData) return {};
+    if (!story) return {};
     
     const categories: { [key: string]: StoryElement[] } = {};
-    activeBookData.elements.forEach((element: StoryElement) => {
+    story.elements.forEach((element: StoryElement) => {
       const category = element.category || 'Uncategorized';
       if (!categories[category]) {
         categories[category] = [];
@@ -134,11 +148,10 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate 
   };
 
   const getExistingCategories = (): string[] => {
-    const activeBookData = BookService.getActiveBookData();
-    if (!activeBookData) return [];
+    if (!story) return [];
     
     const categorySet = new Set<string>();
-    activeBookData.elements.forEach((element: StoryElement) => {
+    story.elements.forEach((element: StoryElement) => {
       if (element.category && element.category.trim() !== '') {
         categorySet.add(element.category);
       }
@@ -148,12 +161,11 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate 
   };
 
   // Check if there's an active book instead of requiring a story
-  const activeBookData = BookService.getActiveBookData();
-  if (!activeBookData) {
+  if (!story) {
     return (
       <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
         <Typography variant="h6" color="text.secondary">
-          Select a book to manage elements
+          Select a story to manage elements
         </Typography>
       </Paper>
     );
@@ -173,7 +185,7 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate 
       <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
                   <Typography variant="h5" component="h2">
-          Story Elements ({activeBookData.elements.length})
+          Story Elements ({story.elements.length})
         </Typography>
           <Button
             variant="contained"
@@ -204,7 +216,7 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ onStoryUpdate 
           background: '#a8a8a8',
         },
       }}>
-        {activeBookData.elements.length === 0 ? (
+        {story.elements.length === 0 ? (
           <Box textAlign="center" py={4}>
             <Typography variant="h6" color="text.secondary" gutterBottom>
               No elements yet

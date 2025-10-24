@@ -282,8 +282,8 @@ function App() {
           <Tabs value={activeTab} onChange={handleTabChange}>
             <Tab label="Books" />
             <Tab label="Stories" disabled={!bookData} />
-            <Tab label="Book Characters" disabled={!bookData} />
-            <Tab label="Book Elements" disabled={!bookData} />
+            <Tab label="Story Characters" disabled={!selectedStory} />
+            <Tab label="Story Elements" disabled={!selectedStory} />
             <Tab label="Story Editor" disabled={!selectedStory} />
             <Tab label="About" />
           </Tabs>
@@ -310,17 +310,19 @@ function App() {
           </Box>
         )}
 
-        {activeTab === 2 && bookData && (
+        {activeTab === 2 && selectedStory && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <CastManager
+              story={selectedStory}
               onStoryUpdate={handleStoryUpdate}
             />
           </Box>
         )}
 
-        {activeTab === 3 && bookData && (
+        {activeTab === 3 && selectedStory && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <ElementsManager
+              story={selectedStory}
               onStoryUpdate={handleStoryUpdate}
             />
           </Box>

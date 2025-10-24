@@ -22,14 +22,15 @@ import {
   Person as PersonIcon,
   ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
-import type { Character } from '../types/Story';
+import type { Character, Story } from '../types/Story';
 import { BookService } from '../services/BookService';
 
 interface CastManagerProps {
+  story: Story | null;
   onStoryUpdate: () => void;
 }
 
-export const CastManager: React.FC<CastManagerProps> = ({ onStoryUpdate }) => {
+export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }) => {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
@@ -37,17 +38,15 @@ export const CastManager: React.FC<CastManagerProps> = ({ onStoryUpdate }) => {
   const [characterDescription, setCharacterDescription] = useState('');
 
   useEffect(() => {
-    const activeBookData = BookService.getActiveBookData();
-    if (activeBookData) {
-      setCharacters(activeBookData.characters);
+    if (story) {
+      setCharacters(story.characters || []);
     } else {
       setCharacters([]);
     }
-  }, []);
+  }, [story]);
 
   const handleAddCharacter = () => {
-    const activeBookData = BookService.getActiveBookData();
-    if (!activeBookData) return;
+    if (!story) return;
     setEditingCharacter(null);
     setCharacterName('');
     setCharacterDescription('');
@@ -62,12 +61,20 @@ export const CastManager: React.FC<CastManagerProps> = ({ onStoryUpdate }) => {
   };
 
   const handleDeleteCharacter = (characterId: string) => {
+    if (!story) return;
     const activeBookData = BookService.getActiveBookData();
     if (!activeBookData) return;
     
     if (window.confirm('Are you sure you want to delete this character? This will also remove them from all scenes.')) {
-      const updatedCharacters = activeBookData.characters.filter(char => char.id !== characterId);
-      const updatedData = { ...activeBookData, characters: updatedCharacters };
+      const updatedCharacters = story.characters.filter(char => char.id !== characterId);
+      
+      // Update the story in the book data
+      const updatedStories = activeBookData.stories.map(s => 
+        s.id === story.id 
+          ? { ...s, characters: updatedCharacters, updatedAt: new Date() }
+          : s
+      );
+      const updatedData = { ...activeBookData, stories: updatedStories };
       BookService.saveActiveBookData(updatedData);
       setCharacters(updatedCharacters);
       onStoryUpdate();
@@ -75,19 +82,19 @@ export const CastManager: React.FC<CastManagerProps> = ({ onStoryUpdate }) => {
   };
 
   const handleSaveCharacter = () => {
+    if (!story) return;
     const activeBookData = BookService.getActiveBookData();
     if (!activeBookData || !characterName.trim()) return;
 
+    let updatedCharacters: Character[];
+    
     if (editingCharacter) {
       // Update existing character
-      const updatedCharacters = activeBookData.characters.map(char => 
+      updatedCharacters = story.characters.map(char => 
         char.id === editingCharacter.id 
           ? { ...char, name: characterName.trim(), description: characterDescription }
           : char
       );
-      const updatedData = { ...activeBookData, characters: updatedCharacters };
-      BookService.saveActiveBookData(updatedData);
-      setCharacters(updatedCharacters);
     } else {
       // Create new character
       const newCharacter: Character = {
@@ -95,25 +102,29 @@ export const CastManager: React.FC<CastManagerProps> = ({ onStoryUpdate }) => {
         name: characterName.trim(),
         description: characterDescription
       };
-      const updatedData = { 
-        ...activeBookData, 
-        characters: [...activeBookData.characters, newCharacter] 
-      };
-      BookService.saveActiveBookData(updatedData);
-      setCharacters(updatedData.characters);
+      updatedCharacters = [...story.characters, newCharacter];
     }
+    
+    // Update the story in the book data
+    const updatedStories = activeBookData.stories.map(s => 
+      s.id === story.id 
+        ? { ...s, characters: updatedCharacters, updatedAt: new Date() }
+        : s
+    );
+    const updatedData = { ...activeBookData, stories: updatedStories };
+    BookService.saveActiveBookData(updatedData);
+    setCharacters(updatedCharacters);
 
     setOpenDialog(false);
     onStoryUpdate();
   };
 
-  // Check if there's an active book instead of requiring a story
-  const activeBookData = BookService.getActiveBookData();
-  if (!activeBookData) {
+  // Check if there's a selected story
+  if (!story) {
     return (
       <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
         <Typography variant="h6" color="text.secondary">
-          Select a book to manage characters
+          Select a story to manage characters
         </Typography>
       </Paper>
     );

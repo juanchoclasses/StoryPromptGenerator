@@ -263,23 +263,23 @@ export const ImportStoryDialog: React.FC<ImportStoryDialogProps> = ({ open, onCl
         return scene;
       });
 
-      // Create the story
+      // Create the story with its characters and elements
       const story: Story = {
         id: crypto.randomUUID(),
         title: storyTitle.trim(),
         description: undefined,
         backgroundSetup: storyBackgroundSetup.trim() || 'Story background setup',
+        characters: characters, // Characters now belong to the story
+        elements: elements, // Elements now belong to the story
         scenes: scenes,
         createdAt: new Date(),
         updatedAt: new Date()
       };
 
-      // Add the new story, characters, and elements to the existing book
+      // Add the new story to the existing book
       const updatedBookData = {
         ...bookData,
         stories: [...bookData.stories, story],
-        characters: [...bookData.characters, ...characters],
-        elements: [...bookData.elements, ...elements],
         lastUpdated: new Date()
       };
 

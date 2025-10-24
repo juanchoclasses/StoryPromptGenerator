@@ -37,6 +37,8 @@ export interface Story {
   title: string;
   description?: string; // Optional for backward compatibility
   backgroundSetup: string;
+  characters: Character[]; // Characters specific to this story
+  elements: StoryElement[]; // Elements specific to this story
   scenes: Scene[];
   createdAt: Date;
   updatedAt: Date;
@@ -45,10 +47,10 @@ export interface Story {
 export interface StoryData {
   version: string;
   stories: Story[];
-  characters: Character[]; // Global characters shared across all stories
-  elements: StoryElement[]; // Global elements shared across all stories
+  characters: Character[]; // DEPRECATED: Kept for backward compatibility with v2.0.0
+  elements: StoryElement[]; // DEPRECATED: Kept for backward compatibility with v2.0.0
   lastUpdated: Date;
 }
 
 // Current version of the data structure
-export const CURRENT_VERSION = '2.0.0'; 
+export const CURRENT_VERSION = '3.0.0'; 

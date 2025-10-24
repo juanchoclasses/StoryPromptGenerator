@@ -44,9 +44,14 @@ export class MigrationService {
         result.migrated = true;
       }
 
+      if (this.isVersionOlder(version, '3.0.0')) {
+        migratedData = this.migrateToV3_0_0(migratedData);
+        result.migrated = true;
+      }
+
       // Add more migrations here as needed
-      // if (this.isVersionOlder(version, '2.1.0')) {
-      //   migratedData = this.migrateToV2_1_0(migratedData);
+      // if (this.isVersionOlder(version, '3.1.0')) {
+      //   migratedData = this.migrateToV3_1_0(migratedData);
       //   result.migrated = true;
       // }
 
@@ -74,6 +79,8 @@ export class MigrationService {
         id: crypto.randomUUID(),
         title: 'Migrated Story',
         backgroundSetup: data.backgroundSetup || '',
+        characters: cast, // Characters belong to the story
+        elements: [], // Initialize empty elements array
         scenes: scenes,
         createdAt: new Date(data.lastUpdated || Date.now()),
         updatedAt: new Date()
@@ -164,6 +171,34 @@ export class MigrationService {
     };
   }
 
+  /**
+   * Migrate from v2.0.0 to v3.0.0 (story-level characters/elements)
+   */
+  private static migrateToV3_0_0(data: any): any {
+    console.log('Migrating from v2.0.0 to v3.0.0 (story-level characters/elements)...');
+    
+    // Move global characters and elements to each story
+    const globalCharacters = data.characters || [];
+    const globalElements = data.elements || [];
+    
+    const migratedStories: Story[] = data.stories.map((story: any) => ({
+      ...story,
+      // Give each story a copy of the global characters and elements
+      characters: [...globalCharacters],
+      elements: [...globalElements],
+      createdAt: new Date(story.createdAt || Date.now()),
+      updatedAt: new Date(story.updatedAt || Date.now())
+    }));
+
+    return {
+      version: '3.0.0',
+      stories: migratedStories,
+      characters: [], // Keep empty array for backward compatibility
+      elements: [], // Keep empty array for backward compatibility
+      lastUpdated: new Date(data.lastUpdated || Date.now())
+    };
+  }
+
 
 
 
@@ -223,6 +258,8 @@ export class MigrationService {
       lastUpdated: new Date(data.lastUpdated || Date.now()),
       stories: data.stories.map((story: any) => ({
         ...story,
+        characters: story.characters || [], // Ensure characters array exists
+        elements: story.elements || [], // Ensure elements array exists
         createdAt: new Date(story.createdAt || Date.now()),
         updatedAt: new Date(story.updatedAt || Date.now()),
         scenes: story.scenes.map((scene: any) => {
@@ -251,8 +288,8 @@ export class MigrationService {
           };
         })
       })),
-      characters: data.characters || [],
-      elements: data.elements || []
+      characters: data.characters || [], // Deprecated but kept for compatibility
+      elements: data.elements || [] // Deprecated but kept for compatibility
     };
   }
 

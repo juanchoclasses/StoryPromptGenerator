@@ -125,9 +125,7 @@ export class BookService {
     // Add to collection
     collection.books.push({
       ...newBook,
-      storyCount: 0,
-      characterCount: 0,
-      elementCount: 0
+      storyCount: 0
     });
 
     // Set as active book if it's the first one
@@ -237,8 +235,6 @@ export class BookService {
     collection.books[bookIndex] = {
       ...collection.books[bookIndex],
       storyCount: data.stories.length,
-      characterCount: data.characters.length,
-      elementCount: data.elements.length,
       updatedAt: new Date()
     };
     

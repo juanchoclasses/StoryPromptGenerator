@@ -719,9 +719,8 @@ SCENE CONTENT:
     );
   }
 
-      const activeBookData = BookService.getActiveBookData();
-    const availableCharacters = activeBookData?.characters || [];
-    const availableElements = activeBookData?.elements || [];
+    const availableCharacters = story.characters || [];
+    const availableElements = story.elements || [];
 
   return (
     <Paper elevation={2} sx={{ 

@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Story Import Schema",
+  "description": "Schema for importing complete stories with characters, elements, scenes, and text panels",
+  "type": "object",
+  "required": ["story", "characters", "scenes"],
+  "properties": {
+    "story": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the story"
+        },
+        "backgroundSetup": {
+          "type": "string",
+          "description": "Story-specific background/context"
+        }
+      }
+    },
+    "characters": {
+      "type": "array",
+      "description": "List of characters in the story",
+      "items": {
+        "type": "object",
+        "required": ["name", "description"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Character name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed character description"
+          }
+        }
+      }
+    },
+    "elements": {
+      "type": "array",
+      "description": "List of elements (props, locations, objects)",
+      "items": {
+        "type": "object",
+        "required": ["name", "description"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Element name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed element description"
+          },
+          "category": {
+            "type": "string",
+            "description": "Element category (e.g., Machinery, Props, Set Pieces)"
+          }
+        }
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "description": "List of scenes/chapters",
+      "items": {
+        "type": "object",
+        "required": ["title", "description"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Scene title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed scene description"
+          },
+          "textPanel": {
+            "type": "string",
+            "description": "Text to overlay on generated image (e.g., poem stanza)"
+          },
+          "characters": {
+            "type": "array",
+            "description": "Names of characters in this scene",
+            "items": {
+              "type": "string"
+            }
+          },
+          "elements": {
+            "type": "array",
+            "description": "Names of elements in this scene",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

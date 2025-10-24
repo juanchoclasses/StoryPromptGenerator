@@ -46,10 +46,12 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
   const [editingBook, setEditingBook] = useState<BookMetadata | null>(null);
   const [newBookTitle, setNewBookTitle] = useState('');
   const [newBookDescription, setNewBookDescription] = useState('');
+  const [newBookBackgroundSetup, setNewBookBackgroundSetup] = useState('');
   const [newBookAspectRatio, setNewBookAspectRatio] = useState('9:16');
   const [newBookPanelConfig, setNewBookPanelConfig] = useState<PanelConfig>(DEFAULT_PANEL_CONFIG);
   const [editBookTitle, setEditBookTitle] = useState('');
   const [editBookDescription, setEditBookDescription] = useState('');
+  const [editBookBackgroundSetup, setEditBookBackgroundSetup] = useState('');
   const [editBookAspectRatio, setEditBookAspectRatio] = useState('9:16');
   const [editBookPanelConfig, setEditBookPanelConfig] = useState<PanelConfig>(DEFAULT_PANEL_CONFIG);
   const [panelConfigDialogOpen, setPanelConfigDialogOpen] = useState(false);
@@ -168,11 +170,13 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
       newBookTitle.trim(), 
       newBookDescription.trim() || undefined,
       newBookAspectRatio,
-      newBookPanelConfig
+      newBookPanelConfig,
+      newBookBackgroundSetup.trim() || undefined
     );
     if (newBook) {
       setNewBookTitle('');
       setNewBookDescription('');
+      setNewBookBackgroundSetup('');
       setNewBookAspectRatio('9:16');
       setNewBookPanelConfig(DEFAULT_PANEL_CONFIG);
       setOpenCreateDialog(false);
@@ -193,6 +197,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
     const updated = BookService.updateBook(editingBook.id, {
       title: editBookTitle.trim(),
       description: editBookDescription.trim() || undefined,
+      backgroundSetup: editBookBackgroundSetup.trim() || undefined,
       aspectRatio: editBookAspectRatio,
       panelConfig: editBookPanelConfig
     });
@@ -202,6 +207,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
       setEditingBook(null);
       setEditBookTitle('');
       setEditBookDescription('');
+      setEditBookBackgroundSetup('');
       setEditBookAspectRatio('9:16');
       setEditBookPanelConfig(DEFAULT_PANEL_CONFIG);
       loadBooks();
@@ -293,6 +299,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
     setEditingBook(book);
     setEditBookTitle(book.title);
     setEditBookDescription(book.description || '');
+    setEditBookBackgroundSetup(book.backgroundSetup || '');
     setEditBookAspectRatio(book.aspectRatio || '9:16');
     setEditBookPanelConfig(book.panelConfig || DEFAULT_PANEL_CONFIG);
     setOpenEditDialog(true);
@@ -488,6 +495,17 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
             onChange={(e) => setNewBookDescription(e.target.value)}
             sx={{ mb: 2 }}
           />
+          <TextField
+            margin="dense"
+            label="Book Background Setup (Optional)"
+            fullWidth
+            multiline
+            rows={4}
+            value={newBookBackgroundSetup}
+            onChange={(e) => setNewBookBackgroundSetup(e.target.value)}
+            placeholder="Overall world/style description that applies to all scenes in this book..."
+            sx={{ mb: 2 }}
+          />
           <FormControl fullWidth margin="dense">
             <InputLabel>Image Aspect Ratio</InputLabel>
             <Select
@@ -538,6 +556,17 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
             rows={3}
             value={editBookDescription}
             onChange={(e) => setEditBookDescription(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            label="Book Background Setup (Optional)"
+            fullWidth
+            multiline
+            rows={4}
+            value={editBookBackgroundSetup}
+            onChange={(e) => setEditBookBackgroundSetup(e.target.value)}
+            placeholder="Overall world/style description that applies to all scenes in this book..."
             sx={{ mb: 2 }}
           />
           <FormControl fullWidth margin="dense">

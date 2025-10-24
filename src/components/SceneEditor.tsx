@@ -358,16 +358,21 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     
     let prompt = `Create an illustration with the following requirements:
 
-
 SCENE CONTENT:
 `;
     
-    if (activeBook?.description) {
-      prompt += `\n## Book Context\n${activeBook.description}\n\n`;
+    // Book Background Setup - applies to all stories/scenes in this book
+    if (activeBook?.backgroundSetup) {
+      prompt += `\n## BOOK-WIDE VISUAL WORLD (applies to all scenes):\n${activeBook.backgroundSetup}\n\n`;
     }
     
-    prompt += `## Background Setup\n${story.backgroundSetup}\n\n`;
-    prompt += `## Scene Description\n${currentScene.description}\n\n`;
+    // Story Background Setup - specific context for this story
+    if (story.backgroundSetup) {
+      prompt += `## STORY CONTEXT (specific to this narrative):\n${story.backgroundSetup}\n\n`;
+    }
+    
+    // Scene Description - what happens in this specific chapter/scene
+    prompt += `## THIS SCENE (Chapter/Illustration Details):\n${currentScene.description}\n\n`;
     
     if (selectedCast.length > 0) {
       prompt += `## Characters in this Scene\n`;

@@ -97,12 +97,13 @@ export class BookService {
   /**
    * Create a new book
    */
-  static createBook(title: string, description?: string, aspectRatio?: string, panelConfig?: PanelConfig): Book {
+  static createBook(title: string, description?: string, aspectRatio?: string, panelConfig?: PanelConfig, backgroundSetup?: string): Book {
     const collection = this.getBookCollection();
     const newBook: Book = {
       id: crypto.randomUUID(),
       title,
       description,
+      backgroundSetup,
       aspectRatio: aspectRatio || '9:16', // Default to 9:16 portrait (ChatGPT compatible)
       panelConfig,
       createdAt: new Date(),

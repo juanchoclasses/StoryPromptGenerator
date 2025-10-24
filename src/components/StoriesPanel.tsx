@@ -22,6 +22,7 @@ import {
   Upload as UploadIcon
 } from '@mui/icons-material';
 import { BookService } from '../services/BookService';
+import { ImportStoryDialog } from './ImportStoryDialog';
 import type { Story, StoryData } from '../types/Story';
 
 interface StoriesPanelProps {
@@ -39,6 +40,7 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
 }) => {
   const [stories, setStories] = useState<Story[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [storyTitle, setStoryTitle] = useState('');
   const [storyDescription, setStoryDescription] = useState('');
@@ -234,6 +236,14 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
             </IconButton>
           </Tooltip>
           <Button
+            variant="outlined"
+            startIcon={<UploadIcon />}
+            onClick={() => setImportDialogOpen(true)}
+            sx={{ ml: 1 }}
+          >
+            Import Story Bundle
+          </Button>
+          <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={handleAddStory}
@@ -368,6 +378,19 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Import Story Bundle Dialog */}
+      <ImportStoryDialog
+        open={importDialogOpen}
+        onClose={() => setImportDialogOpen(false)}
+        onSuccess={() => {
+          setSnackbarMessage('Story bundle imported successfully!');
+          setSnackbarSeverity('success');
+          setSnackbarOpen(true);
+          loadStories();
+          onStoryUpdate();
+        }}
+      />
 
       {/* Snackbar */}
       <Snackbar

@@ -33,6 +33,7 @@ export interface Book {
   id: string;
   title: string;
   description?: string;
+  backgroundSetup?: string; // Overall world/style description that applies to all stories in this book
   aspectRatio?: string; // e.g., "3:4", "16:9", "1:1"
   panelConfig?: PanelConfig;
   createdAt: Date;
@@ -43,6 +44,7 @@ export interface BookMetadata {
   id: string;
   title: string;
   description?: string;
+  backgroundSetup?: string; // Overall world/style description that applies to all stories in this book
   aspectRatio?: string; // e.g., "3:4", "16:9", "1:1"
   panelConfig?: PanelConfig;
   createdAt: Date;

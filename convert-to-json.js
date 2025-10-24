@@ -21,8 +21,12 @@ for (const section of characterSections) {
   const descMatch = section.match(/\*\*Description:\*\*\s*\n([\s\S]+?)(?=\n\*\*Role:|$)/);
   
   if (nameMatch && descMatch) {
+    // Extract just the base name (before any parentheses)
+    const fullName = nameMatch[1].trim();
+    const baseName = fullName.split('(')[0].trim();
+    
     characters.push({
-      name: nameMatch[1].trim(),
+      name: baseName,
       description: descMatch[1].trim().replace(/\*\*Role:\*\*[\s\S]*$/, '').trim()
     });
   }

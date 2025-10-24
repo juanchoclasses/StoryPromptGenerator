@@ -112,7 +112,7 @@
         "Factory Gears",
         "Order Ticket"
       ],
-      "textPanel": "Welcome, friends, to the Factorial Factory floor,\nWhere numbers multiply and then multiply some more!\nWe'll calculate four-factorial today,\nAnd watch recursion work in a magical way!"
+      "textPanel": "The order comes in: \"Calculate four!\"\nThe manager says, \"I can't do this alone, that's for sure!\nFour-factorial means four times three-factorial, you see,\nSo I'll call the next floor down and wait patiently!\""
     },
     {
       "title": "Level 3 Springs to Life",
@@ -126,7 +126,7 @@
         "Factory Gears",
         "Factory Level 3"
       ],
-      "textPanel": "The order comes in: \"Calculate four!\"\nThe manager says, \"I can't do this alone, that's for sure!\nFour-factorial means four times three-factorial, you see,\nSo I'll call the next floor down and wait patiently!\""
+      "textPanel": "Down on Level Three, a new manager appears,\n\"Calculate three-factorial!\" rings in her ears.\nBut three times two-factorial is what she must find,\nSo she calls Level Two—another floor to unwind!"
     },
     {
       "title": "Level 2 Gets to Work",
@@ -141,7 +141,7 @@
         "Factory Gears",
         "Factory Level 2"
       ],
-      "textPanel": "Down on Level Three, a new manager appears,\n\"Calculate three-factorial!\" rings in her ears.\nBut three times two-factorial is what she must find,\nSo she calls Level Two—another floor to unwind!"
+      "textPanel": "Level Two springs to life with a whirr and a clank,\nThe manager says, \"Two-factorial? I need a lower rank!\"\n\"Two times one-factorial,\" he carefully states,\nAnd calls Level One while his answer awaits!"
     },
     {
       "title": "Level 1 Ready to Solve",
@@ -154,7 +154,7 @@
         "Base Case Pedestal",
         "Factory Level 1"
       ],
-      "textPanel": "Level Two springs to life with a whirr and a clank,\nThe manager says, \"Two-factorial? I need a lower rank!\"\n\"Two times one-factorial,\" he carefully states,\nAnd calls Level One while his answer awaits!"
+      "textPanel": "Down at Level One, the call comes through clear,\n\"We need one-factorial!\" the message appears.\nThe manager grins—this is easy to do,\n\"One-factorial equals one—that's always true!\""
     },
     {
       "title": "The Base Case Celebration",
@@ -163,7 +163,7 @@
         "Manager One"
       ],
       "elements": [],
-      "textPanel": "Down at Level One, the call comes through clear,\n\"We need one-factorial!\" the message appears.\nThe manager grins—this is easy to do,\n\"One-factorial equals one—that's always true!\""
+      "textPanel": "\"I don't need to call anyone else!\" she exclaims with delight,\n\"One-factorial is one—I can answer outright!\"\nThe base case is reached, the foundation is laid,\nAnd now the answers flow back—the calls will be repaid!"
     },
     {
       "title": "Level 2 Multiplies",
@@ -178,7 +178,7 @@
         "Factory Gears",
         "Factory Level 2"
       ],
-      "textPanel": "\"I don't need to call anyone else!\" she exclaims with delight,\n\"One-factorial is one—I can answer outright!\"\nThe base case is reached, the foundation is laid,\nAnd now the answers flow back—the calls will be repaid!"
+      "textPanel": "The answer \"ONE\" travels up to Level Two,\nThe manager multiplies: \"Two times one—I'm through!\"\n\"Two-factorial equals TWO!\" he announces with pride,\nAnd sends this result to Level Three, up the side!"
     },
     {
       "title": "Level 3 Gets Her Answer",
@@ -192,7 +192,7 @@
         "Conveyor Belt",
         "Factory Level 3"
       ],
-      "textPanel": "The answer \"ONE\" travels up to Level Two,\nThe manager multiplies: \"Two times one—I'm through!\"\n\"Two-factorial equals TWO!\" he announces with pride,\nAnd sends this result to Level Three, up the side!"
+      "textPanel": "Level Three receives \"TWO\" with a cheerful chime,\nThe manager calculates: \"Three times two—it's time!\"\n\"Three-factorial equals SIX!\" she declares with glee,\nAnd shoots the answer upward to Level Four, you see!"
     },
     {
       "title": "Level 4 - The Final Answer!",
@@ -205,7 +205,7 @@
         "Order Ticket",
         "Factory Level 4"
       ],
-      "textPanel": "Level Three receives \"TWO\" with a cheerful chime,\nThe manager calculates: \"Three times two—it's time!\"\n\"Three-factorial equals SIX!\" she declares with glee,\nAnd shoots the answer upward to Level Four, you see!"
+      "textPanel": "The top floor receives \"SIX\"—the wait is done!\nThe manager multiplies: \"Four times six—we've won!\"\n\"Four-factorial equals TWENTY-FOUR!\" rings through the air,\nThe order's complete! Success everywhere!"
     },
     {
       "title": "The Complete Factory View",
@@ -215,8 +215,7 @@
         "Speaking Tube",
         "Return Tube",
         "Base Case Pedestal"
-      ],
-      "textPanel": "The top floor receives \"SIX\"—the wait is done!\nThe manager multiplies: \"Four times six—we've won!\"\n\"Four-factorial equals TWENTY-FOUR!\" rings through the air,\nThe order's complete! Success everywhere!"
+      ]
     }
   ]
 }

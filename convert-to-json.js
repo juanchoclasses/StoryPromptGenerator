@@ -76,13 +76,18 @@ for (const section of sceneSections) {
   }
 }
 
-// Parse poem stanzas
+// Parse poem stanzas (skip Introduction and Conclusion)
 const stanzas = [];
 const poemSections = poemContent.split(/\n## /).filter(s => s.trim() && !s.startsWith('#'));
 
 for (const section of poemSections) {
   const headerMatch = section.match(/^([^\n]+)/);
   if (headerMatch) {
+    const header = headerMatch[1];
+    // Skip Introduction and Conclusion stanzas
+    if (header.toLowerCase().includes('introduction') || header.toLowerCase().includes('conclusion')) {
+      continue;
+    }
     const lines = section.split('\n').slice(1).join('\n').trim();
     if (lines) {
       stanzas.push(lines);
@@ -90,7 +95,7 @@ for (const section of poemSections) {
   }
 }
 
-// Match stanzas to scenes
+// Match stanzas to scenes (now they should align 1:1)
 scenes.forEach((scene, index) => {
   if (stanzas[index]) {
     scene.textPanel = stanzas[index];

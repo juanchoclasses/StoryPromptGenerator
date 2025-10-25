@@ -38,6 +38,7 @@ import { BookService } from '../services/BookService';
 import { ImageGenerationService } from '../services/ImageGenerationService';
 import { FileSystemService } from '../services/FileSystemService';
 import { SettingsService } from '../services/SettingsService';
+import { ImageStorageService } from '../services/ImageStorageService';
 import { overlayTextOnImage } from '../services/OverlayService';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 import { measureTextFit } from '../services/TextMeasurementService';
@@ -79,6 +80,52 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const lastNotifiedImageUrl = useRef<string | null>(null);
   const lastSelectedModel = useRef<string | null>(null);
 
+  /**
+   * Load image with fallback to IndexedDB if blob URL is invalid
+   */
+  const loadImageWithFallback = async (scene: Scene): Promise<string | null> => {
+    // Try most recent image from history first
+    const mostRecentImage = scene.imageHistory && scene.imageHistory.length > 0
+      ? scene.imageHistory[scene.imageHistory.length - 1]
+      : null;
+    
+    if (!mostRecentImage) {
+      // Try legacy lastGeneratedImage
+      return scene.lastGeneratedImage || null;
+    }
+    
+    const { id, url } = mostRecentImage;
+    
+    // If URL is a blob URL, it might be invalid (from previous session)
+    if (url.startsWith('blob:')) {
+      try {
+        // Try to fetch the blob to see if it's still valid
+        const response = await fetch(url, { method: 'HEAD' });
+        if (response.ok) {
+          // Blob URL is still valid
+          return url;
+        }
+      } catch {
+        // Blob URL is invalid, try loading from IndexedDB
+        console.log(`Blob URL invalid for image ${id}, loading from IndexedDB...`);
+      }
+      
+      // Blob URL failed, load from IndexedDB
+      try {
+        const restoredUrl = await ImageStorageService.getImage(id);
+        if (restoredUrl) {
+          console.log(`✓ Image restored from IndexedDB: ${id}`);
+          return restoredUrl;
+        }
+      } catch (error) {
+        console.error('Failed to load image from IndexedDB:', error);
+      }
+    }
+    
+    // Return original URL (might be data: or http:)
+    return url;
+  };
+
   useEffect(() => {
     if (selectedScene) {
       // Reload scene from local storage to get the latest data including saved image
@@ -94,11 +141,10 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             setSceneTitle(freshScene.title);
             setSceneDescription(freshScene.description || '');
             setTextPanel(freshScene.textPanel || '');
-            // Load most recent image from history, fallback to lastGeneratedImage for backward compatibility
-            const mostRecentImage = freshScene.imageHistory && freshScene.imageHistory.length > 0
-              ? freshScene.imageHistory[freshScene.imageHistory.length - 1].url
-              : freshScene.lastGeneratedImage || null;
-            setGeneratedImageUrl(mostRecentImage);
+            // Load image with IndexedDB fallback
+            loadImageWithFallback(freshScene).then(imageUrl => {
+              setGeneratedImageUrl(imageUrl);
+            });
             return;
           }
         }
@@ -111,11 +157,10 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       setSceneTitle(selectedScene.title);
       setSceneDescription(selectedScene.description || '');
       setTextPanel(selectedScene.textPanel || '');
-      // Load most recent image from history, fallback to lastGeneratedImage for backward compatibility
-      const mostRecentImage = selectedScene.imageHistory && selectedScene.imageHistory.length > 0
-        ? selectedScene.imageHistory[selectedScene.imageHistory.length - 1].url
-        : selectedScene.lastGeneratedImage || null;
-      setGeneratedImageUrl(mostRecentImage);
+      // Load image with IndexedDB fallback
+      loadImageWithFallback(selectedScene).then(imageUrl => {
+        setGeneratedImageUrl(imageUrl);
+      });
     } else {
       setCurrentScene(null);
       setSelectedCharacters([]);
@@ -561,6 +606,17 @@ SCENE CONTENT:
               modelName: modelName,
               timestamp: new Date()
             };
+            
+            // Store image in IndexedDB for persistence
+            ImageStorageService.storeImage(
+              newGeneratedImage.id,
+              currentScene.id,
+              finalImageUrl,
+              modelName
+            ).catch(error => {
+              console.error('Failed to store image in IndexedDB:', error);
+              // Continue anyway - image is still in localStorage with blob URL
+            });
             
             const updatedStories = activeBookData.stories.map(s => {
               if (s.id === story.id) {

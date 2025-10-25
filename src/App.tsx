@@ -26,6 +26,7 @@ import { VersionInfo } from './components/VersionInfo';
 import { AboutPanel } from './components/AboutPanel';
 import { SettingsDialog } from './components/SettingsDialog';
 import { ImagePanel } from './components/ImagePanel';
+import { ImageStorageService } from './services/ImageStorageService';
 import type { Scene, Story, GeneratedImage } from './types/Story';
 import type { StoryData } from './types/Story';
 import { BookService } from './services/BookService';
@@ -108,6 +109,12 @@ function App() {
     
     const updatedData = { ...activeBookData, stories: updatedStories };
     BookService.saveActiveBookData(updatedData);
+    
+    // Delete from IndexedDB
+    ImageStorageService.deleteImage(imageId).catch(error => {
+      console.error('Failed to delete image from IndexedDB:', error);
+      // Continue anyway - image is already removed from localStorage
+    });
     
     // Update the imageHistory state immediately to refresh the UI
     const newHistory = imageHistory.filter(img => img.id !== imageId);

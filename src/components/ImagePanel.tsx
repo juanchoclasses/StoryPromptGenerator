@@ -133,14 +133,60 @@ export const ImagePanel: React.FC<ImagePanelProps> = ({
         throw new Error('Clipboard API not available. This may require HTTPS or localhost.');
       }
       
-      // Write PNG blob to clipboard
-      console.log('Writing PNG blob to clipboard...');
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          'image/png': blob
-        })
-      ]);
-      console.log('✓ Clipboard write successful');
+      // Check if ClipboardItem supports image/png
+      console.log('Checking clipboard capabilities...');
+      console.log('Blob size:', blob.size, 'bytes');
+      console.log('Blob type:', blob.type);
+      
+      // Try to write PNG blob to clipboard
+      console.log('Attempting clipboard write...');
+      
+      try {
+        // Method 1: Direct blob write
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'image/png': blob
+          })
+        ]);
+        console.log('✓ Clipboard write successful (direct blob)');
+      } catch (directError) {
+        console.warn('Direct blob write failed, trying alternative method:', directError);
+        
+        // Method 2: Use a promise that resolves to the blob
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              'image/png': Promise.resolve(blob)
+            })
+          ]);
+          console.log('✓ Clipboard write successful (promise blob)');
+        } catch (promiseError) {
+          console.error('Promise blob write also failed:', promiseError);
+          
+          // Method 3: Try converting to data URL as last resort
+          try {
+            const reader = new FileReader();
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+            
+            console.log('Created data URL, length:', dataUrl.length);
+            
+            // Try writing data URL wrapped in HTML
+            await navigator.clipboard.write([
+              new ClipboardItem({
+                'text/html': new Blob([`<img src="${dataUrl}" />`], { type: 'text/html' })
+              })
+            ]);
+            console.log('✓ Clipboard write successful (HTML fallback)');
+          } catch (htmlError) {
+            console.error('All clipboard methods failed:', htmlError);
+            throw new Error('Unable to copy image to clipboard. Browser may not support this feature.');
+          }
+        }
+      }
 
       const formatMessage = 'Image copied to clipboard (PNG format)';
       

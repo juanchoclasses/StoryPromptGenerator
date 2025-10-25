@@ -33,7 +33,7 @@ interface BatchImageGenerationDialogProps {
   open: boolean;
   onClose: () => void;
   story: Story;
-  activeBook: Book;
+  activeBook: Book | null;
   onGenerate: (sceneId: string, modelName: string) => Promise<void>;
 }
 

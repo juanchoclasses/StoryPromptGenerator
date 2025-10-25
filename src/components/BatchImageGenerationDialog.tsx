@@ -52,7 +52,7 @@ export const BatchImageGenerationDialog: React.FC<BatchImageGenerationDialogProp
   activeBook,
   onGenerate
 }) => {
-  const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS[0].id);
+  const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS[0].value);
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState<Map<string, SceneProgress>>(new Map());
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
@@ -196,8 +196,8 @@ export const BatchImageGenerationDialog: React.FC<BatchImageGenerationDialogProp
               onChange={(e) => setSelectedModel(e.target.value)}
             >
               {IMAGE_MODELS.map((model) => (
-                <MenuItem key={model.id} value={model.id}>
-                  {model.name}
+                <MenuItem key={model.value} value={model.value}>
+                  {model.label}
                 </MenuItem>
               ))}
             </Select>

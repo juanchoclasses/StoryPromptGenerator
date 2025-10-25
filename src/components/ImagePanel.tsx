@@ -262,7 +262,7 @@ export const ImagePanel: React.FC<ImagePanelProps> = ({
             <Button
               size="small"
               startIcon={<CopyIcon />}
-              onClick={handleCopyImage}
+              onClick={() => handleCopyImage()}
               variant="outlined"
             >
               Copy
@@ -315,7 +315,7 @@ export const ImagePanel: React.FC<ImagePanelProps> = ({
           <DialogActions sx={{ backgroundColor: '#f5f5f5' }}>
             <Button
               startIcon={<CopyIcon />}
-              onClick={handleCopyImage}
+              onClick={() => handleCopyImage()}
               variant="outlined"
             >
               Copy to Clipboard

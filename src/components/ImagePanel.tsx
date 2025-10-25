@@ -93,78 +93,107 @@ export const ImagePanel: React.FC<ImagePanelProps> = ({
       console.log('Original blob type:', blob.type);
       console.log('Original blob size:', blob.size);
       
-      // Convert to PNG for maximum compatibility with applications like Word
-      // This ensures the image is in a universally accepted format
-      const img = new Image();
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      // Try to convert to PNG for maximum compatibility with applications like Word
+      // If conversion fails, fall back to copying the original blob
+      let conversionSucceeded = false;
+      const originalBlob = blob;
       
-      if (!ctx) {
-        throw new Error('Failed to get canvas context');
+      // Check if blob is already a standard image format
+      const isStandardFormat = blob.type === 'image/png' || blob.type === 'image/jpeg' || blob.type === 'image/jpg';
+      
+      if (isStandardFormat && blob.size > 0) {
+        console.log('Image is already in standard format, will try conversion but can fall back');
       }
-      
-      // Create object URL from blob for loading
-      const objectUrl = URL.createObjectURL(blob);
       
       try {
-        await new Promise<void>((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error('Image load timeout (10s)'));
-          }, 10000);
-          
-          img.onload = () => {
-            clearTimeout(timeout);
-            try {
-              canvas.width = img.naturalWidth || img.width;
-              canvas.height = img.naturalHeight || img.height;
-              
-              console.log('Image loaded:', canvas.width, 'x', canvas.height);
-              
-              // Draw image to canvas
-              ctx.drawImage(img, 0, 0);
-              
-              // Convert canvas to blob (PNG format)
-              canvas.toBlob((pngBlob) => {
-                if (pngBlob) {
-                  blob = pngBlob;
-                  console.log('Converted blob type:', blob.type);
-                  console.log('Converted blob size:', blob.size);
-                  resolve();
-                } else {
-                  reject(new Error('Failed to convert canvas to PNG blob'));
-                }
-              }, 'image/png');
-            } catch (err) {
-              reject(err);
-            }
-          };
-          
-          img.onerror = (event) => {
-            clearTimeout(timeout);
-            console.error('Image load error event:', event);
-            reject(new Error('Failed to load image for conversion. The image may be corrupted or invalid.'));
-          };
-          
-          // Set crossOrigin before setting src
-          img.crossOrigin = 'anonymous';
-          img.src = objectUrl;
-          
-          console.log('Loading image from:', objectUrl.substring(0, 50) + '...');
-        });
-      } finally {
-        // Clean up object URL
-        URL.revokeObjectURL(objectUrl);
-        console.log('Object URL revoked');
+        // Convert to PNG for maximum compatibility with applications like Word
+        const img = new Image();
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          throw new Error('Failed to get canvas context');
+        }
+        
+        // Create object URL from blob for loading
+        const objectUrl = URL.createObjectURL(blob);
+        
+        try {
+          await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              reject(new Error('Image load timeout (10s)'));
+            }, 10000);
+            
+            img.onload = () => {
+              clearTimeout(timeout);
+              try {
+                canvas.width = img.naturalWidth || img.width;
+                canvas.height = img.naturalHeight || img.height;
+                
+                console.log('Image loaded:', canvas.width, 'x', canvas.height);
+                
+                // Draw image to canvas
+                ctx.drawImage(img, 0, 0);
+                
+                // Convert canvas to blob (PNG format)
+                canvas.toBlob((pngBlob) => {
+                  if (pngBlob) {
+                    blob = pngBlob;
+                    console.log('Converted blob type:', blob.type);
+                    console.log('Converted blob size:', blob.size);
+                    conversionSucceeded = true;
+                    resolve();
+                  } else {
+                    reject(new Error('Failed to convert canvas to PNG blob'));
+                  }
+                }, 'image/png');
+              } catch (err) {
+                reject(err);
+              }
+            };
+            
+            img.onerror = (event) => {
+              clearTimeout(timeout);
+              console.error('Image load error event:', event);
+              reject(new Error('Failed to load image for conversion'));
+            };
+            
+            // Set crossOrigin before setting src
+            img.crossOrigin = 'anonymous';
+            img.src = objectUrl;
+            
+            console.log('Loading image from:', objectUrl.substring(0, 50) + '...');
+          });
+        } finally {
+          // Clean up object URL
+          URL.revokeObjectURL(objectUrl);
+          console.log('Object URL revoked');
+        }
+      } catch (conversionError) {
+        console.warn('Image conversion failed, will use original blob:', conversionError);
+        blob = originalBlob;
+        conversionSucceeded = false;
       }
       
-      // Copy to clipboard using the Clipboard API with PNG format
+      // Ensure blob type is set
+      let blobType = blob.type;
+      if (!blobType || blobType === 'application/octet-stream') {
+        blobType = 'image/png';
+        console.log('Blob type missing or invalid, defaulting to image/png');
+      }
+      
+      // Copy to clipboard using the Clipboard API
       await navigator.clipboard.write([
         new ClipboardItem({
-          'image/png': blob
+          [blobType]: blob
         })
       ]);
 
-      setSnackbarMessage('Image copied to clipboard (PNG format)');
+      const formatMessage = conversionSucceeded 
+        ? 'Image copied to clipboard (converted to PNG)' 
+        : `Image copied to clipboard (${blobType})`;
+      
+      setSnackbarMessage(formatMessage);
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
     } catch (error) {

@@ -1,7 +1,7 @@
 {
   "story": {
     "title": "Calculating 4!",
-    "backgroundSetup": "The students are learning about recursion and factorial calculations through a magical factory where each level represents a recursive function call."
+    "backgroundSetup": "The Factorial Factory is a vertical, whimsical building where each floor represents a level of recursion in calculating factorials. The factory has four main levels (4, 3, 2, and 1), connected by colorful speaking tubes that allow managers to communicate between floors. Each level has its own personality, with oversized gears, multiplication machines, and glowing numbers. The architecture is playfully impossible—staircases that spiral in impossible directions, conveyor belts that defy gravity, and walls covered in glowing mathematical equations. The color palette features jewel tones (ruby red for Level 4, emerald green for Level 3, sapphire blue for Level 2, and golden for Level 1) with cheerful lighting and floating number sprites. Everything has a hand-painted, storybook quality with visible brushstrokes and whimsical details. The factory demonstrates how recursion works: each level receives a problem, delegates part of it downward, waits for the answer to come back up, and then completes its own calculation."
   },
   "characters": [
     {

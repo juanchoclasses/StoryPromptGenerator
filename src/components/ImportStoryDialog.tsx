@@ -472,6 +472,8 @@ export const ImportStoryDialog: React.FC<ImportStoryDialogProps> = ({ open, onCl
               value={storyTitle}
               onChange={(e) => setStoryTitle(e.target.value)}
               required
+              disabled={importMode === 'json'}
+              helperText={importMode === 'json' ? '✓ Auto-filled from JSON file' : ''}
               sx={{ mb: 2 }}
             />
 
@@ -483,6 +485,8 @@ export const ImportStoryDialog: React.FC<ImportStoryDialogProps> = ({ open, onCl
               multiline
               rows={3}
               placeholder="Story-specific context (e.g., 'The students are learning about recursion...')"
+              disabled={importMode === 'json'}
+              helperText={importMode === 'json' ? '✓ Auto-filled from JSON file' : ''}
               sx={{ mb: 2 }}
             />
           </>

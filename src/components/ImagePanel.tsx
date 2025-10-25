@@ -52,14 +52,41 @@ export const ImagePanel: React.FC<ImagePanelProps> = ({
     if (!targetUrl) return;
 
     try {
-      // Fetch the image as a blob
-      const response = await fetch(targetUrl);
-      const blob = await response.blob();
+      let blob: Blob;
+      
+      // Handle different types of URLs
+      if (targetUrl.startsWith('blob:')) {
+        // For blob URLs, fetch directly
+        const response = await fetch(targetUrl);
+        if (!response.ok) {
+          throw new Error('Failed to fetch blob URL. The image may have been cleared.');
+        }
+        blob = await response.blob();
+      } else if (targetUrl.startsWith('data:')) {
+        // For data URLs, convert to blob
+        const base64Response = await fetch(targetUrl);
+        blob = await base64Response.blob();
+      } else {
+        // For regular URLs (http/https), fetch with CORS
+        const response = await fetch(targetUrl, { mode: 'cors' });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+        }
+        blob = await response.blob();
+      }
+      
+      // Ensure we have a valid image type
+      let blobType = blob.type;
+      if (!blobType || blobType === 'application/octet-stream') {
+        // Default to PNG if type is unknown
+        blobType = 'image/png';
+        blob = new Blob([blob], { type: blobType });
+      }
       
       // Copy to clipboard using the Clipboard API
       await navigator.clipboard.write([
         new ClipboardItem({
-          [blob.type]: blob
+          [blobType]: blob
         })
       ]);
 
@@ -68,7 +95,8 @@ export const ImagePanel: React.FC<ImagePanelProps> = ({
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Failed to copy image:', error);
-      setSnackbarMessage('Failed to copy image to clipboard');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setSnackbarMessage(`Failed to copy image: ${errorMessage}`);
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }

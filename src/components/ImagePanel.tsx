@@ -175,23 +175,32 @@ export const ImagePanel: React.FC<ImagePanelProps> = ({
         conversionSucceeded = false;
       }
       
-      // Ensure blob type is set
-      let blobType = blob.type;
-      if (!blobType || blobType === 'application/octet-stream') {
-        blobType = 'image/png';
-        console.log('Blob type missing or invalid, defaulting to image/png');
+      // Ensure blob has correct type for clipboard
+      // Always use image/png type for maximum compatibility
+      if (blob.type !== 'image/png') {
+        console.log('Re-wrapping blob with image/png type. Original type:', blob.type);
+        blob = new Blob([blob], { type: 'image/png' });
+      }
+      
+      console.log('Final blob for clipboard - type:', blob.type, 'size:', blob.size);
+      
+      // Verify clipboard API is available
+      if (!navigator.clipboard || !navigator.clipboard.write) {
+        throw new Error('Clipboard API not available. This may require HTTPS or localhost.');
       }
       
       // Copy to clipboard using the Clipboard API
+      console.log('Writing to clipboard...');
       await navigator.clipboard.write([
         new ClipboardItem({
-          [blobType]: blob
+          'image/png': blob
         })
       ]);
+      console.log('✓ Clipboard write successful');
 
       const formatMessage = conversionSucceeded 
         ? 'Image copied to clipboard (converted to PNG)' 
-        : `Image copied to clipboard (${blobType})`;
+        : 'Image copied to clipboard (original format)';
       
       setSnackbarMessage(formatMessage);
       setSnackbarSeverity('success');

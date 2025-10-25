@@ -51,24 +51,39 @@ export const ImagePanel: React.FC<ImagePanelProps> = ({
     const targetUrl = urlToCopy || imageUrl;
     if (!targetUrl) return;
 
+    // Debug logging
+    console.log('Copy image - targetUrl type:', typeof targetUrl);
+    console.log('Copy image - targetUrl value:', targetUrl);
+
+    // Ensure targetUrl is a string
+    const urlString = typeof targetUrl === 'string' ? targetUrl : String(targetUrl);
+    
+    if (!urlString || urlString === 'null' || urlString === 'undefined') {
+      console.error('Invalid URL string:', urlString);
+      setSnackbarMessage('No valid image URL to copy');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
     try {
       let blob: Blob;
       
       // Handle different types of URLs
-      if (targetUrl.startsWith('blob:')) {
+      if (urlString.startsWith('blob:')) {
         // For blob URLs, fetch directly
-        const response = await fetch(targetUrl);
+        const response = await fetch(urlString);
         if (!response.ok) {
           throw new Error('Failed to fetch blob URL. The image may have been cleared.');
         }
         blob = await response.blob();
-      } else if (targetUrl.startsWith('data:')) {
+      } else if (urlString.startsWith('data:')) {
         // For data URLs, convert to blob
-        const base64Response = await fetch(targetUrl);
+        const base64Response = await fetch(urlString);
         blob = await base64Response.blob();
       } else {
         // For regular URLs (http/https), fetch with CORS
-        const response = await fetch(targetUrl, { mode: 'cors' });
+        const response = await fetch(urlString, { mode: 'cors' });
         if (!response.ok) {
           throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
         }

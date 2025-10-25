@@ -90,22 +90,58 @@ export const ImagePanel: React.FC<ImagePanelProps> = ({
         blob = await response.blob();
       }
       
-      // Ensure we have a valid image type
-      let blobType = blob.type;
-      if (!blobType || blobType === 'application/octet-stream') {
-        // Default to PNG if type is unknown
-        blobType = 'image/png';
-        blob = new Blob([blob], { type: blobType });
-      }
+      console.log('Original blob type:', blob.type);
+      console.log('Original blob size:', blob.size);
       
-      // Copy to clipboard using the Clipboard API
+      // Convert to PNG for maximum compatibility with applications like Word
+      // This ensures the image is in a universally accepted format
+      const img = new Image();
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => {
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          
+          if (!ctx) {
+            reject(new Error('Failed to get canvas context'));
+            return;
+          }
+          
+          // Draw image to canvas
+          ctx.drawImage(img, 0, 0);
+          
+          // Convert canvas to blob (PNG format)
+          canvas.toBlob((pngBlob) => {
+            if (pngBlob) {
+              blob = pngBlob;
+              console.log('Converted blob type:', blob.type);
+              console.log('Converted blob size:', blob.size);
+              resolve();
+            } else {
+              reject(new Error('Failed to convert image to PNG'));
+            }
+          }, 'image/png');
+        };
+        
+        img.onerror = () => {
+          reject(new Error('Failed to load image for conversion'));
+        };
+        
+        // Create object URL from blob for loading
+        const objectUrl = URL.createObjectURL(blob);
+        img.src = objectUrl;
+      });
+      
+      // Copy to clipboard using the Clipboard API with PNG format
       await navigator.clipboard.write([
         new ClipboardItem({
-          [blobType]: blob
+          'image/png': blob
         })
       ]);
 
-      setSnackbarMessage('Image copied to clipboard');
+      setSnackbarMessage('Image copied to clipboard (PNG format)');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
     } catch (error) {

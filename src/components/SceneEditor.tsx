@@ -42,6 +42,7 @@ import { overlayTextOnImage } from '../services/OverlayService';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 import { measureTextFit } from '../services/TextMeasurementService';
 import { ModelSelectionDialog } from './ModelSelectionDialog';
+import { BatchImageGenerationDialog } from './BatchImageGenerationDialog';
 
 interface SceneEditorProps {
   story: Story | null;
@@ -74,6 +75,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     currentHeightPercentage: number;
   } | null>(null);
   const [modelSelectionOpen, setModelSelectionOpen] = useState(false);
+  const [batchGenerationOpen, setBatchGenerationOpen] = useState(false);
   
   const textPanelFieldRef = React.useRef<HTMLTextAreaElement>(null);
   const lastNotifiedImageUrl = useRef<string | null>(null);
@@ -639,6 +641,125 @@ SCENE CONTENT:
     }
   };
 
+  // Handler for batch generation - generates image for a specific scene
+  const handleBatchGenerateScene = async (sceneId: string, modelName: string) => {
+    if (!story) return;
+    
+    const scene = story.scenes.find(s => s.id === sceneId);
+    if (!scene) return;
+
+    // Get book data
+    const bookCollection = BookService.getBookCollection();
+    const activeBookId = BookService.getActiveBookId();
+    const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
+    const aspectRatio = activeBook?.aspectRatio || '3:4';
+    const panelConfig = activeBook?.panelConfig || DEFAULT_PANEL_CONFIG;
+    
+    // Get characters and elements for this scene
+    const sceneCharacters = story.characters.filter(char => scene.characterIds.includes(char.id));
+    const sceneElements = story.elements.filter(elem => scene.elementIds.includes(elem.id));
+    
+    // Generate prompt for this scene
+    const characterSection = sceneCharacters.length > 0
+      ? `## Characters in this Scene\n\n${sceneCharacters.map(char => {
+          const macros = { 'SceneDescription': scene.description };
+          return `[Character Definition: ${char.name}] ${replaceMacros(char.description, macros)}`;
+        }).join('\n\n')}`
+      : '';
+    
+    const elementSection = sceneElements.length > 0
+      ? `## Elements in this Scene\n\n${sceneElements.map(elem => {
+          const macros = { 'SceneDescription': scene.description };
+          return `[Object Definition: ${elem.name}] ${replaceMacros(elem.description, macros)}`;
+        }).join('\n\n')}`
+      : '';
+    
+    const prompt = `Create an illustration in the whimsical storybook style with the following requirements:
+
+## BOOK-WIDE VISUAL WORLD
+${activeBook?.backgroundSetup || 'A whimsical, storybook world with vibrant colors and playful details.'}
+
+## STORY CONTEXT
+${story.backgroundSetup}
+
+## THIS SCENE
+${scene.description}
+
+${characterSection}
+
+${elementSection}
+
+TECHNICAL REQUIREMENTS:
+- Aspect ratio: ${aspectRatio}
+- Do NOT include any text, titles, or labels in the image
+- Focus solely on visual storytelling`;
+
+    // Generate the image
+    const result = await ImageGenerationService.generateImage({ 
+      prompt,
+      aspectRatio,
+      model: modelName
+    });
+    
+    if (!result.success || !result.imageUrl) {
+      throw new Error(result.error || 'Failed to generate image');
+    }
+    
+    let finalImageUrl = result.imageUrl;
+    
+    // Apply text overlay if textPanel exists
+    if (scene.textPanel && scene.textPanel.trim()) {
+      try {
+        const macros = { 'SceneDescription': scene.description };
+        const panelText = replaceMacros(scene.textPanel, macros);
+        const imageDimensions = getImageDimensionsFromAspectRatio(aspectRatio);
+        
+        finalImageUrl = await overlayTextOnImage(
+          result.imageUrl,
+          panelText,
+          imageDimensions.width,
+          imageDimensions.height,
+          panelConfig
+        );
+      } catch (overlayError) {
+        console.error('Error overlaying text:', overlayError);
+        // Continue with original image if overlay fails
+      }
+    }
+    
+    // Save to scene in local storage
+    const activeBookData = BookService.getActiveBookData();
+    if (activeBookData) {
+      const newGeneratedImage = {
+        id: crypto.randomUUID(),
+        url: finalImageUrl,
+        modelName: modelName,
+        timestamp: new Date()
+      };
+      
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === story.id) {
+          const updatedScenes = s.scenes.map(sc => {
+            if (sc.id === sceneId) {
+              return {
+                ...sc,
+                imageHistory: [...(sc.imageHistory || []), newGeneratedImage],
+                lastGeneratedImage: finalImageUrl,
+                updatedAt: new Date()
+              };
+            }
+            return sc;
+          });
+          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+        }
+        return s;
+      });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      BookService.saveActiveBookData(updatedData);
+    }
+  };
+
   const handleSaveImage = useCallback(async () => {
     if (!generatedImageUrl || !story || !currentScene) return;
     
@@ -764,6 +885,16 @@ SCENE CONTENT:
             >
               {isGeneratingImage ? 'Generating...' : 'Generate Image'}
             </Button>
+            <Tooltip title="Generate images for all scenes in this story">
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => setBatchGenerationOpen(true)}
+                disabled={!story || story.scenes.length === 0}
+              >
+                Generate All Scenes
+              </Button>
+            </Tooltip>
           </Box>
         </Box>
 
@@ -1230,6 +1361,21 @@ SCENE CONTENT:
         onClose={() => setModelSelectionOpen(false)}
         onConfirm={performImageGeneration}
       />
+
+      {/* Batch Image Generation Dialog */}
+      {story && (
+        <BatchImageGenerationDialog
+          open={batchGenerationOpen}
+          onClose={() => setBatchGenerationOpen(false)}
+          story={story}
+          activeBook={(() => {
+            const bookCollection = BookService.getBookCollection();
+            const activeBookId = BookService.getActiveBookId();
+            return activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
+          })() as any}
+          onGenerate={handleBatchGenerateScene}
+        />
+      )}
       </Box>
     </Paper>
   );

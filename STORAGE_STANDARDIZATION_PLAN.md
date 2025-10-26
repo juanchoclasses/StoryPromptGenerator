@@ -1,7 +1,11 @@
 # Storage Standardization Work Order
 
+## Status: REVISED - No Legacy Data
+
+**IMPORTANT**: User has confirmed that existing localStorage data can be trashed. No backward compatibility needed. This massively simplifies the implementation.
+
 ## Overview
-Standardize the localStorage storage format to match the JSON import format, creating a single, consistent data structure for both internal storage and import/export operations.
+Standardize the localStorage storage format to match the JSON import/export format, using name-based references instead of IDs for maximum simplicity and portability.
 
 ## Current Situation
 
@@ -106,167 +110,201 @@ interface StoryElement {
 
 ## Proposed Solution
 
-### Option A: Dual Format Support (RECOMMENDED)
+### SIMPLIFIED: Name-Based Format for Everything
 
-Keep both formats but make them interchangeable:
+Since there's no legacy data to worry about, we'll standardize on the **name-based JSON format** for BOTH storage and import/export.
 
-1. **Internal Format** (localStorage): Current format with IDs
-   - Pros: No breaking changes, IDs enable fast lookups, maintains referential integrity
-   - Cons: More complex than import format
+**Benefits**:
+- ✅ Single format everywhere - no conversion needed
+- ✅ Human-readable localStorage data
+- ✅ Easy to manually edit/debug
+- ✅ Direct import/export - no transformation
+- ✅ Portable and shareable
+- ✅ Simpler codebase
 
-2. **Exchange Format** (import/export): JSON format with names
-   - Pros: Human-readable, portable, easy to create manually
-   - Cons: Requires name-to-ID mapping
+**Trade-offs** (acceptable given benefits):
+- ⚠️ Name changes require updating scene references (but we can provide tools for this)
+- ⚠️ Names must be unique within a story (enforce in UI)
+- ⚠️ Slightly slower lookups (but negligible for reasonable story sizes)
 
-3. **Conversion Layer**: Add utilities to convert between formats
-   - `toExchangeFormat(story: Story): StoryBundle` - Convert IDs to names
-   - `fromExchangeFormat(bundle: StoryBundle): Story` - Convert names to IDs
+## New Storage Format
 
-### Option B: Standardize on Name-Based References
+```typescript
+interface StoryData {
+  version: string;
+  stories: StoryExchangeFormat[];  // Array of stories in exchange format
+  lastUpdated: Date;
+}
 
-Change internal storage to use names instead of IDs:
-
-1. **Benefits**:
-   - Single format for both storage and import/export
-   - Simpler data structure
-   - Easier manual editing of localStorage data
-
-2. **Drawbacks**:
-   - Name changes require updating all scene references
-   - Potential performance issues with name lookups
-   - Risk of name conflicts/duplicates
-   - Loss of referential integrity
-
-### Option C: Standardize on ID-Based Import Format
-
-Add IDs to the JSON import format:
-
-1. **Benefits**:
-   - Single format for both storage and import/export
-   - Maintains referential integrity
-
-2. **Drawbacks**:
-   - Less human-readable import files
-   - Requires generating UUIDs when creating import files manually
-   - Harder to write import files by hand
-
-## Recommended Approach: Option A (Dual Format)
+interface StoryExchangeFormat {
+  story: {
+    title: string;
+    backgroundSetup: string;
+    description?: string;
+  };
+  characters: Array<{
+    name: string;        // Unique within story
+    description: string;
+  }>;
+  elements: Array<{
+    name: string;        // Unique within story
+    description: string;
+    category?: string;
+  }>;
+  scenes: Array<{
+    title: string;
+    description: string;
+    textPanel?: string;
+    characters: string[];  // Character names (not IDs!)
+    elements: string[];    // Element names (not IDs!)
+  }>;
+  // Metadata (not in import/export files)
+  id?: string;           // Internal use only
+  createdAt?: Date;      // Internal use only
+  updatedAt?: Date;      // Internal use only
+  imageHistory?: { ... } // Stored separately in IndexedDB
+}
+```
 
 ### Implementation Plan
 
-#### Phase 1: Create Exchange Format Types
-1. Define `StoryExchangeFormat` interface matching JSON schema
-2. Add type definitions for the exchange format
-
-#### Phase 2: Add Conversion Utilities
-1. Create `StoryExchangeService.ts`:
+#### Phase 1: Update Type Definitions (30 min)
+1. Update `Story.ts` to use name-based references:
    ```typescript
-   export class StoryExchangeService {
-     static toExchangeFormat(story: Story): StoryExchangeFormat
-     static fromExchangeFormat(bundle: StoryExchangeFormat): Story
-     static validateExchangeFormat(data: unknown): ValidationResult
+   interface Scene {
+     title: string;
+     description: string;
+     textPanel?: string;
+     characters: string[];  // Changed from characterIds
+     elements: string[];    // Changed from elementIds
+     // Remove createdAt/updatedAt from core - add to wrapper if needed
+   }
+   
+   interface Story {
+     title: string;
+     backgroundSetup: string;
+     description?: string;
+     characters: Character[];  // No IDs!
+     elements: StoryElement[];  // No IDs!
+     scenes: Scene[];
    }
    ```
 
-2. Implement `toExchangeFormat`:
-   - Map character IDs → names in scenes
-   - Map element IDs → names in scenes
-   - Strip internal metadata (id, createdAt, updatedAt)
-   - Strip image data
+2. Add metadata wrapper for internal use:
+   ```typescript
+   interface StoredStory extends Story {
+     id: string;
+     createdAt: Date;
+     updatedAt: Date;
+   }
+   ```
 
-3. Implement `fromExchangeFormat`:
-   - Generate UUIDs for all entities
-   - Create name→ID maps for characters and elements
-   - Map character/element names → IDs in scenes
-   - Add timestamps
-   - Initialize empty imageHistory arrays
+#### Phase 2: Update BookService (1 hour)
+1. Change storage format to store stories directly
+2. Remove ID-based lookups, use name-based lookups
+3. Add validation for unique names within stories
+4. Migration: Clear existing data (accepted by user)
 
-#### Phase 3: Update Import/Export
-1. Modify `ImportStoryDialog`:
-   - Use `StoryExchangeService.fromExchangeFormat()` instead of manual conversion
-   - Remove duplicate conversion logic
+#### Phase 3: Update All Components (2 hours)
+1. **SceneEditor**: Use character/element names directly
+2. **CastManager**: Enforce unique names, update scene references on rename
+3. **ElementsManager**: Enforce unique names, update scene references on rename
+4. **ImportStoryDialog**: Simplified - no conversion needed!
+5. **All other components**: Use names instead of IDs
 
-2. Add Export to Exchange Format:
-   - Add "Export Story to JSON" button in StoriesPanel
-   - Use `StoryExchangeService.toExchangeFormat()`
-   - Download as `.json` file
+#### Phase 4: Add Helper Utilities (1 hour)
+1. `findCharacterByName(story, name)` - lookup helper
+2. `findElementByName(story, name)` - lookup helper  
+3. `renameCharacter(story, oldName, newName)` - updates all scene references
+4. `renameElement(story, oldName, newName)` - updates all scene references
+5. `validateUniqueNames(story)` - enforces uniqueness
 
-#### Phase 4: Add Validation
-1. JSON Schema validation for imported files
-2. Warnings for:
-   - Duplicate character/element names
-   - Missing references in scenes
-   - Invalid data types
+#### Phase 5: Update Import/Export (30 min)
+1. Import: Direct load (already done in `ImportStoryDialog`)
+2. Export: Direct save (already done in `StoryExportService`)
+3. Remove any conversion logic
 
-#### Phase 5: Documentation
-1. Update `STORY_DEFINITION_GUIDE.md` with exchange format docs
-2. Create examples of both formats
-3. Document conversion utilities
+#### Phase 6: Testing & Cleanup (1 hour)
+1. Test import → edit → export round-trip
+2. Test character/element renaming
+3. Test duplicate name prevention
+4. Remove deprecated ID-based code
+5. Update documentation
 
 ## File Changes Required
 
 ### New Files
-- `src/services/StoryExchangeService.ts` - Conversion utilities
-- `src/types/StoryExchange.ts` - Exchange format type definitions
+- `src/services/StoryExportService.ts` - ✅ **Already created** - Export to JSON
+- `src/services/StoryHelpers.ts` - Name lookup and rename utilities
 
-### Modified Files
-- `src/components/ImportStoryDialog.tsx` - Use new conversion service
-- `src/components/StoriesPanel.tsx` - Add JSON export button
-- `src/services/MarkdownStoryParser.ts` - Return exchange format
-- `story-import-schema.json` - Update if needed
-- `STORY_DEFINITION_GUIDE.md` - Document both formats
+### Modified Files (Major Changes)
+- `src/types/Story.ts` - Remove IDs, use names for references
+- `src/services/BookService.ts` - Name-based storage and lookups
+- `src/components/SceneEditor.tsx` - Use names instead of IDs
+- `src/components/CastManager.tsx` - Enforce unique names, handle renames
+- `src/components/ElementsManager.tsx` - Enforce unique names, handle renames
+- `src/components/ImportStoryDialog.tsx` - Simplified (no conversion!)
+- `src/components/StoriesPanel.tsx` - ✅ **Already has download button**
 
-### No Changes Needed
-- `src/types/Story.ts` - Keep internal format as-is
-- `src/services/BookService.ts` - No changes to storage
-- All UI components - Continue using internal format
+### Modified Files (Minor Changes)
+- All components that reference characters/elements - use names
+- `src/services/MigrationService.ts` - Add clear-all migration for v4.0.0
+
+### Removed
+- All ID-based lookup logic
+- ID generation for characters/elements
+- Character/element ID arrays in scenes
 
 ## Benefits
 
-1. **Backward Compatibility**: Existing localStorage data unchanged
-2. **Clean Separation**: Internal format optimized for performance, exchange format for portability
-3. **Easy Import/Export**: Users can create stories in text editors
-4. **Future-Proof**: Can add more features to internal format without breaking imports
-5. **Validation**: Clear contract for import files
+1. **Simplicity**: Single format everywhere - no conversion needed
+2. **Human-Readable**: Can manually edit localStorage data
+3. **Portable**: Stories are self-contained and shareable
+4. **Debuggable**: Easy to inspect and understand data
+5. **Direct Import/Export**: No transformation layer
+6. **Clean Codebase**: Less complexity, fewer abstractions
 
 ## Migration Strategy
 
-**No migration needed** - This is purely additive:
-1. Current localStorage format stays the same
-2. Import continues to work (with improved conversion)
-3. New export functionality added
+**DATA RESET**: User has accepted clearing existing data
+1. Bump version to 4.0.0
+2. Add migration that clears all story data
+3. Show notification: "Storage format updated - please re-import stories"
+4. Users re-import from JSON files (which they can now download first!)
 
 ## Testing Plan
 
-1. Unit tests for conversion utilities
-2. Test import with existing factorial-story.json
-3. Test round-trip (export → import) preserves data
-4. Test edge cases (duplicate names, missing references)
-5. Performance testing with large stories (100+ scenes)
+1. Test character rename updates all scenes
+2. Test element rename updates all scenes  
+3. Test duplicate name prevention
+4. Test import → edit → export round-trip
+5. Test lookup performance with large stories
+6. Test unique name validation
 
 ## Timeline Estimate
 
-- Phase 1 (Types): 30 minutes
-- Phase 2 (Conversion): 2 hours
-- Phase 3 (Import/Export UI): 1 hour
-- Phase 4 (Validation): 1 hour
-- Phase 5 (Documentation): 30 minutes
-- **Total**: ~5 hours
+- Phase 1 (Types): 30 min
+- Phase 2 (BookService): 1 hour
+- Phase 3 (Components): 2 hours
+- Phase 4 (Helpers): 1 hour
+- Phase 5 (Import/Export): 30 min
+- Phase 6 (Testing): 1 hour
+- **Total**: ~6 hours
 
-## Open Questions
+## Breaking Changes
 
-1. Should we support exporting individual stories or entire books?
-2. Should the exchange format include book-level settings (aspectRatio, panelConfig)?
-3. Do we want to support exporting images along with story data?
-4. Should we version the exchange format separately from internal format?
+**localStorage Data**: All existing story data will be cleared
+- **Mitigation**: Users can export stories as JSON before update (if needed)
+- **User Acceptance**: Confirmed by user that data can be trashed
 
 ## Success Criteria
 
-- [ ] Can export any story to JSON matching import schema
-- [ ] Can import exported JSON and get identical story (minus timestamps)
-- [ ] Import/export is lossless for story content
-- [ ] Validation catches common errors before import
-- [ ] Documentation clearly explains both formats
-- [ ] All existing tests pass
-- [ ] No breaking changes to localStorage format
+- [ ] Stories use names instead of IDs for all references
+- [ ] Can import JSON files directly without conversion
+- [ ] Can export stories and re-import without loss
+- [ ] Character/element renames update all scene references
+- [ ] Duplicate names are prevented in UI
+- [ ] Round-trip import/export is lossless
+- [ ] All UI components work with name-based references
+- [ ] Documentation updated to reflect new format
 

@@ -31,6 +31,7 @@ import { ImageStorageService } from '../services/ImageStorageService';
 import { overlayTextOnImage } from '../services/OverlayService';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 import { DocxExportService } from '../services/DocxExportService';
+import { StoryExportService } from '../services/StoryExportService';
 import type { Story, StoryData } from '../types/Story';
 
 interface StoriesPanelProps {
@@ -232,6 +233,17 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
     e.stopPropagation();
     setBatchGenerationStory(story);
     setBatchGenerationOpen(true);
+  };
+
+  const handleDownloadStoryJson = (story: Story, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      StoryExportService.downloadStoryAsJson(story);
+      showSnackbar(`Story "${story.title}" downloaded as JSON`, 'success');
+    } catch (error) {
+      console.error('Failed to download story:', error);
+      showSnackbar(`Failed to download story: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+    }
   };
 
   const handleExportStory = async (story: Story, e: React.MouseEvent) => {
@@ -546,6 +558,15 @@ TECHNICAL REQUIREMENTS:
                         disabled={stats.scenes === 0}
                       >
                         <GenerateAllIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Download story as JSON">
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={(e) => handleDownloadStoryJson(story, e)}
+                      >
+                        <DownloadIcon />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Export story to Word document">

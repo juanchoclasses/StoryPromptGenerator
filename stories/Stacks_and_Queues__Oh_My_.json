@@ -1,0 +1,408 @@
+{
+  "story": {
+    "title": "Stacks and Queues, Oh My!",
+    "backgroundSetup": "This story takes place in a magical realm where learning and imagination intertwine—a fantastical world where the laws of physics bend cheerfully, and knowledge blooms like wildflowers. Every location exists in a dimension where gravity is merely a suggestion, angles are delightfully askew, and colors are impossibly vibrant.\nVisual World Guidelines:\nThe entire world has a hand-painted, storybook quality with visible brushstrokes and playful imperfections that add charm. Buildings, trees, and objects lean, twist, and spiral organically, never quite standing perfectly straight. Shadows are soft and colorful rather than dark, often tinted with complementary hues (purple shadows, blue-green shadows, pink-orange shadows).\nArchitecture throughout this world features impossible geometry—towers that narrow at the base and widen at the top, staircases that loop back on themselves, doorways of unexpected shapes. Structures are built from oversized, whimsical materials: stacked books, giant pencils, enormous gears, and candy-striped beams.\nColor Palette Guidance:\nFavor a jewel-toned palette with pops of pastel. Think emerald greens, ruby reds, sapphire blues, and amethyst purples, balanced with soft peaches, mint greens, butter yellows, and sky blues. Avoid muddy or dull colors—everything should feel bright and optimistic, even in shadows.\nRecurring Visual Motifs:\nThroughout all scenes, you'll find floating mathematical symbols that drift like dandelion seeds, spiral patterns appearing in unexpected places, and whimsical creatures representing abstract concepts. The sky often contains multiple small suns or moons in playful arrangements. Plants and trees have exaggerated, curling forms with leaves shaped like gears, lightbulbs, question marks, and other symbols of thought and learning.\nAtmospheric Elements:\nThe air itself seems to shimmer with potential, occasionally showing faint sparkles of \"idea dust.\" Gravity allows for floating objects, suspended platforms, and characters who can bounce extraordinarily high. Scale is playfully inconsistent—a mushroom might tower overhead while a tree stands waist-high.\nCharacter Integration:\nAll characters in this world should feel at home in this environment—equally whimsical, with exaggerated proportions, expressive features, and the ability to interact impossibly with their surroundings. They should move with energy and enthusiasm, their body language always communicating wonder and curiosity.",
+    "description": "This is a whimsical introduction to stacks and queues"
+  },
+  "characters": [
+    {
+      "name": "Professor Fizzwinkle",
+      "description": ", a towering woman with a gravity-defying swirl of bright pink hair that reaches for the sky. She wears spectacles perched on her long, bendy nose, and a lab coat adorned with a chaotic collection of oversized, clunky buttons and pockets from which various peculiar gadgets protrude. Her arms are long and noodle-like, often gesturing wildly as she explains complex concepts. Her expression is one of enthusiastic, slightly bewildered brilliance, always with a twinkle in her eye and a wide, friendly smile. She moves with an energetic, bouncy gait, as if she has springs in her elongated,"
+    },
+    {
+      "name": "Student Eager Noodler",
+      "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes."
+    },
+    {
+      "name": "student Thoughtful Giggler",
+      "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet."
+    },
+    {
+      "name": "Student Zippy Zapper",
+      "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'"
+    },
+    {
+      "name": "Student Quiet observer",
+      "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook."
+    },
+    {
+      "name": "Host",
+      "description": "a small, nimble creature with a body like a question mark rendered in bright orange and green stripes. Its head is a single, enormous, inquisitive eye that swivels constantly, taking in every detail. It has tiny, impossibly fast legs that end in springy coils, allowing it to bounce and zip around. From its back sprouts a single, long, curly arm that often points emphatically or holds a tiny, shimmering pointer. The Explainer-of-Things communicates through enthusiastic squeaks and whistles, often appearing from behind objects or out of thin air to clarify a point or introduce a new concept with an eager, helpful demeanor"
+    },
+    {
+      "name": "Manager Four (or \"Quattro\")",
+      "description": "A tall, enthusiastic character wearing a hard hat shaped like the number \"4\" with a factorial symbol (!) on top. She has four arms (because she's \"four\"!), each holding different tools: a speaking tube, a multiplication wrench, an order clipboard, and a celebration banner. Her vest is covered in badges showing \"4×3×2×1\" and she wears glasses shaped like multiplication signs. Her expression is eager and leadership-oriented—she starts the whole process! Her body is slightly squared (like the number 4) but bouncy and energetic. She's colored in bold ruby red with gold accents."
+    },
+    {
+      "name": "Manager Three (or \"Trina\")",
+      "description": "A medium-height character with three ponytails that bounce when she moves, each ponytail decorated with a small gear. Her hard hat is shaped like the number \"3\" and glows softly. She has three eyes arranged in a triangle on her face (whimsical style—not creepy!), allowing her to watch three directions at once: above (Level 4), her own work, and below (Level 2). She wears a jumpsuit with three pockets and carries a three-pronged tool for managing her multiplication machine. Her body has gentle curves like the number 3. She's colored in emerald green with silver accents. She's focused and efficient, like a middle manager keeping the chain going."
+    },
+    {
+      "name": "Manager Two (or \"Deuce\")",
+      "description": "A character with a body shaped like two stacked circles (like a snowman but only two parts), making him literally look like the number \"2\". His hard hat has two antennae with small lights on top. He has two tools always in hand: a speaking horn and a multiplication calculator. His outfit is a two-tone uniform: half sapphire blue, half sky blue, split down the middle. He wears goggles with two lenses that can swivel independently. His expression is friendly and methodical—he knows he's close to the base case and maintains steady focus. He has two mechanical hands that can spin independently like gears."
+    },
+    {
+      "name": "Manager One (or \"Unity\")",
+      "description": "A small but MIGHTY character who stands on a glowing pedestal, making her seem more important than her size suggests. She's shaped like the number \"1\"—tall, thin, and perfectly straight, but with a large round head and a big smile. She wears a golden crown-shaped hard hat with \"BASE CASE\" written on it. Unlike the other managers, she has a special glowing aura because she's the ONLY one who can answer without help. Her outfit is completely golden with amethyst purple accents. She carries a stamp that says \"1! = 1\" which she uses with great pride and authority. She has one big tool belt with one perfect tool. Her expression is confident and foundational—she KNOWS she's essential! Single antenna on her hat glows like a lighthouse."
+    },
+    {
+      "name": "The Number Sprites",
+      "description": "Small, floating helpers that carry the answers between levels. Each sprite looks like its number (a \"1\" sprite, a \"2\" sprite, a \"6\" sprite, and a \"24\" sprite), but with tiny wings, smiling faces, and sparkle trails. They're translucent and glow in their respective colors. The \"1\" sprite is tiny and golden. The \"2\" sprite is slightly bigger. The \"6\" sprite is medium-sized. The \"24\" sprite is the largest and most elaborate, covered in celebration sparkles. They don't speak but communicate through cheerful chimes and musical tones."
+    },
+    {
+      "name": "The Calc-U-Trons",
+      "description": "Each level has its own personality-filled multiplication machine (not quite characters, but animated and expressive). They have faces made of dials and displays, arms made of conveyor belts, and they light up and make happy whirring sounds when calculating. Each machine is decorated with its level's number and has a personality matching its manager—the Level 4 machine is enthusiastic and hasty, Level 3's is efficient and precise, Level 2's is steady and methodical, and Level 1's is simple but proud, with a sign that says \"NO MULTIPLICATION NEEDED - BASE CASE!\""
+    },
+    {
+      "name": "Professor Factorial (or \"Prof F\")",
+      "description": "A wise, elderly character with a beard shaped like a factorial symbol (!). Wears a top hat with the recursive formula \"n! = n × (n-1)!\" written around the brim. Has a pocket watch that runs backwards and forwards simultaneously. Carries a pointer shaped like an arrow (→) to show the flow of recursion. Dressed in a professorial coat covered in mathematical patches and medals. Has kind, twinkling eyes behind spiral-shaped spectacles. Sometimes appears at different levels, sometimes shows up in the margins—a guide who helps explain what's happening."
+    },
+    {
+      "name": "Manager Four (or \"Quattro\")",
+      "description": "A tall, enthusiastic character wearing a hard hat shaped like the number \"4\" with a factorial symbol (!) on top. She has four arms (because she's \"four\"!), each holding different tools: a speaking tube, a multiplication wrench, an order clipboard, and a celebration banner. Her vest is covered in badges showing \"4×3×2×1\" and she wears glasses shaped like multiplication signs. Her expression is eager and leadership-oriented—she starts the whole process! Her body is slightly squared (like the number 4) but bouncy and energetic. She's colored in bold ruby red with gold accents."
+    },
+    {
+      "name": "Manager Three (or \"Trina\")",
+      "description": "A medium-height character with three ponytails that bounce when she moves, each ponytail decorated with a small gear. Her hard hat is shaped like the number \"3\" and glows softly. She has three eyes arranged in a triangle on her face (whimsical style—not creepy!), allowing her to watch three directions at once: above (Level 4), her own work, and below (Level 2). She wears a jumpsuit with three pockets and carries a three-pronged tool for managing her multiplication machine. Her body has gentle curves like the number 3. She's colored in emerald green with silver accents. She's focused and efficient, like a middle manager keeping the chain going."
+    },
+    {
+      "name": "Manager Two (or \"Deuce\")",
+      "description": "A character with a body shaped like two stacked circles (like a snowman but only two parts), making him literally look like the number \"2\". His hard hat has two antennae with small lights on top. He has two tools always in hand: a speaking horn and a multiplication calculator. His outfit is a two-tone uniform: half sapphire blue, half sky blue, split down the middle. He wears goggles with two lenses that can swivel independently. His expression is friendly and methodical—he knows he's close to the base case and maintains steady focus. He has two mechanical hands that can spin independently like gears."
+    },
+    {
+      "name": "Manager One (or \"Unity\")",
+      "description": "A small but MIGHTY character who stands on a glowing pedestal, making her seem more important than her size suggests. She's shaped like the number \"1\"—tall, thin, and perfectly straight, but with a large round head and a big smile. She wears a golden crown-shaped hard hat with \"BASE CASE\" written on it. Unlike the other managers, she has a special glowing aura because she's the ONLY one who can answer without help. Her outfit is completely golden with amethyst purple accents. She carries a stamp that says \"1! = 1\" which she uses with great pride and authority. She has one big tool belt with one perfect tool. Her expression is confident and foundational—she KNOWS she's essential! Single antenna on her hat glows like a lighthouse."
+    },
+    {
+      "name": "The Number Sprites",
+      "description": "Small, floating helpers that carry the answers between levels. Each sprite looks like its number (a \"1\" sprite, a \"2\" sprite, a \"6\" sprite, and a \"24\" sprite), but with tiny wings, smiling faces, and sparkle trails. They're translucent and glow in their respective colors. The \"1\" sprite is tiny and golden. The \"2\" sprite is slightly bigger. The \"6\" sprite is medium-sized. The \"24\" sprite is the largest and most elaborate, covered in celebration sparkles. They don't speak but communicate through cheerful chimes and musical tones."
+    },
+    {
+      "name": "The Calc-U-Trons",
+      "description": "Each level has its own personality-filled multiplication machine (not quite characters, but animated and expressive). They have faces made of dials and displays, arms made of conveyor belts, and they light up and make happy whirring sounds when calculating. Each machine is decorated with its level's number and has a personality matching its manager—the Level 4 machine is enthusiastic and hasty, Level 3's is efficient and precise, Level 2's is steady and methodical, and Level 1's is simple but proud, with a sign that says \"NO MULTIPLICATION NEEDED - BASE CASE!\""
+    },
+    {
+      "name": "Professor Factorial (or \"Prof F\")",
+      "description": "A wise, elderly character with a beard shaped like a factorial symbol (!). Wears a top hat with the recursive formula \"n! = n × (n-1)!\" written around the brim. Has a pocket watch that runs backwards and forwards simultaneously. Carries a pointer shaped like an arrow (→) to show the flow of recursion. Dressed in a professorial coat covered in mathematical patches and medals. Has kind, twinkling eyes behind spiral-shaped spectacles. Sometimes appears at different levels, sometimes shows up in the margins—a guide who helps explain what's happening."
+    }
+  ],
+  "elements": [
+    {
+      "name": "Classroom setting",
+      "description": "a classroom not bound by walls, but nestled in a whimsical clearing. Giant, candy-striped 'Thought-Trees' with leaves shaped like gears and lightbulbs provide dappled shade. Instead of desks, there are comfy, mushroom-shaped seating pods in various bright colors, each with a small, swiveling 'Idea-Screen' that floats magically in front of it. The chalkboard is a colossal, self-erasing 'Knowledge-Slate' propped on two wiggly, green stilts, adorned with glowing mathematical symbols. In the background, peculiar, spiral-shaped learning devices whir and hum softly. The ground is a patchwork of spongy, rainbow-colored moss, and cheerful, winged 'Logic-Bugs' flit between the Thought-Trees, occasionally landing to observe the lesson.",
+      "category": "Rooms"
+    },
+    {
+      "name": "University entrance",
+      "description": "A grand, gloriously crooked archway that seems to lean slightly to the left, as if excited to welcome newcomers. The arch is constructed from stacked, oversized books in every color imaginable—crimson reds, sunshine yellows, deep purples, and brilliant blues—each spine embossed with golden, nonsensical titles like \"Thinkology Volume IX\" and \"The Art of Wondering Why.\"\nFlanking the entrance are two towering, spiral-striped columns that twist upward like candy canes, topped with enormous, brass bells that chime melodiously when curious thoughts pass beneath them. Between the columns dangles a cheerful banner reading \"Welcome to the University of Curiosity!\" in bouncing, hand-painted letters.\nThe pathway leading to the entrance is paved with smooth, rainbow-hued stepping stones, each one slightly bouncy underfoot. On either side of the path grow peculiar \"Welcome-Flowers\"—tall stalks with blooms shaped like tiny mortarboards that bob and wave as if nodding hello. Whimsical lamp posts shaped like elongated question marks illuminate the path, their bulbs glowing with a warm, inviting amber light.\nIn the background, you can glimpse the university's fantastical spires and turrets, all leaning at impossible angles, with windows that shimmer like stained glass kaleidoscopes. Floating pennants drift lazily through the air above, emblazoned with gears, lightbulbs, and other symbols of learning.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Hall of stacks",
+      "description": "\n\nThe hallway gleams with polished, rainbow-striped tiles that seem to ripple underfoot, each one slightly bouncy as if eager to propel curious students forward. Tall, spiral-twisted columns line the corridor, each topped with floating bronze plaques displaying famous quotes about organization and order, though the words occasionally rearrange themselves in playful new patterns.\n\nAt the far end of the hall stands the magnificent entrance to the Hall of Stacks—a towering doorway framed by actual stacks of colorful, oversized books that impossibly balance one atop another, rising ten feet high on either side. Each book spine glows softly with titles like \"The Joy of LIFO,\" \"Last In, First Out for Beginners,\" and \"The Fundamental Stack Chronicles.\" The books occasionally shift and reorganize themselves with quiet whispers, demonstrating their own stack-like behavior.\n\nThe door itself is a marvel—constructed from gleaming copper plates arranged in ascending size, each plate engraved with intricate patterns of plates stacking upon plates, creating a recursive visual that seems to go on forever. At eye level, a brass doorknob shaped like a small tower of pancakes invites visitors to enter.\n\nAbove the entrance, suspended in mid-air by some enchantment of learning, floats an elegant sign carved from swirling amber wood. It reads \"Hall of Stacks - Where Last In is Always First Out!\" The letters themselves are stacked vertically, and as you watch, the top letter occasionally pops off and floats to the back of the line, perfectly demonstrating the principle within.\n\nOn either side of the entrance, ornate lamp posts cast warm, golden light. Each lamp is topped not with a traditional bulb, but with a miniature stack of glowing plates that pulses gently—the top plate brightest, demonstrating that the most recently added is always the most accessible.\n\nYour host stands just outside this entrance, one hand gesturing welcomingly toward the door while the other points emphatically at a small, elegant podium beside the entrance. On this podium sits a demonstration stack of rainbow-colored disks, each slightly smaller than the one below, all arranged on a golden spindle. Occasionally, the top disk lifts itself, hovers for a moment as if considering its options, then settles back down—a perfect, silent advertisement for the wonders that await within.\n\nThe very air around the entrance seems to hum with the gentle sound of organization—soft clicks and satisfying clinks, like well-ordered dishes being stacked after a delightful meal. Faint wisps of glittering \"comprehension dust\" drift from beneath the door, promising enlightenment to all who enter.\n\n-",
+      "category": "Rooms"
+    },
+    {
+      "name": "Hall of Queues",
+      "description": "\n\nFurther down the bouncy rainbow corridor, past three gently humming alcoves and around a corner that curves in a most agreeable spiral, lies the entrance to the Hall of Queues—a doorway that seems to stretch sideways rather than upward, emphasizing the orderly, patient procession that defines its purpose.\n\nThe entrance is framed by two magnificent sculptures: on the left, a bronze line of eager students frozen mid-step, each one slightly ahead of the one behind, their faces alight with anticipation. On the right, the same students emerge, satisfied and enlightened, having each received their turn. The sculptures seem to shimmer and shift ever so slightly, as if the queue is perpetually, patiently moving forward.\n\nThe doorway itself is wide and welcoming, constructed from smooth, flowing ribbons of polished silver and sky-blue glass that curve gracefully from one side to the other. These ribbons are arranged in perfect parallel lines, each one entering from the left and exiting on the right, creating a mesmerizing visual of orderly flow. Within the glass ribbons, tiny golden spheres travel slowly from left to right, each following the one before it at a respectful, even distance—a perpetual demonstration of \"First In, First Out.\"\n\nAbove the entrance hangs a long, horizontal banner made of silk in gentle gradient colors—starting with soft lavender on the left and transitioning to warm peach on the right. Embroidered in elegant flowing script, it declares: \"Hall of Queues - Where First In is Always First Out!\" The letters themselves form a perfect line, each one patiently waiting its turn to be read.\n\nFlanking the doorway are two curious lamp posts, but instead of standing straight, they arch gracefully, leaning toward each other to form a welcoming gateway. Each lamp contains not a single bulb but a string of small, glowing orbs arranged in a line within a transparent tube. As you watch, a new orb appears at one end, travels smoothly through the queue of lights, and gently exits the other end, casting a warm glow before fading—constantly demonstrating the principle of queues in motion.\n\nAt ground level, on either side of the entrance, decorative planters hold the most peculiar plants: \"Queue Vines\" with leaves that grow in perfect sequential order along their stems, each leaf slightly more developed than the one before it. The newest leaf buds emerge at the back, while the oldest, wisest leaves reach toward the entrance, having earned their place at the front through patient waiting.\n\nYour host stands beside a charming demonstration table positioned strategically near the entrance. On it, a transparent tunnel sits at a slight incline, and inside, a cheerful procession of different-colored marbles waits in perfect single file. Every few moments, the marble at the front rolls gently out and down a little ramp (accompanied by a delightful *tink!*), while a new marble of a different color joins the back of the queue. A small brass plaque on the table reads: \"Join the back, leave from the front—that's the queue way!\"\n\nThe air here feels different from the Hall of Stacks—less about vertical energy and more about horizontal flow. There's a gentle, forward-moving breeze, carrying with it the soft sound of footsteps proceeding in order, the patient rustle of organized waiting, and the satisfied sighs of those who've reached the front of the line. Occasionally, you hear a faint, melodious voice counting: \"One, two, three...\"\n\nNear the base of the door, a whimsical sign made of linked wooden chain-links reads: \"Please form an orderly queue to enter the Hall of Queues!\" And indeed, even the cobblestones leading to the entrance are arranged in a subtle arrow pattern, gently encouraging all visitors to approach in proper sequence.\n\nWisps of shimmering \"orderly mist\" drift from beneath the door—pale blue and silver, moving in smooth, sequential waves rather than chaotic swirls. It seems to whisper: \"First come, first served... patience is a virtue... everyone gets their turn...\"\n\n",
+      "category": "Rooms"
+    },
+    {
+      "name": "Final Stage",
+      "description": "\n\n\nAt the very end of the winding, wonderful corridors of the University of Curiosity, the hallway opens dramatically into a vast, circular plaza bathed in warm, golden afternoon light that streams through a magnificent domed ceiling of stained glass. Each pane depicts a different concept learned—stacks, queues, trees, and more—all swirling together in a celebratory dance of knowledge.\n\nIn the center of this plaza rises the Farewell Stage, an elegant circular platform that seems to hover just inches above the ground, rotating ever so slowly to ensure everyone in the audience gets a perfect view. The stage itself is crafted from polished rainbow-hued wood that shifts through gentle gradients of color—starting with the deep purple of new beginnings on one side and flowing through to the bright gold of accomplished understanding on the other.\n\nThe stage is framed by a magnificent arch constructed from intertwined representations of all the data structures: stacks of books forming one pillar, a flowing queue of students forming the other, with binary tree branches meeting at the apex in a perfect embrace of learning. Tiny lights wink and twinkle throughout the arch like stars of comprehension.\n\nAt the back of the stage, a grand curved backdrop rises gracefully, painted with a stunning mural of the entire university campus viewed from above—every hall, every tower, every impossible angle and delightful spiral visible in miniature. But the truly magical part is that the painted students in the mural occasionally wave, and the painted doors open and close softly, as if the entire university is alive and wishing everyone well.\n\nThe stage floor is inlaid with concentric circles of different materials—copper, silver, gold, and platinum—each representing a level of understanding achieved. Where the cast members stand, the floor is warmest and brightest, symbolizing their role as guides and teachers. Musical notes seem to float up from the stage boards themselves, creating a gentle, congratulatory melody that needs no instruments.\n\nSurrounding the stage, arranged in a perfect semi-circle, are the audience viewing areas: rows of comfortable, cushioned seats shaped like opened books, each one adjusting itself automatically to provide the perfect viewing angle. The seats are arranged in gentle tiers that curve upward and outward, creating an amphitheater effect where everyone can see clearly, no matter where they sit.\n\nOverhead, suspended by what can only be described as \"threads of understanding,\" float hundreds of small, glowing lanterns shaped like lightbulbs—the universal symbol of ideas and epiphanies. As the farewell unfolds, these lanterns glow brighter, and some even drift down gently into the audience, as if knowledge itself is being shared one last time.\n\nOn either side of the stage stand two magnificent podiums, each topped with an elegant brass bell. These are the \"Bells of Completion\"—when rung at the end of the presentation, they produce not just sound, but visible ripples of rainbow light that spread outward through the plaza, touching each audience member with a warm, tingling sensation of accomplishment.\n\nThe stage apron (the front edge) is decorated with a continuous banner that reads in flowing, cheerful script: \"The more that you learn, the more places you'll go!\" The letters seem to dance and shimmer, occasionally rearranging themselves into new encouraging phrases: \"Knowledge is a journey!\" \"Every ending is a beginning!\" \"Come back soon!\"\n\nAt the very corners of the stage sit four whimsical \"Farewell Fountains\"—small, ornate structures where instead of water, bubbles of pure, iridescent light rise upward, each bubble containing a tiny symbol: a stack, a queue, a smiling face, a waving hand. The bubbles drift up into the air and pop softly, releasing tiny sparkles that smell faintly of peppermint and possibility.\n\nBehind the stage, a grand staircase curves down and away, leading back out to the university entrance. This staircase is carpeted in plush velvet that changes color with each step—a rainbow gradient that symbolizes the journey from arrival to departure, from confusion to clarity, from question to answer.\n\nThe air in this plaza is filled with the gentle sound of applause waiting to happen, the rustle of pages closing on a well-read book, and the satisfied sighs of learning completed. Occasionally, you hear the distant, cheerful sound of other classes beginning elsewhere in the university—a reminder that while this journey ends, countless others continue.\n\nAbove the stage, in elegant floating letters that seem made of condensed cloud and sunshine, hover the words: \"Thank you for learning with us! Until we meet again in the halls of curiosity!\"\n\n",
+      "category": "Rooms"
+    },
+    {
+      "name": "Multiplication Machine (Level 2)",
+      "description": "Element from Multiplication Machine (Level 2)",
+      "category": "Imported"
+    },
+    {
+      "name": "Multiplication Machine (Level 3)",
+      "description": "Element from Multiplication Machine (Level 3)",
+      "category": "Imported"
+    },
+    {
+      "name": "Multiplication Machine (Level 4)",
+      "description": "Element from Multiplication Machine (Level 4)",
+      "category": "Imported"
+    },
+    {
+      "name": "Speaking Tube",
+      "description": "A colorful communication tube that connects factory levels, used for passing questions downward during the recursive call process.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Factory Gears",
+      "description": "Oversized gears labeled with numbers, spinning and turning as calculations proceed. Some are shaped like factorial symbols (!).",
+      "category": "Machinery"
+    },
+    {
+      "name": "Order Ticket",
+      "description": "A floating pneumatic ticket showing the factorial calculation request (e.g., \"4!\"), delivered from above to start the process.",
+      "category": "Props"
+    },
+    {
+      "name": "Conveyor Belt",
+      "description": "A rainbow-colored segment conveyor belt that carries numbers and calculations between different parts of the factory floor.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Factory Level 3",
+      "description": "Factory floor representing recursion depth 3, one level down from the top.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Multiplication Machine (Level 2)",
+      "description": "A whimsical machine with personality, featuring dials, displays, conveyor belts for arms, and lights that glow when calculating. Makes happy whirring sounds during multiplication.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Factory Level 2",
+      "description": "Factory floor representing recursion depth 2, two levels down from the top.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Base Case Pedestal",
+      "description": "A golden, glowing pedestal marking the foundation level where 1! = 1. Has special importance as the stopping point of recursion.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Factory Level 1",
+      "description": "The foundation factory floor representing recursion depth 1 - the base case level.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Return Tube",
+      "description": "A glowing tube that carries answers upward from lower levels, showing the return values flowing back up through the recursion.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Multiplication Machine (Level 3)",
+      "description": "A whimsical machine with personality, featuring dials, displays, conveyor belts for arms, and lights that glow when calculating. Makes happy whirring sounds during multiplication.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Multiplication Machine (Level 4)",
+      "description": "A whimsical machine with personality, featuring dials, displays, conveyor belts for arms, and lights that glow when calculating. Makes happy whirring sounds during multiplication.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Factory Level 4",
+      "description": "The top factory floor representing recursion depth 4, where the initial request arrives.",
+      "category": "Set Pieces"
+    }
+  ],
+  "scenes": [
+    {
+      "title": "Welcome",
+      "description": "Our host is energetically welcoming 4 students to the campus.  ",
+      "textPanel": "Come gather around, both near and afar,\nLet's learn about data structures, wherever you are!\nWe'll talk about stacks and we'll talk about queues,\nTwo wonderful ways to organize your data's views!",
+      "characters": [
+        "Host",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "University entrance"
+      ]
+    },
+    {
+      "title": "Stacks intro",
+      "description": "The host is pointing towards the hall of stacks, the students are stacked one on top of another.",
+      "textPanel": "Now first let me tell you about stacks, oh so neat,\nWhere items pile up from your head to your feet!\nThe last one you add is the first one to go,\nSo let's learn how stacks work, high and low!",
+      "characters": [
+        "Host",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Hall of stacks"
+      ]
+    },
+    {
+      "title": "Stacks 1",
+      "description": "The teacher is holding a plate in their hand and about to put it on a stack of plates that is precariously balancing on one foot that is held up in the air.  The other foot is on the floor and the whole arrangement is looking precarious.\n\nThe students are standing back in amazement.",
+      "textPanel": "A stack is a pile, a tower so tall,\nWhere the last thing you add is the first one to fall.\nPush plates on top, they go up one by one,\nBut pop from the top when your dinner is done!",
+      "characters": [
+        "Professor Fizzwinkle",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Classroom setting"
+      ]
+    },
+    {
+      "title": "Stacks 2",
+      "description": "The teacher has a stack of pancakes on the table in front of them.  They are eating the top one with happy look on their face",
+      "textPanel": "Like pancakes you stack on a Saturday morn,\nThe top one you eat is the last one you've born.\nYou can't grab the bottom, that wouldn't be nice,\nSo Last-In-First-Out is our stack's sound advice!",
+      "characters": [
+        "Professor Fizzwinkle",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Classroom setting"
+      ]
+    },
+    {
+      "title": "Stacks 3",
+      "description": "two of the students are holding up a stack of books, one of the others is holding a ladder and the last student is at the top reading the book on the top of the stack.  the teacher is standing back aghast",
+      "textPanel": "Think of books in a stack reaching up to the sky,\nThe one on the top is the first one you'll pry.\nYou push and you pop from the very same end,\nThat's how a stack works, my dear little friend!",
+      "characters": [
+        "Professor Fizzwinkle",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Classroom setting"
+      ]
+    },
+    {
+      "title": "Queue intro ",
+      "description": "Our host now invites us into the Hall of Queues, the students are queuing up for the entrance.",
+      "textPanel": "Now queues are quite different, I'll tell you what's true,\nThey're fair and they're ordered, like standing in queue!\nThe first one in line is the first one served through,\nSo let's see how queues work, me and you!",
+      "characters": [
+        "Host",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Hall of Queues"
+      ]
+    },
+    {
+      "title": "Queue 1",
+      "description": "The students are lining up at the teacher's desk with their assignments in hand waiting to be assessed.",
+      "textPanel": "A queue is a line, like you'd see at the store,\nWhere first one in line is first out through the door.\nYou join at the back and you wait for your turn,\nWhile those at the front get the service they earn!",
+      "characters": [
+        "Professor Fizzwinkle",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Classroom setting"
+      ]
+    },
+    {
+      "title": "Queue 2",
+      "description": "The students are waiting to exit the hall of queues",
+      "textPanel": "Like lining up nicely to go out for recess,\nThe first one in line is the first to progress.\nEnqueue at the back, dequeue from the front,\nThat's First-In-First-Out, if you want to be blunt.",
+      "characters": [
+        "Professor Fizzwinkle",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Classroom setting"
+      ]
+    },
+    {
+      "title": "Queue 3",
+      "description": "\nStudents lined up at the classroom library corner checking out books\nLibrarian or teacher at desk, processing returns/checkouts in order\nVisual: Academic, orderly, promotes literacy",
+      "textPanel": "It's fair and it's ordered, no cutting allowed,\nThe queue keeps things civil for all in the crowd.\nFrom back you go in, from the front you come out,\nThat's what a queue is fundamentally about!",
+      "characters": [
+        "Professor Fizzwinkle",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Classroom setting"
+      ]
+    },
+    {
+      "title": "Comparison intro",
+      "description": "the students and the host have left the two halls behind them.  the host is leading them towards the final stage",
+      "textPanel": "Now you've learned both stacks and queues, can you see?\nThey're different as different as different can be!\nLet's compare them together and see what we've got,\nAnd when you would use each one or not!",
+      "characters": [
+        "Host",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Hall of Queues",
+        "Hall of stacks",
+        "Final Stage"
+      ]
+    },
+    {
+      "title": "Stack Vs Queue ",
+      "description": "The professor with a a queue of students on one side and a stack of plates on the other side",
+      "textPanel": "One's like a stack of plates piled up high,\nThe other's a line where you patiently wait by.\nA stack pops the top, a queue serves the first,\nChoose the wrong one and your program is cursed!",
+      "characters": [
+        "Professor Fizzwinkle",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Classroom setting"
+      ]
+    },
+    {
+      "title": "Stack Vs Queue 2",
+      "description": "Have one of the students putting a task on a stack of undo actions.  have the other student be taking requests from a queue of students.  The stack of actions should be on the left of the screen and the queue of actions is on the right",
+      "textPanel": "For undo-ing actions, a stack is the way,\nFor handling requests in the order they play.\nSo remember these rules when you code and you're through:\nUse stacks for LIFO, and queues for FIFO!",
+      "characters": [
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Classroom setting"
+      ]
+    },
+    {
+      "title": "End 1",
+      "description": "The cast of the play is standing on a stage looking out at the audience.\n\nAdd Claude and ChatGPT to the members on the stage",
+      "textPanel": "Now before we're all done and we go on our way,\nThere's one more small thing that I have to say.\nThis book that you've read with its rhymes and its prose,\nWas crafted by Claude and by ChatGPT, as it goes!",
+      "characters": [
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer",
+        "Professor Fizzwinkle",
+        "Host"
+      ],
+      "elements": [
+        "Final Stage"
+      ]
+    },
+    {
+      "title": "End 2",
+      "description": "The curtains have started to close on the stage as our play ends.\n\nAdd Claude and ChatGPT to the members on the stage",
+      "textPanel": "These AI helpers, so clever and bright,\nHelped write all these verses and get the words right.\nSo stacks and queues taught in a Seussian way,\nWere made by machines to brighten your day!",
+      "characters": [
+        "Host",
+        "Professor Fizzwinkle",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Final Stage"
+      ]
+    }
+  ]
+}

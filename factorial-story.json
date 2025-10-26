@@ -215,7 +215,8 @@
         "Speaking Tube",
         "Return Tube",
         "Base Case Pedestal"
-      ]
+      ],
+      "textPanel": "And that's how recursion works in our factory grand,\nEach level calls down, then waits with answer in hand.\nBreak big problems to small, till the base case is found,\nThen build up the solution as answers rebound!\n\nFrom four down to one, then one back to twenty-four,\nEach manager played their part in this elegant chore.\nSo remember, dear students, when problems seem tall:\nJust break them in pieces—recursion solves all!"
     }
   ]
 }

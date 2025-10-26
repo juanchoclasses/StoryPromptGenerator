@@ -98,7 +98,15 @@ function App() {
         const updatedScenes = s.scenes.map(scene => {
           if (scene.id === selectedScene.id) {
             const updatedHistory = (scene.imageHistory || []).filter(img => img.id !== imageId);
-            return { ...scene, imageHistory: updatedHistory, updatedAt: new Date() };
+            // Also clear lastGeneratedImage if this was the last image
+            const updates: Partial<typeof scene> = { 
+              imageHistory: updatedHistory, 
+              updatedAt: new Date() 
+            };
+            if (updatedHistory.length === 0) {
+              updates.lastGeneratedImage = undefined;
+            }
+            return { ...scene, ...updates };
           }
           return scene;
         });
@@ -120,14 +128,34 @@ function App() {
     const newHistory = imageHistory.filter(img => img.id !== imageId);
     setImageHistory(newHistory);
     
-    // If the deleted image was the currently displayed one, clear it or show the next one
-    const deletedImage = imageHistory.find(img => img.id === imageId);
-    if (deletedImage && imageUrl === deletedImage.url) {
-      // Show the most recent remaining image, or null if none left
+    // Check if we're deleting the currently displayed image by comparing IDs
+    const currentImageId = imageHistory.find(img => img.url === imageUrl)?.id;
+    const isDeletingCurrentImage = currentImageId === imageId;
+    
+    if (isDeletingCurrentImage || newHistory.length === 0) {
+      // Either we deleted the current image, or we deleted the last image
       if (newHistory.length > 0) {
-        setImageUrl(newHistory[newHistory.length - 1].url);
+        // Load the most recent remaining image from IndexedDB
+        const mostRecentImage = newHistory[newHistory.length - 1];
+        ImageStorageService.getImage(mostRecentImage.id)
+          .then(url => {
+            if (url) {
+              setImageUrl(url);
+            } else {
+              setImageUrl(null);
+            }
+          })
+          .catch(error => {
+            console.error('Failed to load replacement image:', error);
+            setImageUrl(null);
+          });
       } else {
+        // No images left - clear the display
         setImageUrl(null);
+        // Also clear the handler to notify SceneEditor
+        if (imageClearHandlerRef.current) {
+          imageClearHandlerRef.current();
+        }
       }
     }
     
@@ -254,7 +282,7 @@ function App() {
   };
 
   const navigateToStoryEditor = () => {
-    setActiveTab(4); // Story Editor tab
+    setActiveTab(2); // Story Editor tab
   };
 
   return (
@@ -289,9 +317,9 @@ function App() {
           <Tabs value={activeTab} onChange={handleTabChange}>
             <Tab label="Books" />
             <Tab label="Stories" disabled={!bookData} />
+            <Tab label="Story Editor" disabled={!selectedStory} />
             <Tab label="Story Characters" disabled={!selectedStory} />
             <Tab label="Story Elements" disabled={!selectedStory} />
-            <Tab label="Story Editor" disabled={!selectedStory} />
             <Tab label="About" />
           </Tabs>
         </Box>
@@ -318,24 +346,6 @@ function App() {
         )}
 
         {activeTab === 2 && selectedStory && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <CastManager
-              story={selectedStory}
-              onStoryUpdate={handleStoryUpdate}
-            />
-          </Box>
-        )}
-
-        {activeTab === 3 && selectedStory && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <ElementsManager
-              story={selectedStory}
-              onStoryUpdate={handleStoryUpdate}
-            />
-          </Box>
-        )}
-
-        {activeTab === 4 && selectedStory && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Story Title and Description */}
             <Box sx={{ 
@@ -413,6 +423,24 @@ function App() {
                 />
               </Box>
             </Box>
+          </Box>
+        )}
+
+        {activeTab === 3 && selectedStory && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <CastManager
+              story={selectedStory}
+              onStoryUpdate={handleStoryUpdate}
+            />
+          </Box>
+        )}
+
+        {activeTab === 4 && selectedStory && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <ElementsManager
+              story={selectedStory}
+              onStoryUpdate={handleStoryUpdate}
+            />
           </Box>
         )}
 

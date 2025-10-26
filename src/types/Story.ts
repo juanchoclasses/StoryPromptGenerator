@@ -13,7 +13,7 @@ export interface StoryElement {
 
 export interface GeneratedImage {
   id: string;
-  url: string; // Data URL of the image
+  url?: string; // DEPRECATED: Blob URLs stored in localStorage are ephemeral. Use ImageStorageService.getImage(id) instead.
   modelName: string; // AI model used to generate this image
   timestamp: Date;
   promptHash?: string; // Optional: hash of prompt to detect changes

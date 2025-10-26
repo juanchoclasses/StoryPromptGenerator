@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -14,7 +14,8 @@ import {
   Checkbox,
   IconButton,
   Divider,
-  Chip
+  Chip,
+  CircularProgress
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -23,6 +24,7 @@ import {
   ContentCopy as CopyIcon
 } from '@mui/icons-material';
 import type { GeneratedImage } from '../types/Story';
+import { ImageStorageService } from '../services/ImageStorageService';
 
 interface ImageComparisonDialogProps {
   open: boolean;
@@ -31,6 +33,11 @@ interface ImageComparisonDialogProps {
   onDeleteImage: (imageId: string) => void;
   onSaveImage: (imageUrl: string) => void;
   onCopyImage: (imageUrl: string) => void;
+}
+
+// Type for enriched image with loaded URL
+interface EnrichedImage extends GeneratedImage {
+  url: string;
 }
 
 export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
@@ -43,6 +50,49 @@ export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
 }) => {
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'gallery' | 'compare'>('gallery');
+  const [enrichedHistory, setEnrichedHistory] = useState<EnrichedImage[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Load URLs from IndexedDB when dialog opens
+  useEffect(() => {
+    if (!open || imageHistory.length === 0) {
+      setEnrichedHistory([]);
+      return;
+    }
+
+    const loadImages = async () => {
+      setLoading(true);
+      const enriched: EnrichedImage[] = [];
+
+      for (const image of imageHistory) {
+        // Try to load URL from IndexedDB
+        let url = image.url; // Might be undefined or legacy value
+
+        if (!url || url.startsWith('blob:')) {
+          // Need to load from IndexedDB
+          try {
+            const loadedUrl = await ImageStorageService.getImage(image.id);
+            if (loadedUrl) {
+              url = loadedUrl;
+            }
+          } catch (error) {
+            console.error(`Failed to load image ${image.id} from IndexedDB:`, error);
+          }
+        }
+
+        if (url) {
+          enriched.push({ ...image, url });
+        } else {
+          console.warn(`Could not load URL for image ${image.id}`);
+        }
+      }
+
+      setEnrichedHistory(enriched);
+      setLoading(false);
+    };
+
+    loadImages();
+  }, [open, imageHistory]);
 
   const handleToggleSelect = (imageId: string) => {
     const newSelected = new Set(selectedImages);
@@ -78,8 +128,8 @@ export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
   };
 
   const selectedImagesList = Array.from(selectedImages)
-    .map(id => imageHistory.find(img => img.id === id))
-    .filter((img): img is GeneratedImage => img !== undefined);
+    .map(id => enrichedHistory.find(img => img.id === id))
+    .filter((img): img is EnrichedImage => img !== undefined);
 
   return (
     <Dialog
@@ -106,17 +156,24 @@ export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
       </DialogTitle>
 
       <DialogContent dividers>
-        {viewMode === 'gallery' ? (
+        {loading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" py={8}>
+            <CircularProgress />
+            <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+              Loading images from storage...
+            </Typography>
+          </Box>
+        ) : viewMode === 'gallery' ? (
           // Gallery View
           <Grid container spacing={2}>
-            {imageHistory.length === 0 ? (
+            {enrichedHistory.length === 0 ? (
               <Grid item xs={12}>
                 <Typography variant="body1" color="text.secondary" textAlign="center" py={4}>
                   No images generated yet for this scene.
                 </Typography>
               </Grid>
             ) : (
-              imageHistory.slice().reverse().map((image) => (
+              enrichedHistory.slice().reverse().map((image) => (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={image.id}>
                   <Card 
                     sx={{ 
@@ -251,7 +308,7 @@ export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
         {viewMode === 'gallery' ? (
           <>
             <Typography variant="body2" color="text.secondary" sx={{ mr: 'auto' }}>
-              {imageHistory.length} image{imageHistory.length !== 1 ? 's' : ''} total
+              {enrichedHistory.length} image{enrichedHistory.length !== 1 ? 's' : ''} total
             </Typography>
             <Button onClick={onClose}>Close</Button>
             <Button

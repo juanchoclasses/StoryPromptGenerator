@@ -168,9 +168,24 @@ export const BatchImageGenerationDialog: React.FC<BatchImageGenerationDialogProp
       maxWidth="md" 
       fullWidth
       disableEscapeKeyDown={isGenerating}
+      slotProps={{
+        backdrop: {
+          // Prevent closing by clicking backdrop during generation
+          onClick: (e) => {
+            if (isGenerating) {
+              e.stopPropagation();
+            }
+          }
+        }
+      }}
     >
       <DialogTitle>
         Generate All Scene Images
+        {isGenerating && (
+          <Typography variant="caption" display="block" color="primary" sx={{ mt: 0.5 }}>
+            Generation in progress... Please wait or click Stop
+          </Typography>
+        )}
       </DialogTitle>
       
       <DialogContent>
@@ -277,7 +292,17 @@ export const BatchImageGenerationDialog: React.FC<BatchImageGenerationDialogProp
         )}
       </DialogContent>
 
-      <DialogActions>
+      <DialogActions sx={{ 
+        backgroundColor: isGenerating ? 'action.hover' : 'transparent',
+        borderTop: isGenerating ? '2px solid' : 'none',
+        borderColor: 'primary.main'
+      }}>
+        {isGenerating && (
+          <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1, ml: 2 }}>
+            ⚠️ Do not close this window or navigate away during generation
+          </Typography>
+        )}
+        
         <Button onClick={handleClose} disabled={isGenerating}>
           {progress.size > 0 && !isGenerating ? 'Close' : 'Cancel'}
         </Button>
@@ -295,10 +320,10 @@ export const BatchImageGenerationDialog: React.FC<BatchImageGenerationDialogProp
         {isGenerating && (
           <Button 
             onClick={handleStop} 
-            variant="outlined" 
+            variant="contained" 
             color="error"
           >
-            Stop
+            Stop Generation
           </Button>
         )}
       </DialogActions>

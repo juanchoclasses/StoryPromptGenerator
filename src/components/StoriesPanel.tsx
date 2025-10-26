@@ -20,14 +20,17 @@ import {
   Delete as DeleteIcon,
   Download as DownloadIcon,
   Upload as UploadIcon,
-  AutoAwesome as GenerateAllIcon
+  AutoAwesome as GenerateAllIcon,
+  Description as DocxIcon
 } from '@mui/icons-material';
 import { BookService } from '../services/BookService';
 import { ImportStoryDialog } from './ImportStoryDialog';
 import { BatchImageGenerationDialog } from './BatchImageGenerationDialog';
 import { ImageGenerationService } from '../services/ImageGenerationService';
+import { ImageStorageService } from '../services/ImageStorageService';
 import { overlayTextOnImage } from '../services/OverlayService';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
+import { DocxExportService } from '../services/DocxExportService';
 import type { Story, StoryData } from '../types/Story';
 
 interface StoriesPanelProps {
@@ -54,6 +57,13 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+  const [exportValidationOpen, setExportValidationOpen] = useState(false);
+  const [exportValidationData, setExportValidationData] = useState<{
+    story: Story | null;
+    errors: string[];
+    warnings: string[];
+  }>({ story: null, errors: [], warnings: [] });
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     loadStories();
@@ -224,6 +234,48 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
     setBatchGenerationOpen(true);
   };
 
+  const handleExportStory = async (story: Story, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // Validate story first
+    const validation = await DocxExportService.validateStoryForExport(story);
+    
+    if (!validation.isValid || validation.warnings.length > 0) {
+      // Show validation dialog
+      setExportValidationData({
+        story,
+        errors: validation.errors,
+        warnings: validation.warnings
+      });
+      setExportValidationOpen(true);
+    } else {
+      // Proceed with export
+      await performExport(story);
+    }
+  };
+
+  const performExport = async (story: Story) => {
+    setIsExporting(true);
+    try {
+      const bookCollection = BookService.getBookCollection();
+      const activeBookId = BookService.getActiveBookId();
+      const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : undefined;
+      const bookTitle = activeBook?.title || 'Unknown Book';
+      
+      const blob = await DocxExportService.exportStoryToDocx(story, bookTitle);
+      const filename = `${story.title.replace(/[^a-z0-9]/gi, '_')}.docx`;
+      DocxExportService.downloadBlob(blob, filename);
+      
+      showSnackbar(`Story "${story.title}" exported successfully!`, 'success');
+    } catch (error) {
+      console.error('Failed to export story:', error);
+      showSnackbar(`Failed to export story: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+    } finally {
+      setIsExporting(false);
+      setExportValidationOpen(false);
+    }
+  };
+
   const replaceMacros = (text: string, macros: Record<string, string>): string => {
     let result = text;
     Object.entries(macros).forEach(([key, value]) => {
@@ -336,12 +388,24 @@ TECHNICAL REQUIREMENTS:
     // Save to scene in local storage
     const activeBookData = BookService.getActiveBookData();
     if (activeBookData) {
+      // Create image metadata (NO URL to avoid localStorage quota)
+      const imageId = crypto.randomUUID();
       const newGeneratedImage = {
-        id: crypto.randomUUID(),
-        url: finalImageUrl,
+        id: imageId,
+        // url is omitted - not stored in localStorage
         modelName: modelName,
         timestamp: new Date()
       };
+      
+      // Store in IndexedDB
+      ImageStorageService.storeImage(
+        imageId,
+        sceneId,
+        finalImageUrl,
+        modelName
+      ).catch(error => {
+        console.error('Failed to store image in IndexedDB during batch generation:', error);
+      });
       
       const updatedStories = activeBookData.stories.map(s => {
         if (s.id === batchGenerationStory.id) {
@@ -350,7 +414,7 @@ TECHNICAL REQUIREMENTS:
               return {
                 ...sc,
                 imageHistory: [...(sc.imageHistory || []), newGeneratedImage],
-                lastGeneratedImage: finalImageUrl,
+                lastGeneratedImage: finalImageUrl, // Keep for backward compatibility
                 updatedAt: new Date()
               };
             }
@@ -364,9 +428,8 @@ TECHNICAL REQUIREMENTS:
       const updatedData = { ...activeBookData, stories: updatedStories };
       BookService.saveActiveBookData(updatedData);
       
-      // Reload stories to reflect changes
-      loadStories();
-      onStoryUpdate();
+      // Don't reload stories here - it causes re-render which can close the dialog
+      // The dialog will handle reloading when it closes
     }
   };
 
@@ -485,6 +548,16 @@ TECHNICAL REQUIREMENTS:
                         <GenerateAllIcon />
                       </IconButton>
                     </Tooltip>
+                    <Tooltip title="Export story to Word document">
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={(e) => handleExportStory(story, e)}
+                        disabled={stats.scenes === 0}
+                      >
+                        <DocxIcon />
+                      </IconButton>
+                    </Tooltip>
                     <IconButton
                       size="small"
                       onClick={(e) => {
@@ -572,6 +645,9 @@ TECHNICAL REQUIREMENTS:
             onClose={() => {
               setBatchGenerationOpen(false);
               setBatchGenerationStory(null);
+              // Reload stories after batch generation completes
+              loadStories();
+              onStoryUpdate();
             }}
             story={batchGenerationStory}
             activeBook={activeBook || null}
@@ -579,6 +655,68 @@ TECHNICAL REQUIREMENTS:
           />
         );
       })()}
+
+      {/* Export Validation Dialog */}
+      <Dialog
+        open={exportValidationOpen}
+        onClose={() => !isExporting && setExportValidationOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          {exportValidationData.errors.length > 0 ? 'Cannot Export Story' : 'Export Warning'}
+        </DialogTitle>
+        <DialogContent>
+          {exportValidationData.errors.length > 0 && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                The following issues prevent export:
+              </Typography>
+              <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
+                {exportValidationData.errors.map((error, idx) => (
+                  <li key={idx}>{error}</li>
+                ))}
+              </Box>
+            </Alert>
+          )}
+          
+          {exportValidationData.warnings.length > 0 && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Warning:
+              </Typography>
+              <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
+                {exportValidationData.warnings.map((warning, idx) => (
+                  <li key={idx}>{warning}</li>
+                ))}
+              </Box>
+              {exportValidationData.errors.length === 0 && (
+                <Typography variant="body2" sx={{ mt: 2 }}>
+                  Do you want to proceed with the export?
+                </Typography>
+              )}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setExportValidationOpen(false)}
+            disabled={isExporting}
+          >
+            Cancel
+          </Button>
+          {exportValidationData.errors.length === 0 && (
+            <Button
+              onClick={() => exportValidationData.story && performExport(exportValidationData.story)}
+              variant="contained"
+              color="primary"
+              disabled={isExporting}
+            >
+              {isExporting ? 'Exporting...' : 'Export Anyway'}
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
 
       {/* Snackbar */}
       <Snackbar

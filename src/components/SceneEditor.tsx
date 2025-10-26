@@ -41,8 +41,10 @@ import { SettingsService } from '../services/SettingsService';
 import { ImageStorageService } from '../services/ImageStorageService';
 import { overlayTextOnImage } from '../services/OverlayService';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
+import type { PanelConfig } from '../types/Book';
 import { measureTextFit } from '../services/TextMeasurementService';
 import { ModelSelectionDialog } from './ModelSelectionDialog';
+import { PanelConfigDialog } from './PanelConfigDialog';
 
 interface SceneEditorProps {
   story: Story | null;
@@ -75,13 +77,16 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     currentHeightPercentage: number;
   } | null>(null);
   const [modelSelectionOpen, setModelSelectionOpen] = useState(false);
+  const [panelConfigDialogOpen, setPanelConfigDialogOpen] = useState(false);
+  const [editingPanelConfig, setEditingPanelConfig] = useState<PanelConfig>(DEFAULT_PANEL_CONFIG);
   
   const textPanelFieldRef = React.useRef<HTMLTextAreaElement>(null);
   const lastNotifiedImageUrl = useRef<string | null>(null);
   const lastSelectedModel = useRef<string | null>(null);
 
   /**
-   * Load image with fallback to IndexedDB if blob URL is invalid
+   * Load image from IndexedDB
+   * URLs are no longer stored in localStorage to avoid quota issues
    */
   const loadImageWithFallback = async (scene: Scene): Promise<string | null> => {
     // Try most recent image from history first
@@ -90,40 +95,47 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       : null;
     
     if (!mostRecentImage) {
-      // Try legacy lastGeneratedImage
+      // Try legacy lastGeneratedImage (for old data)
       return scene.lastGeneratedImage || null;
     }
     
     const { id, url } = mostRecentImage;
     
-    // If URL is a blob URL, it might be invalid (from previous session)
-    if (url.startsWith('blob:')) {
-      try {
-        // Try to fetch the blob to see if it's still valid
-        const response = await fetch(url, { method: 'HEAD' });
-        if (response.ok) {
-          // Blob URL is still valid
-          return url;
-        }
-      } catch {
-        // Blob URL is invalid, try loading from IndexedDB
-        console.log(`Blob URL invalid for image ${id}, loading from IndexedDB...`);
+    // ALWAYS try to load from IndexedDB first (URLs no longer reliably stored in localStorage)
+    try {
+      const imageUrl = await ImageStorageService.getImage(id);
+      if (imageUrl) {
+        console.log(`✓ Image loaded from IndexedDB: ${id}`);
+        return imageUrl;
       }
-      
-      // Blob URL failed, load from IndexedDB
-      try {
-        const restoredUrl = await ImageStorageService.getImage(id);
-        if (restoredUrl) {
-          console.log(`✓ Image restored from IndexedDB: ${id}`);
-          return restoredUrl;
+    } catch (error) {
+      console.error('Failed to load image from IndexedDB:', error);
+    }
+    
+    // Fallback: If URL exists and looks valid (legacy data or data URL)
+    if (url) {
+      if (url.startsWith('data:')) {
+        // Data URL is always valid
+        return url;
+      } else if (url.startsWith('http')) {
+        // HTTP URL - return as is
+        return url;
+      } else if (url.startsWith('blob:')) {
+        // Blob URL might still be valid in current session
+        try {
+          const response = await fetch(url, { method: 'HEAD' });
+          if (response.ok) {
+            return url;
+          }
+        } catch {
+          // Blob URL invalid
         }
-      } catch (error) {
-        console.error('Failed to load image from IndexedDB:', error);
       }
     }
     
-    // Return original URL (might be data: or http:)
-    return url;
+    // No valid image found
+    console.warn(`No valid image found for scene with image ID: ${id}`);
+    return null;
   };
 
   useEffect(() => {
@@ -600,22 +612,25 @@ SCENE CONTENT:
           const activeBookData = BookService.getActiveBookData();
           if (activeBookData) {
             // Create new GeneratedImage entry with the model that was used
+            // NOTE: We do NOT store the URL in localStorage to avoid quota issues
+            // The URL is only stored in IndexedDB and loaded on demand
+            const imageId = crypto.randomUUID();
             const newGeneratedImage = {
-              id: crypto.randomUUID(),
-              url: finalImageUrl,
+              id: imageId,
+              // url is omitted - not stored in localStorage anymore
               modelName: modelName,
               timestamp: new Date()
             };
             
             // Store image in IndexedDB for persistence
             ImageStorageService.storeImage(
-              newGeneratedImage.id,
+              imageId,
               currentScene.id,
               finalImageUrl,
               modelName
             ).catch(error => {
               console.error('Failed to store image in IndexedDB:', error);
-              // Continue anyway - image is still in localStorage with blob URL
+              // This is critical - without IndexedDB storage, image will be lost on refresh
             });
             
             const updatedStories = activeBookData.stories.map(s => {
@@ -1255,11 +1270,16 @@ SCENE CONTENT:
           </Button>
           <Button
             onClick={() => {
+              // Get current book's panel config
+              const bookCollection = BookService.getBookCollection();
+              const activeBookId = BookService.getActiveBookId();
+              const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : undefined;
+              
+              if (activeBook) {
+                setEditingPanelConfig(activeBook.panelConfig || DEFAULT_PANEL_CONFIG);
+                setPanelConfigDialogOpen(true);
+              }
               setTextFitDialogOpen(false);
-              // Navigate to file manager to edit panel config
-              setSnackbarMessage('Please adjust panel height in Book Settings or enable Auto Height');
-              setSnackbarSeverity('success');
-              setSnackbarOpen(true);
             }}
             color="primary"
           >
@@ -1285,6 +1305,28 @@ SCENE CONTENT:
         open={modelSelectionOpen}
         onClose={() => setModelSelectionOpen(false)}
         onConfirm={performImageGeneration}
+      />
+
+      {/* Panel Config Dialog */}
+      <PanelConfigDialog
+        open={panelConfigDialogOpen}
+        onClose={() => setPanelConfigDialogOpen(false)}
+        initialConfig={editingPanelConfig}
+        onSave={(newConfig) => {
+          // Save panel config to active book
+          const bookCollection = BookService.getBookCollection();
+          const activeBookId = BookService.getActiveBookId();
+          const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : undefined;
+          
+          if (activeBook) {
+            BookService.updateBook(activeBook.id, { panelConfig: newConfig });
+            setSnackbarMessage('Panel configuration updated successfully!');
+            setSnackbarSeverity('success');
+            setSnackbarOpen(true);
+            onStoryUpdate();
+          }
+          setPanelConfigDialogOpen(false);
+        }}
       />
       </Box>
     </Paper>

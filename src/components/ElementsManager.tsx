@@ -74,9 +74,9 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ story, onStory
     }, 0);
   };
 
-  const handleDeleteElement = (elementId: string) => {
+  const handleDeleteElement = async (elementId: string) => {
     if (!story) return;
-    const activeBookData = BookService.getActiveBookData();
+    const activeBookData = await BookService.getActiveBookData();
     if (!activeBookData) return;
     
     if (window.confirm('Are you sure you want to delete this element? This will also remove it from all scenes.')) {
@@ -89,14 +89,14 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ story, onStory
           : s
       );
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       onStoryUpdate();
     }
   };
 
-  const handleSaveElement = () => {
+  const handleSaveElement = async () => {
     if (!story) return;
-    const activeBookData = BookService.getActiveBookData();
+    const activeBookData = await BookService.getActiveBookData();
     if (!activeBookData || !elementName.trim()) return;
 
     let updatedElements: StoryElement[];
@@ -126,7 +126,7 @@ export const ElementsManager: React.FC<ElementsManagerProps> = ({ story, onStory
         : s
     );
     const updatedData = { ...activeBookData, stories: updatedStories };
-    BookService.saveActiveBookData(updatedData);
+    await BookService.saveActiveBookData(updatedData);
 
     setOpenDialog(false);
     onStoryUpdate();

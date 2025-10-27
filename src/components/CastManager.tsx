@@ -60,9 +60,9 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
     setOpenDialog(true);
   };
 
-  const handleDeleteCharacter = (characterId: string) => {
+  const handleDeleteCharacter = async (characterId: string) => {
     if (!story) return;
-    const activeBookData = BookService.getActiveBookData();
+    const activeBookData = await BookService.getActiveBookData();
     if (!activeBookData) return;
     
     if (window.confirm('Are you sure you want to delete this character? This will also remove them from all scenes.')) {
@@ -75,15 +75,15 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
           : s
       );
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       setCharacters(updatedCharacters);
       onStoryUpdate();
     }
   };
 
-  const handleSaveCharacter = () => {
+  const handleSaveCharacter = async () => {
     if (!story) return;
-    const activeBookData = BookService.getActiveBookData();
+    const activeBookData = await BookService.getActiveBookData();
     if (!activeBookData || !characterName.trim()) return;
 
     let updatedCharacters: Character[];
@@ -112,7 +112,7 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
         : s
     );
     const updatedData = { ...activeBookData, stories: updatedStories };
-    BookService.saveActiveBookData(updatedData);
+    await BookService.saveActiveBookData(updatedData);
     setCharacters(updatedCharacters);
 
     setOpenDialog(false);

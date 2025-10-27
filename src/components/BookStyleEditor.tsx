@@ -10,7 +10,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Grid,
   Typography,
   Box,
   Slider,
@@ -21,8 +20,9 @@ import {
   Tab,
   Divider
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import type { BookStyle } from '../types/BookStyle';
-import type { PanelConfig, PanelPosition } from '../types/Book';
+import type { PanelPosition } from '../types/Book';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 
 interface TabPanelProps {

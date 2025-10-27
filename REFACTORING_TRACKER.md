@@ -386,13 +386,13 @@ Refactoring the storage system to:
 | Phase | Status | Time Est. | Time Actual | % Complete |
 |-------|--------|-----------|-------------|------------|
 | Phase 1: Model Layer | ✅ Complete | 2h | 1.5h | 100% |
-| Phase 2: Storage Service | ⬜ Not Started | 1.5h | - | 0% |
-| Phase 3: Update BookService | ⬜ Not Started | 1h | - | 0% |
+| Phase 2: Storage Service | ✅ Complete | 1.5h | 1.5h | 100% |
+| Phase 3: Update BookService | ✅ Complete | 1h | 1h | 100% |
 | Phase 4: Book Style UI | ⬜ Not Started | 1.5h | - | 0% |
 | Phase 5: Update Components | ⬜ Not Started | 2h | - | 0% |
 | Phase 6: Import/Export | ⬜ Not Started | 1h | - | 0% |
 | Phase 7: Testing & Docs | ⬜ Not Started | 1.5h | - | 0% |
-| **TOTAL** | **🟡 In Progress** | **10.5h** | **1.5h** | **14%** |
+| **TOTAL** | **🟡 In Progress** | **10.5h** | **4.0h** | **43%** |
 
 ---
 
@@ -408,10 +408,14 @@ Refactoring the storage system to:
 
 ## Next Steps
 
-1. Review and approve this tracking document
-2. Begin Phase 1: Create model layer
-3. Write unit tests as we go
-4. Update this document after each task completion
+1. ✅ ~~Review and approve this tracking document~~
+2. ✅ ~~Phase 1: Create model layer~~ (Complete - 1.5h)
+3. ✅ ~~Phase 2: Create StorageService~~ (Complete - 1.5h)
+4. ✅ ~~Phase 3: Update BookService~~ (Complete - 1h)
+5. **Next: Phase 4: Book Style Management UI** (1.5h)
+6. Then: Phase 5: Update All Components (2h)
+7. Then: Phase 6: Testing & Bug Fixes (1.5h)
+8. Finally: Phase 7: Final Migration & Cleanup (1h)
 
 ---
 

@@ -41,158 +41,158 @@ describe('StorageService', () => {
   });
 
   describe('Save and Load', () => {
-    it('should save and load app data', () => {
+    it('should save and load app data', async () => {
       const book = new Book({
         title: 'Test Book',
         description: 'A test book'
       });
       
-      StorageService.saveBook(book);
+      await StorageService.saveBook(book);
       
-      const loaded = StorageService.load();
+      const loaded = await StorageService.load();
       expect(loaded.books).toHaveLength(1);
       expect(loaded.books[0].title).toBe('Test Book');
     });
 
-    it('should preserve dates when saving and loading', () => {
+    it('should preserve dates when saving and loading', async () => {
       const book = new Book({
         title: 'Test Book'
       });
       
       const originalCreatedAt = book.createdAt;
-      StorageService.saveBook(book);
+      await StorageService.saveBook(book);
       
-      const loaded = StorageService.getBook(book.id);
+      const loaded = await StorageService.getBook(book.id);
       expect(loaded).toBeDefined();
       expect(loaded!.createdAt).toBeInstanceOf(Date);
       expect(loaded!.createdAt.getTime()).toBe(originalCreatedAt.getTime());
     });
 
-    it('should update lastUpdated timestamp on save', () => {
+    it('should update lastUpdated timestamp on save', async () => {
       const book = new Book({ title: 'Test Book' });
       const beforeSave = new Date();
       
-      StorageService.saveBook(book);
+      await StorageService.saveBook(book);
       
-      const loaded = StorageService.load();
+      const loaded = await StorageService.load();
       expect(loaded.lastUpdated.getTime()).toBeGreaterThanOrEqual(beforeSave.getTime());
     });
   });
 
   describe('Book CRUD Operations', () => {
-    it('should save a new book', () => {
+    it('should save a new book', async () => {
       const book = new Book({
         title: 'New Book',
         description: 'Description'
       });
       
-      StorageService.saveBook(book);
+      await StorageService.saveBook(book);
       
-      const retrieved = StorageService.getBook(book.id);
+      const retrieved = await StorageService.getBook(book.id);
       expect(retrieved).toBeDefined();
       expect(retrieved!.title).toBe('New Book');
     });
 
-    it('should update an existing book', () => {
+    it('should update an existing book', async () => {
       const book = new Book({ title: 'Original Title' });
-      StorageService.saveBook(book);
+      await StorageService.saveBook(book);
       
       book.title = 'Updated Title';
-      StorageService.saveBook(book);
+      await StorageService.saveBook(book);
       
-      const retrieved = StorageService.getBook(book.id);
+      const retrieved = await StorageService.getBook(book.id);
       expect(retrieved!.title).toBe('Updated Title');
-      expect(StorageService.getBookCount()).toBe(1);
+      expect(await StorageService.getBookCount()).toBe(1);
     });
 
-    it('should delete a book', () => {
+    it('should delete a book', async () => {
       const book = new Book({ title: 'Test Book' });
-      StorageService.saveBook(book);
+      await StorageService.saveBook(book);
       
-      const deleted = StorageService.deleteBook(book.id);
+      const deleted = await StorageService.deleteBook(book.id);
       
       expect(deleted).toBe(true);
-      expect(StorageService.getBook(book.id)).toBeNull();
-      expect(StorageService.getBookCount()).toBe(0);
+      expect(await StorageService.getBook(book.id)).toBeNull();
+      expect(await StorageService.getBookCount()).toBe(0);
     });
 
-    it('should return false when deleting non-existent book', () => {
-      const deleted = StorageService.deleteBook('non-existent-id');
+    it('should return false when deleting non-existent book', async () => {
+      const deleted = await StorageService.deleteBook('non-existent-id');
       expect(deleted).toBe(false);
     });
 
-    it('should get all books', () => {
+    it('should get all books', async () => {
       const book1 = new Book({ title: 'Book 1' });
       const book2 = new Book({ title: 'Book 2' });
       
-      StorageService.saveBook(book1);
-      StorageService.saveBook(book2);
+      await StorageService.saveBook(book1);
+      await StorageService.saveBook(book2);
       
-      const allBooks = StorageService.getAllBooks();
+      const allBooks = await StorageService.getAllBooks();
       expect(allBooks).toHaveLength(2);
       expect(allBooks.map(b => b.title)).toContain('Book 1');
       expect(allBooks.map(b => b.title)).toContain('Book 2');
     });
 
-    it('should get book count', () => {
-      expect(StorageService.getBookCount()).toBe(0);
+    it('should get book count', async () => {
+      expect(await StorageService.getBookCount()).toBe(0);
       
-      StorageService.saveBook(new Book({ title: 'Book 1' }));
-      expect(StorageService.getBookCount()).toBe(1);
+      await StorageService.saveBook(new Book({ title: 'Book 1' }));
+      expect(await StorageService.getBookCount()).toBe(1);
       
-      StorageService.saveBook(new Book({ title: 'Book 2' }));
-      expect(StorageService.getBookCount()).toBe(2);
+      await StorageService.saveBook(new Book({ title: 'Book 2' }));
+      expect(await StorageService.getBookCount()).toBe(2);
     });
   });
 
   describe('Active Book Management', () => {
-    it('should set and get active book', () => {
+    it('should set and get active book', async () => {
       const book = new Book({ title: 'Active Book' });
-      StorageService.saveBook(book);
+      await StorageService.saveBook(book);
       
-      StorageService.setActiveBook(book.id);
+      await StorageService.setActiveBook(book.id);
       
-      const activeBook = StorageService.getActiveBook();
+      const activeBook = await StorageService.getActiveBook();
       expect(activeBook).toBeDefined();
       expect(activeBook!.id).toBe(book.id);
     });
 
-    it('should return null when no active book set', () => {
-      const activeBook = StorageService.getActiveBook();
+    it('should return null when no active book set', async () => {
+      const activeBook = await StorageService.getActiveBook();
       expect(activeBook).toBeNull();
     });
 
-    it('should throw error when setting non-existent book as active', () => {
-      expect(() => {
-        StorageService.setActiveBook('non-existent-id');
-      }).toThrow('Book with ID non-existent-id not found');
+    it('should throw error when setting non-existent book as active', async () => {
+      await expect(async () => {
+        await StorageService.setActiveBook('non-existent-id');
+      }).rejects.toThrow('Book with ID non-existent-id not found');
     });
 
-    it('should allow setting active book to null', () => {
+    it('should allow setting active book to null', async () => {
       const book = new Book({ title: 'Test Book' });
-      StorageService.saveBook(book);
-      StorageService.setActiveBook(book.id);
+      await StorageService.saveBook(book);
+      await StorageService.setActiveBook(book.id);
       
-      StorageService.setActiveBook(null);
+      await StorageService.setActiveBook(null);
       
-      const activeBook = StorageService.getActiveBook();
+      const activeBook = await StorageService.getActiveBook();
       expect(activeBook).toBeNull();
     });
 
-    it('should clear active book when deleting active book', () => {
+    it('should clear active book when deleting active book', async () => {
       const book = new Book({ title: 'Active Book' });
-      StorageService.saveBook(book);
-      StorageService.setActiveBook(book.id);
+      await StorageService.saveBook(book);
+      await StorageService.setActiveBook(book.id);
       
-      StorageService.deleteBook(book.id);
+      await StorageService.deleteBook(book.id);
       
-      const activeBook = StorageService.getActiveBook();
+      const activeBook = await StorageService.getActiveBook();
       expect(activeBook).toBeNull();
     });
   });
 
   describe('Complex Data Structures', () => {
-    it('should handle books with stories and scenes', () => {
+    it('should handle books with stories and scenes', async () => {
       const story = new Story({
         title: 'Test Story',
         backgroundSetup: 'Background'
@@ -203,15 +203,15 @@ describe('StorageService', () => {
       });
       book.addStory(story);
       
-      StorageService.saveBook(book);
+      await StorageService.saveBook(book);
       
-      const loaded = StorageService.getBook(book.id);
+      const loaded = await StorageService.getBook(book.id);
       expect(loaded).toBeDefined();
       expect(loaded!.stories).toHaveLength(1);
       expect(loaded!.stories[0].title).toBe('Test Story');
     });
 
-    it('should preserve story and scene dates', () => {
+    it('should preserve story and scene dates', async () => {
       const story = new Story({
         title: 'Test Story',
         backgroundSetup: 'Background'
@@ -221,14 +221,14 @@ describe('StorageService', () => {
       const book = new Book({ title: 'Test Book' });
       book.addStory(story);
       
-      StorageService.saveBook(book);
+      await StorageService.saveBook(book);
       
-      const loaded = StorageService.getBook(book.id);
+      const loaded = await StorageService.getBook(book.id);
       expect(loaded!.stories[0].createdAt).toBeInstanceOf(Date);
       expect(loaded!.stories[0].createdAt.getTime()).toBe(originalStoryDate.getTime());
     });
 
-    it('should handle book style configuration', () => {
+    it('should handle book style configuration', async () => {
       const book = new Book({ title: 'Styled Book' });
       book.updateStyle({
         colorPalette: 'Vibrant colors',
@@ -236,9 +236,9 @@ describe('StorageService', () => {
         artStyle: 'Hand-painted'
       });
       
-      StorageService.saveBook(book);
+      await StorageService.saveBook(book);
       
-      const loaded = StorageService.getBook(book.id);
+      const loaded = await StorageService.getBook(book.id);
       expect(loaded!.style.colorPalette).toBe('Vibrant colors');
       expect(loaded!.style.visualTheme).toBe('Fantasy');
       expect(loaded!.style.artStyle).toBe('Hand-painted');
@@ -271,7 +271,7 @@ describe('StorageService', () => {
   });
 
   describe('Storage Statistics', () => {
-    it('should return correct storage statistics', () => {
+    it('should return correct storage statistics', async () => {
       const book1 = new Book({ title: 'Book 1' });
       const story1 = new Story({
         title: 'Story 1',
@@ -286,10 +286,10 @@ describe('StorageService', () => {
       });
       book2.addStory(story2);
       
-      StorageService.saveBook(book1);
-      StorageService.saveBook(book2);
+      await StorageService.saveBook(book1);
+      await StorageService.saveBook(book2);
       
-      const stats = StorageService.getStorageStats();
+      const stats = await StorageService.getStorageStats();
       
       expect(stats.bookCount).toBe(2);
       expect(stats.totalStories).toBe(2);
@@ -300,11 +300,11 @@ describe('StorageService', () => {
   });
 
   describe('Utility Methods', () => {
-    it('should export data as JSON string', () => {
+    it('should export data as JSON string', async () => {
       const book = new Book({ title: 'Export Test' });
-      StorageService.saveBook(book);
+      await StorageService.saveBook(book);
       
-      const exported = StorageService.exportData();
+      const exported = await StorageService.exportData();
       
       expect(typeof exported).toBe('string');
       const parsed = JSON.parse(exported);
@@ -312,30 +312,30 @@ describe('StorageService', () => {
       expect(parsed.books).toHaveLength(1);
     });
 
-    it('should clear all storage', () => {
+    it('should clear all storage', async () => {
       const book = new Book({ title: 'Test Book' });
-      StorageService.saveBook(book);
+      await StorageService.saveBook(book);
       
       StorageService.clearAll();
       
       expect(StorageService.isInitialized()).toBe(false);
-      expect(StorageService.getBookCount()).toBe(0);
+      expect(await StorageService.getBookCount()).toBe(0);
     });
   });
 
   describe('Error Handling', () => {
-    it('should handle corrupt localStorage data gracefully', () => {
+    it('should handle corrupt localStorage data gracefully', async () => {
       localStorage.setItem('prompter-app-data-v4', 'invalid json{{{');
       
-      const data = StorageService.load();
+      const data = await StorageService.load();
       
       // Should return empty data instead of crashing
       expect(data.books).toHaveLength(0);
       expect(data.version).toBe('4.0.0');
     });
 
-    it('should return null for non-existent book', () => {
-      const book = StorageService.getBook('non-existent');
+    it('should return null for non-existent book', async () => {
+      const book = await StorageService.getBook('non-existent');
       expect(book).toBeNull();
     });
   });

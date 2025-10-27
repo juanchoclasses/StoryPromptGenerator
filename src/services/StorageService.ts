@@ -45,38 +45,39 @@ export class StorageService {
         const { Scene } = await import('../models/Scene.js');
         
         parsed.books = parsed.books.map((bookData: any) => {
-          // Reconstruct Story model instances
-          if (bookData.stories) {
-            bookData.stories = bookData.stories.map((storyData: any) => {
-              // Reconstruct Scene model instances
-              if (storyData.scenes) {
-                storyData.scenes = storyData.scenes.map((sceneData: any) => {
-                  // Convert scene dates
-                  sceneData.createdAt = new Date(sceneData.createdAt);
-                  sceneData.updatedAt = new Date(sceneData.updatedAt);
-                  
-                  // Convert image history timestamps
-                  if (sceneData.imageHistory) {
-                    sceneData.imageHistory = sceneData.imageHistory.map((img: any) => ({
-                      ...img,
-                      timestamp: new Date(img.timestamp)
-                    }));
-                  }
-                  
-                  return new Scene(sceneData);
-                });
+          // Reconstruct Story model instances first
+          const reconstructedStories = bookData.stories ? bookData.stories.map((storyData: any) => {
+            // Reconstruct Scene model instances
+            const reconstructedScenes = storyData.scenes ? storyData.scenes.map((sceneData: any) => {
+              // Convert scene dates
+              sceneData.createdAt = new Date(sceneData.createdAt);
+              sceneData.updatedAt = new Date(sceneData.updatedAt);
+              
+              // Convert image history timestamps
+              if (sceneData.imageHistory) {
+                sceneData.imageHistory = sceneData.imageHistory.map((img: any) => ({
+                  ...img,
+                  timestamp: new Date(img.timestamp)
+                }));
               }
               
-              // Convert story dates
-              storyData.createdAt = new Date(storyData.createdAt);
-              storyData.updatedAt = new Date(storyData.updatedAt);
-              
-              return new Story(storyData);
-            });
-          }
+              return new Scene(sceneData);
+            }) : [];
+            
+            // Convert story dates
+            storyData.createdAt = new Date(storyData.createdAt);
+            storyData.updatedAt = new Date(storyData.updatedAt);
+            storyData.scenes = reconstructedScenes;
+            
+            return new Story(storyData);
+          }) : [];
           
-          // Create Book instance
-          const book = new Book(bookData);
+          // Create Book instance without stories (to avoid double-wrapping)
+          const { stories, ...bookDataWithoutStories } = bookData;
+          const book = new Book(bookDataWithoutStories);
+          
+          // Assign reconstructed stories directly
+          book.stories = reconstructedStories;
           book.createdAt = new Date(bookData.createdAt);
           book.updatedAt = new Date(bookData.updatedAt);
           
@@ -99,7 +100,43 @@ export class StorageService {
       data.lastUpdated = new Date();
       data.version = VERSION;
       
-      const serialized = JSON.stringify(data);
+      // Custom serialization to handle nested model instances
+      const toSerialize = {
+        ...data,
+        books: data.books.map(book => ({
+          id: book.id,
+          title: book.title,
+          description: book.description,
+          backgroundSetup: book.backgroundSetup,
+          aspectRatio: book.aspectRatio,
+          style: book.style,
+          stories: book.stories.map(story => ({
+            id: story.id,
+            title: story.title,
+            description: story.description,
+            backgroundSetup: story.backgroundSetup,
+            characters: story.characters,
+            elements: story.elements,
+            scenes: story.scenes.map(scene => ({
+              id: scene.id,
+              title: scene.title,
+              description: scene.description,
+              textPanel: scene.textPanel,
+              characters: scene.characters,
+              elements: scene.elements,
+              imageHistory: scene.imageHistory,
+              createdAt: scene.createdAt,
+              updatedAt: scene.updatedAt
+            })),
+            createdAt: story.createdAt,
+            updatedAt: story.updatedAt
+          })),
+          createdAt: book.createdAt,
+          updatedAt: book.updatedAt
+        }))
+      };
+      
+      const serialized = JSON.stringify(toSerialize);
       localStorage.setItem(STORAGE_KEY, serialized);
     } catch (error) {
       console.error('Failed to save app data to localStorage:', error);

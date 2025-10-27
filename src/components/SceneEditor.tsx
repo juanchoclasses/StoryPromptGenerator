@@ -148,8 +148,9 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           const freshScene = currentStory.scenes.find(scene => scene.id === selectedScene.id);
           if (freshScene) {
             setCurrentScene(freshScene);
-            setSelectedCharacters(freshScene.characterIds);
-            setSelectedElements(freshScene.elementIds || []);
+            // v4.0: Use names instead of IDs (with backward compatibility)
+            setSelectedCharacters(freshScene.characters || freshScene.characterIds || []);
+            setSelectedElements(freshScene.elements || freshScene.elementIds || []);
             setSceneTitle(freshScene.title);
             setSceneDescription(freshScene.description || '');
             setTextPanel(freshScene.textPanel || '');
@@ -164,8 +165,9 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       
       // Fallback to selectedScene prop if we can't reload from storage
       setCurrentScene(selectedScene);
-      setSelectedCharacters(selectedScene.characterIds);
-      setSelectedElements(selectedScene.elementIds || []);
+      // v4.0: Use names instead of IDs (with backward compatibility)
+      setSelectedCharacters(selectedScene.characters || selectedScene.characterIds || []);
+      setSelectedElements(selectedScene.elements || selectedScene.elementIds || []);
       setSceneTitle(selectedScene.title);
       setSceneDescription(selectedScene.description || '');
       setTextPanel(selectedScene.textPanel || '');

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -67,16 +67,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [hasMigrated, setHasMigrated] = useState(false);
 
-  useEffect(() => {
-    loadBooks();
-    // Check for existing story-data-v2 and migrate if needed
-    if (!hasMigrated) {
-      migrateExistingData();
-      setHasMigrated(true);
-    }
-  }, [hasMigrated]);
-
-  const migrateExistingData = () => {
+  const migrateExistingData = useCallback(async () => {
     // Check for various possible localStorage keys that might contain story data
     const possibleKeys = ['story-data-v2', 'story-data', 'storyData'];
     let existingData = null;
@@ -100,7 +91,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
         
         if (migrationResult.success) {
           // Check if there are already books in the collection
-          const collection = BookService.getBookCollection();
+          const collection = await BookService.getBookCollection();
           let bookTitle = 'My First Book';
           let bookDescription = 'Migrated from existing story data';
           
@@ -111,28 +102,23 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
           }
           
           // Create a new book with the migrated data
-          const newBook = BookService.createBook(bookTitle, bookDescription);
+          const newBook = await BookService.createBook(bookTitle, bookDescription);
           
-          if (newBook) {
-            // Save the migrated data to the new book
-            BookService.saveBookData(newBook.id, migrationResult.data);
-            
-            // Update book statistics directly
-            BookService.updateBookStatistics(newBook.id, migrationResult.data);
-            
-            // Set as active book
-            BookService.setActiveBook(newBook.id);
-            
-            // Reload books list
-            loadBooks();
-            
-            // Remove the old data
-            if (dataKey) {
-              localStorage.removeItem(dataKey);
-            }
-            
-            showSnackbar('Existing story data migrated to your first book!', 'success');
+          // Save the migrated data to the new book
+          await BookService.saveBookData(newBook.id, migrationResult.data);
+          
+          // Set as active book
+          await BookService.setActiveBook(newBook.id);
+          
+          // Reload books list
+          await loadBooks();
+          
+          // Remove the old data
+          if (dataKey) {
+            localStorage.removeItem(dataKey);
           }
+          
+          showSnackbar('Existing story data migrated to your first book!', 'success');
         } else {
           console.error('Migration failed:', migrationResult.errors);
           showSnackbar('Failed to migrate existing data', 'error');
@@ -142,22 +128,22 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
         showSnackbar('Error migrating existing data', 'error');
       }
     }
-  };
+  }, []);
 
-  const fixBookStatistics = () => {
-    const collection = BookService.getBookCollection();
-    let fixedCount = 0;
-    
-    collection.books.forEach(book => {
-      const bookData = BookService.getBookData(book.id);
-      if (bookData) {
-        BookService.updateBookStatistics(book.id, bookData);
-        fixedCount++;
-      }
-    });
-    
+  useEffect(() => {
     loadBooks();
-    showSnackbar(`Fixed statistics for ${fixedCount} books`, 'success');
+    // Check for existing story-data-v2 and migrate if needed
+    if (!hasMigrated) {
+      migrateExistingData();
+      setHasMigrated(true);
+    }
+  }, [hasMigrated, migrateExistingData]);
+
+  const fixBookStatistics = async () => {
+    // This function is deprecated in v4.0 as statistics are calculated on-demand
+    // Keeping for backward compatibility
+    await loadBooks();
+    showSnackbar('Book statistics are now calculated automatically', 'success');
   };
 
   const loadBooks = async () => {
@@ -166,49 +152,51 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
     setActiveBookId(collection.activeBookId);
   };
 
-  const handleCreateBook = () => {
+  const handleCreateBook = async () => {
     if (!newBookTitle.trim()) {
       showSnackbar('Book title is required', 'error');
       return;
     }
 
-    const newBook = BookService.createBook(
-      newBookTitle.trim(), 
-      newBookDescription.trim() || undefined,
-      newBookAspectRatio,
-      newBookPanelConfig,
-      newBookBackgroundSetup.trim() || undefined
-    );
-    if (newBook) {
+    try {
+      await BookService.createBook(
+        newBookTitle.trim(), 
+        newBookDescription.trim() || undefined,
+        newBookAspectRatio,
+        newBookPanelConfig,
+        newBookBackgroundSetup.trim() || undefined
+      );
+      
       setNewBookTitle('');
       setNewBookDescription('');
       setNewBookBackgroundSetup('');
       setNewBookAspectRatio('9:16');
       setNewBookPanelConfig(DEFAULT_PANEL_CONFIG);
       setOpenCreateDialog(false);
-      loadBooks();
+      await loadBooks();
       onBookUpdate();
       showSnackbar('Book created successfully', 'success');
-    } else {
+    } catch (error) {
+      console.error('Error creating book:', error);
       showSnackbar('Failed to create book', 'error');
     }
   };
 
-  const handleEditBook = () => {
+  const handleEditBook = async () => {
     if (!editingBook || !editBookTitle.trim()) {
       showSnackbar('Book title is required', 'error');
       return;
     }
 
-    const updated = BookService.updateBook(editingBook.id, {
-      title: editBookTitle.trim(),
-      description: editBookDescription.trim() || undefined,
-      backgroundSetup: editBookBackgroundSetup.trim() || undefined,
-      aspectRatio: editBookAspectRatio,
-      panelConfig: editBookPanelConfig
-    });
+    try {
+      await BookService.updateBook(editingBook.id, {
+        title: editBookTitle.trim(),
+        description: editBookDescription.trim() || undefined,
+        backgroundSetup: editBookBackgroundSetup.trim() || undefined,
+        aspectRatio: editBookAspectRatio,
+        panelConfig: editBookPanelConfig
+      });
 
-    if (updated) {
       setOpenEditDialog(false);
       setEditingBook(null);
       setEditBookTitle('');
@@ -216,41 +204,48 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
       setEditBookBackgroundSetup('');
       setEditBookAspectRatio('9:16');
       setEditBookPanelConfig(DEFAULT_PANEL_CONFIG);
-      loadBooks();
+      await loadBooks();
       onBookUpdate();
       showSnackbar('Book updated successfully', 'success');
-    } else {
+    } catch (error) {
+      console.error('Error updating book:', error);
       showSnackbar('Failed to update book', 'error');
     }
   };
 
-  const handleDeleteBook = (bookId: string) => {
+  const handleDeleteBook = async (bookId: string) => {
     if (window.confirm('Are you sure you want to delete this book? This action cannot be undone.')) {
-      const deleted = BookService.deleteBook(bookId);
-      if (deleted) {
-        loadBooks();
+      try {
+        await BookService.deleteBook(bookId);
+        await loadBooks();
         onBookUpdate();
         showSnackbar('Book deleted successfully', 'success');
-      } else {
+      } catch (error) {
+        console.error('Error deleting book:', error);
         showSnackbar('Failed to delete book', 'error');
       }
     }
   };
 
-  const handleSelectBook = (bookId: string) => {
-    const success = BookService.setActiveBook(bookId);
-    if (success) {
+  const handleSelectBook = async (bookId: string) => {
+    try {
+      await BookService.setActiveBook(bookId);
       setActiveBookId(bookId);
       onBookSelect(bookId);
       showSnackbar('Book selected', 'success');
-    } else {
+    } catch (error) {
+      console.error('Error selecting book:', error);
       showSnackbar('Failed to select book', 'error');
     }
   };
 
-  const handleExportBook = (bookId: string) => {
-    const exportData = BookService.exportBook(bookId);
-    if (exportData) {
+  const handleExportBook = async (bookId: string) => {
+    try {
+      const exportData = await BookService.exportBook(bookId);
+      if (!exportData) {
+        showSnackbar('Failed to export book: No data available', 'error');
+        return;
+      }
       const blob = new Blob([exportData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -261,7 +256,8 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       showSnackbar('Book exported successfully', 'success');
-    } else {
+    } catch (error) {
+      console.error('Error exporting book:', error);
       showSnackbar('Failed to export book', 'error');
     }
   };
@@ -270,22 +266,19 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
-    input.onchange = (event) => {
+    input.onchange = async (event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
           try {
             const content = e.target?.result as string;
-            const importedBook = BookService.importBook(content);
-            if (importedBook) {
-              loadBooks();
-              onBookUpdate();
-              showSnackbar('Book imported successfully', 'success');
-            } else {
-              showSnackbar('Failed to import book. Please check the file format.', 'error');
-            }
-          } catch {
+            await BookService.importBook(content);
+            await loadBooks();
+            onBookUpdate();
+            showSnackbar('Book imported successfully', 'success');
+          } catch (error) {
+            console.error('Error importing book:', error);
             showSnackbar('Failed to import book. Please check the file format.', 'error');
           }
         };
@@ -334,7 +327,8 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
         });
         setStyleEditorOpen(true);
       }
-    } catch (_error) {
+    } catch {
+      // Error loading book style
       showSnackbar('Failed to load book style', 'error');
     }
   };

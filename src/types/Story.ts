@@ -26,8 +26,12 @@ export interface Scene {
   textPanel?: string; // Text to overlay on generated image (supports macros)
   lastGeneratedImage?: string; // DEPRECATED: Kept for backward compatibility
   imageHistory?: GeneratedImage[]; // Array of all generated images for this scene
-  characterIds: string[]; // References to characters in the story's cast
-  elementIds: string[]; // References to elements in the story's elements
+  // v4.0: Use names instead of IDs for better readability
+  characters: string[]; // Character names (not IDs)
+  elements: string[]; // Element names (not IDs)
+  // DEPRECATED fields for backward compatibility
+  characterIds?: string[]; // DEPRECATED: Use 'characters' instead
+  elementIds?: string[]; // DEPRECATED: Use 'elements' instead
   createdAt: Date;
   updatedAt: Date;
 }

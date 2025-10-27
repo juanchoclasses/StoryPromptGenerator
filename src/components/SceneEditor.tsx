@@ -42,6 +42,7 @@ import { ImageStorageService } from '../services/ImageStorageService';
 import { overlayTextOnImage } from '../services/OverlayService';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 import type { PanelConfig } from '../types/Book';
+import { formatBookStyleForPrompt } from '../types/BookStyle';
 import { measureTextFit } from '../services/TextMeasurementService';
 import { ModelSelectionDialog } from './ModelSelectionDialog';
 import { PanelConfigDialog } from './PanelConfigDialog';
@@ -139,60 +140,63 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   };
 
   useEffect(() => {
-    if (selectedScene) {
-      // Reload scene from local storage to get the latest data including saved image
-      const activeBookData = BookService.getActiveBookData();
-      if (activeBookData && story) {
-        const currentStory = activeBookData.stories.find(s => s.id === story.id);
-        if (currentStory) {
-          const freshScene = currentStory.scenes.find(scene => scene.id === selectedScene.id);
-          if (freshScene) {
-            setCurrentScene(freshScene);
-            // v4.0: Use names instead of IDs (with backward compatibility)
-            setSelectedCharacters(freshScene.characters || freshScene.characterIds || []);
-            setSelectedElements(freshScene.elements || freshScene.elementIds || []);
-            setSceneTitle(freshScene.title);
-            setSceneDescription(freshScene.description || '');
-            setTextPanel(freshScene.textPanel || '');
-            // Load image with IndexedDB fallback
-            loadImageWithFallback(freshScene).then(imageUrl => {
-              setGeneratedImageUrl(imageUrl);
-            });
-            return;
+    const loadScene = async () => {
+      if (selectedScene) {
+        // Reload scene from local storage to get the latest data including saved image
+        const activeBookData = await BookService.getActiveBookData();
+        if (activeBookData && story) {
+          const currentStory = activeBookData.stories.find(s => s.id === story.id);
+          if (currentStory) {
+            const freshScene = currentStory.scenes.find(scene => scene.id === selectedScene.id);
+            if (freshScene) {
+              setCurrentScene(freshScene);
+              // v4.0: Use names instead of IDs (with backward compatibility)
+              setSelectedCharacters(freshScene.characters || freshScene.characterIds || []);
+              setSelectedElements(freshScene.elements || freshScene.elementIds || []);
+              setSceneTitle(freshScene.title);
+              setSceneDescription(freshScene.description || '');
+              setTextPanel(freshScene.textPanel || '');
+              // Load image with IndexedDB fallback
+              loadImageWithFallback(freshScene).then(imageUrl => {
+                setGeneratedImageUrl(imageUrl);
+              });
+              return;
+            }
           }
         }
+        
+        // Fallback to selectedScene prop if we can't reload from storage
+        setCurrentScene(selectedScene);
+        // v4.0: Use names instead of IDs (with backward compatibility)
+        setSelectedCharacters(selectedScene.characters || selectedScene.characterIds || []);
+        setSelectedElements(selectedScene.elements || selectedScene.elementIds || []);
+        setSceneTitle(selectedScene.title);
+        setSceneDescription(selectedScene.description || '');
+        setTextPanel(selectedScene.textPanel || '');
+        // Load image with IndexedDB fallback
+        loadImageWithFallback(selectedScene).then(imageUrl => {
+          setGeneratedImageUrl(imageUrl);
+        });
+      } else {
+        setCurrentScene(null);
+        setSelectedCharacters([]);
+        setSelectedElements([]);
+        setSceneTitle('');
+        setSceneDescription('');
+        setTextPanel('');
+        setGeneratedImageUrl(null);
       }
-      
-      // Fallback to selectedScene prop if we can't reload from storage
-      setCurrentScene(selectedScene);
-      // v4.0: Use names instead of IDs (with backward compatibility)
-      setSelectedCharacters(selectedScene.characters || selectedScene.characterIds || []);
-      setSelectedElements(selectedScene.elements || selectedScene.elementIds || []);
-      setSceneTitle(selectedScene.title);
-      setSceneDescription(selectedScene.description || '');
-      setTextPanel(selectedScene.textPanel || '');
-      // Load image with IndexedDB fallback
-      loadImageWithFallback(selectedScene).then(imageUrl => {
-        setGeneratedImageUrl(imageUrl);
-      });
-    } else {
-      setCurrentScene(null);
-      setSelectedCharacters([]);
-      setSelectedElements([]);
-      setSceneTitle('');
-      setSceneDescription('');
-      setTextPanel('');
-      setGeneratedImageUrl(null);
-    }
+    };
+    loadScene();
   }, [selectedScene, story]);
 
-  const handleSceneTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSceneTitleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = event.target.value;
     setSceneTitle(newTitle);
     
     // Auto-save the scene title
     if (story && currentScene) {
-      const activeBookData = BookService.getActiveBookData();
+      const activeBookData = await BookService.getActiveBookData();
       if (!activeBookData) return;
       
       const updatedStories = activeBookData.stories.map(s => {
@@ -209,18 +213,18 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       });
       
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       onStoryUpdate();
     }
   };
 
-  const handleSceneDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleSceneDescriptionChange = async (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newDescription = event.target.value;
     setSceneDescription(newDescription);
     
     // Auto-save the scene description
     if (story && currentScene) {
-      const activeBookData = BookService.getActiveBookData();
+      const activeBookData = await BookService.getActiveBookData();
       if (!activeBookData) return;
       
       const updatedStories = activeBookData.stories.map(s => {
@@ -237,18 +241,18 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       });
       
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       onStoryUpdate();
     }
   };
 
-  const handleTextPanelChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleTextPanelChange = async (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newTextPanel = event.target.value;
     setTextPanel(newTextPanel);
     
     // Auto-save the text panel
     if (story && currentScene) {
-      const activeBookData = BookService.getActiveBookData();
+      const activeBookData = await BookService.getActiveBookData();
       if (!activeBookData) return;
       
       const updatedStories = activeBookData.stories.map(s => {
@@ -265,12 +269,12 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       });
       
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       onStoryUpdate();
     }
   };
 
-  const insertMacroToTextPanel = (macro: string) => {
+  const insertMacroToTextPanel = async (macro: string) => {
     const textarea = textPanelFieldRef.current;
     if (!textarea) return;
 
@@ -283,7 +287,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     
     // Trigger auto-save
     if (story && currentScene) {
-      const activeBookData = BookService.getActiveBookData();
+      const activeBookData = await BookService.getActiveBookData();
       if (!activeBookData) return;
       
       const updatedStories = activeBookData.stories.map(s => {
@@ -300,7 +304,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       });
       
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       onStoryUpdate();
     }
     
@@ -311,22 +315,27 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     }, 0);
   };
 
-  const handleCharacterSelection = (event: SelectChangeEvent<string[]>) => {
+  const handleCharacterSelection = async (event: SelectChangeEvent<string[]>) => {
     if (!story || !currentScene) return;
     
     const value = event.target.value;
-    const characterIds = typeof value === 'string' ? value.split(',') : value;
-    setSelectedCharacters(characterIds);
+    const characterNames = typeof value === 'string' ? value.split(',') : value;
+    setSelectedCharacters(characterNames);
     
-    // Update the scene's character IDs by updating the book data
-    const activeBookData = BookService.getActiveBookData();
+    // v4.0: Store character names instead of IDs
+    const activeBookData = await BookService.getActiveBookData();
     if (!activeBookData) return;
     
     const updatedStories = activeBookData.stories.map(s => {
       if (s.id === story.id) {
         const updatedScenes = s.scenes.map(scene => {
           if (scene.id === currentScene.id) {
-            return { ...scene, characterIds: characterIds, updatedAt: new Date() };
+            return { 
+              ...scene, 
+              characters: characterNames, // v4.0: Store names
+              characterIds: characterNames, // Backward compat
+              updatedAt: new Date() 
+            };
           }
           return scene;
         });
@@ -336,28 +345,33 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     });
     
     const updatedData = { ...activeBookData, stories: updatedStories };
-    BookService.saveActiveBookData(updatedData);
+    await BookService.saveActiveBookData(updatedData);
     
     // Trigger update
     onStoryUpdate();
   };
 
-  const handleElementSelection = (event: SelectChangeEvent<string[]>) => {
+  const handleElementSelection = async (event: SelectChangeEvent<string[]>) => {
     if (!story || !currentScene) return;
     
     const value = event.target.value;
-    const elementIds = typeof value === 'string' ? value.split(',') : value;
-    setSelectedElements(elementIds);
+    const elementNames = typeof value === 'string' ? value.split(',') : value;
+    setSelectedElements(elementNames);
     
-    // Update the scene's element IDs by updating the book data
-    const activeBookData = BookService.getActiveBookData();
+    // v4.0: Store element names instead of IDs
+    const activeBookData = await BookService.getActiveBookData();
     if (!activeBookData) return;
     
     const updatedStories = activeBookData.stories.map(s => {
       if (s.id === story.id) {
         const updatedScenes = s.scenes.map(scene => {
           if (scene.id === currentScene.id) {
-            return { ...scene, elementIds: elementIds, updatedAt: new Date() };
+            return { 
+              ...scene, 
+              elements: elementNames, // v4.0: Store names
+              elementIds: elementNames, // Backward compat
+              updatedAt: new Date() 
+            };
           }
           return scene;
         });
@@ -367,7 +381,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     });
     
     const updatedData = { ...activeBookData, stories: updatedStories };
-    BookService.saveActiveBookData(updatedData);
+    await BookService.saveActiveBookData(updatedData);
     
     // Trigger update
     onStoryUpdate();
@@ -399,16 +413,23 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     }
   };
 
-  const generatePrompt = () => {
+  const generatePrompt = async () => {
     if (!story || !currentScene) return '';
 
-    const selectedCast = availableCharacters.filter(char => currentScene.characterIds.includes(char.id));
-    const selectedElements = availableElements.filter(elem => (currentScene.elementIds || []).includes(elem.id));
+    // v4.0: Find characters and elements by name (not ID)
+    const selectedCharacterNames = currentScene.characters || currentScene.characterIds || [];
+    const selectedElementNames = currentScene.elements || currentScene.elementIds || [];
     
-    // Get the active book information
-    const bookCollection = BookService.getBookCollection();
-    const activeBookId = BookService.getActiveBookId();
-    const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
+    const selectedCast = availableCharacters.filter(char => 
+      selectedCharacterNames.includes(char.name) || selectedCharacterNames.includes(char.id)
+    );
+    const selectedElements = availableElements.filter(elem => 
+      selectedElementNames.includes(elem.name) || selectedElementNames.includes(elem.id)
+    );
+    
+    // Get the active book information with full details
+    const activeBookId = await BookService.getActiveBookId();
+    const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
     
     // Define available macros
     const macros = {
@@ -421,7 +442,6 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     if (activeBook) {
       const style = activeBook.style;
       if (style) {
-        const { formatBookStyleForPrompt } = require('../types/BookStyle');
         const styleText = formatBookStyleForPrompt(style);
         if (styleText) {
           prompt += `## BOOK-WIDE VISUAL STYLE (apply to all elements):\n${styleText}\n\n`;
@@ -461,16 +481,21 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     return prompt;
   };
 
-  const updateSceneCharacterIds = (newCharacterIds: string[]) => {
+  const updateSceneCharacterIds = async (newCharacterNames: string[]) => {
     if (story && currentScene) {
-      const activeBookData = BookService.getActiveBookData();
+      const activeBookData = await BookService.getActiveBookData();
       if (!activeBookData) return;
       
       const updatedStories = activeBookData.stories.map(s => {
         if (s.id === story.id) {
           const updatedScenes = s.scenes.map(scene => {
             if (scene.id === currentScene.id) {
-              return { ...scene, characterIds: newCharacterIds, updatedAt: new Date() };
+              return { 
+                ...scene, 
+                characters: newCharacterNames, // v4.0: Store names
+                characterIds: newCharacterNames, // Backward compat
+                updatedAt: new Date() 
+              };
             }
             return scene;
           });
@@ -480,21 +505,26 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       });
       
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       onStoryUpdate();
     }
   };
 
-  const updateSceneElementIds = (newElementIds: string[]) => {
+  const updateSceneElementIds = async (newElementNames: string[]) => {
     if (story && currentScene) {
-      const activeBookData = BookService.getActiveBookData();
+      const activeBookData = await BookService.getActiveBookData();
       if (!activeBookData) return;
       
       const updatedStories = activeBookData.stories.map(s => {
         if (s.id === story.id) {
           const updatedScenes = s.scenes.map(scene => {
             if (scene.id === currentScene.id) {
-              return { ...scene, elementIds: newElementIds, updatedAt: new Date() };
+              return { 
+                ...scene, 
+                elements: newElementNames, // v4.0: Store names
+                elementIds: newElementNames, // Backward compat
+                updatedAt: new Date() 
+              };
             }
             return scene;
           });
@@ -504,13 +534,13 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       });
       
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       onStoryUpdate();
     }
   };
 
   const handleCopyPrompt = async () => {
-    const prompt = generatePrompt();
+    const prompt = await generatePrompt();
     try {
       await navigator.clipboard.writeText(prompt);
       setSnackbarMessage('Prompt copied to clipboard!');
@@ -535,11 +565,10 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     lastSelectedModel.current = modelName;
     
     // Get the active book to retrieve aspect ratio and panel config
-    const bookCollection = BookService.getBookCollection();
-    const activeBookId = BookService.getActiveBookId();
-    const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
+    const activeBookId = await BookService.getActiveBookId();
+    const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
     const aspectRatio = activeBook?.aspectRatio || '3:4';
-    const panelConfig = activeBook?.panelConfig || DEFAULT_PANEL_CONFIG;
+    const panelConfig = activeBook?.style?.panelConfig || DEFAULT_PANEL_CONFIG;
 
     // Pre-check text fit if textPanel has content and autoHeight is disabled
     if (textPanel && textPanel.trim() && !panelConfig.autoHeight) {
@@ -568,7 +597,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       }
     }
 
-    const prompt = generatePrompt();
+    const prompt = await generatePrompt();
     setIsGeneratingImage(true);
     setGeneratedImageUrl(null);
 
@@ -597,7 +626,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             const imageDimensions = getImageDimensionsFromAspectRatio(aspectRatio);
             
             // Get panel config from book or use defaults
-            const panelConfig = activeBook?.panelConfig || DEFAULT_PANEL_CONFIG;
+            const panelConfig = activeBook?.style?.panelConfig || DEFAULT_PANEL_CONFIG;
             
             // Overlay text onto image with book's panel configuration
             finalImageUrl = await overlayTextOnImage(
@@ -620,7 +649,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         
         // Save generated image to scene in local storage
         if (story && currentScene) {
-          const activeBookData = BookService.getActiveBookData();
+          const activeBookData = await BookService.getActiveBookData();
           if (activeBookData) {
             // Create new GeneratedImage entry with the model that was used
             // NOTE: We do NOT store the URL in localStorage to avoid quota issues
@@ -669,7 +698,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             });
             
             const updatedData = { ...activeBookData, stories: updatedStories };
-            BookService.saveActiveBookData(updatedData);
+            await BookService.saveActiveBookData(updatedData);
             onStoryUpdate(); // Notify parent to refresh
           }
         }
@@ -678,9 +707,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         const autoSaveEnabled = SettingsService.isAutoSaveEnabled();
         
         if (autoSaveEnabled && story && currentScene) {
-          const bookCollection = BookService.getBookCollection();
-          const activeBookId = BookService.getActiveBookId();
-          const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
+          const activeBookId = await BookService.getActiveBookId();
+          const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
           
           if (activeBook) {
             const saveResult = await FileSystemService.saveImage(
@@ -725,9 +753,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     if (!generatedImageUrl || !story || !currentScene) return;
     
     // Try to save to configured directory first
-    const bookCollection = BookService.getBookCollection();
-    const activeBookId = BookService.getActiveBookId();
-    const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
+    const activeBookId = await BookService.getActiveBookId();
+    const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
     
     if (activeBook) {
       const saveResult = await FileSystemService.saveImage(
@@ -1280,14 +1307,13 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             Cancel
           </Button>
           <Button
-            onClick={() => {
+            onClick={async () => {
               // Get current book's panel config
-              const bookCollection = BookService.getBookCollection();
-              const activeBookId = BookService.getActiveBookId();
-              const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : undefined;
+              const activeBookId = await BookService.getActiveBookId();
+              const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
               
               if (activeBook) {
-                setEditingPanelConfig(activeBook.panelConfig || DEFAULT_PANEL_CONFIG);
+                setEditingPanelConfig(activeBook.style?.panelConfig || DEFAULT_PANEL_CONFIG);
                 setPanelConfigDialogOpen(true);
               }
               setTextFitDialogOpen(false);
@@ -1323,14 +1349,13 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         open={panelConfigDialogOpen}
         onClose={() => setPanelConfigDialogOpen(false)}
         initialConfig={editingPanelConfig}
-        onSave={(newConfig) => {
+        onSave={async (newConfig) => {
           // Save panel config to active book
-          const bookCollection = BookService.getBookCollection();
-          const activeBookId = BookService.getActiveBookId();
-          const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : undefined;
+          const activeBookId = await BookService.getActiveBookId();
+          const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
           
           if (activeBook) {
-            BookService.updateBook(activeBook.id, { panelConfig: newConfig });
+            await BookService.updateBook(activeBook.id, { panelConfig: newConfig });
             setSnackbarMessage('Panel configuration updated successfully!');
             setSnackbarSeverity('success');
             setSnackbarOpen(true);

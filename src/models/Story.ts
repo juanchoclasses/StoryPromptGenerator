@@ -284,9 +284,9 @@ export class Story {
   /**
    * Create a Story instance from JSON export format
    */
-  static fromJSON(data: StoryExchangeFormat): Story {
+  static async fromJSON(data: StoryExchangeFormat): Promise<Story> {
     // Import Scene class here to avoid circular dependency
-    const { Scene: SceneClass } = require('./Scene');
+    const { Scene: SceneClass } = await import('./Scene.js');
     
     const story = new Story({
       title: data.story.title,

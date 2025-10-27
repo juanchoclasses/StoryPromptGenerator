@@ -212,7 +212,7 @@ describe('Book Model', () => {
       expect(json.stories[0].story.title).toBe('Test Story');
     });
 
-    it('should create Book from JSON', () => {
+    it('should create Book from JSON', async () => {
       const json = {
         book: {
           title: 'Imported Book',
@@ -226,7 +226,7 @@ describe('Book Model', () => {
         stories: []
       };
       
-      const importedBook = Book.fromJSON(json);
+      const importedBook = await Book.fromJSON(json);
       
       expect(importedBook.title).toBe('Imported Book');
       expect(importedBook.description).toBe('An imported book');
@@ -234,11 +234,11 @@ describe('Book Model', () => {
       expect(importedBook.style.colorPalette).toBe('Imported colors');
     });
 
-    it('should round-trip through JSON', () => {
+    it('should round-trip through JSON', async () => {
       book.updateStyle({ colorPalette: 'Original colors' });
       
       const json = book.toJSON();
-      const recreated = Book.fromJSON(json);
+      const recreated = await Book.fromJSON(json);
       
       expect(recreated.title).toBe(book.title);
       expect(recreated.description).toBe(book.description);

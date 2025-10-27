@@ -151,9 +151,9 @@ export class Book {
   /**
    * Create a Book instance from JSON export format
    */
-  static fromJSON(data: BookExchangeFormat): Book {
+  static async fromJSON(data: BookExchangeFormat): Promise<Book> {
     // Import Story class here to avoid circular dependency
-    const { Story: StoryClass } = require('./Story');
+    const { Story: StoryClass } = await import('./Story.js');
     
     const book = new Book({
       title: data.book.title,
@@ -165,7 +165,8 @@ export class Book {
 
     // Add stories
     if (data.stories) {
-      book.stories = data.stories.map((storyData: any) => StoryClass.fromJSON(storyData));
+      const storyPromises = data.stories.map((storyData: any) => StoryClass.fromJSON(storyData));
+      book.stories = await Promise.all(storyPromises);
     }
 
     return book;

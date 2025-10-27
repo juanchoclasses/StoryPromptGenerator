@@ -305,7 +305,7 @@ describe('Story Model', () => {
       expect(json.scenes[0].title).toBe('Test Scene');
     });
 
-    it('should create Story from JSON', () => {
+    it('should create Story from JSON', async () => {
       const json = {
         story: {
           title: 'Imported Story',
@@ -321,19 +321,19 @@ describe('Story Model', () => {
         scenes: []
       };
       
-      const imported = Story.fromJSON(json);
+      const imported = await Story.fromJSON(json);
       
       expect(imported.title).toBe('Imported Story');
       expect(imported.characters).toHaveLength(1);
       expect(imported.elements).toHaveLength(1);
     });
 
-    it('should round-trip through JSON', () => {
+    it('should round-trip through JSON', async () => {
       story.addCharacter({ name: 'Alice', description: 'A brave hero' });
       story.addElement({ name: 'Sword', description: 'A magic sword', category: 'Weapon' });
       
       const json = story.toJSON();
-      const recreated = Story.fromJSON(json);
+      const recreated = await Story.fromJSON(json);
       
       expect(recreated.title).toBe(story.title);
       expect(recreated.backgroundSetup).toBe(story.backgroundSetup);

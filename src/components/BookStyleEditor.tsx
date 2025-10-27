@@ -20,7 +20,7 @@ import {
   Tab,
   Divider
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
+import { Stack } from '@mui/material';
 import type { BookStyle } from '../types/BookStyle';
 import type { PanelPosition } from '../types/Book';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
@@ -143,8 +143,7 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
       <DialogContent>
         {/* Visual Style Tab */}
         <TabPanel value={activeTab} index={0}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
+          <Stack spacing={3}>
               <Tooltip title="Describe the overall color scheme and palette for this book" placement="top">
                 <TextField
                   fullWidth
@@ -157,9 +156,6 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   helperText="Describe the colors that should be used throughout the book"
                 />
               </Tooltip>
-            </Grid>
-
-            <Grid item xs={12}>
               <Tooltip title="Define the overall visual theme and aesthetic" placement="top">
                 <TextField
                   fullWidth
@@ -172,9 +168,6 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   helperText="What is the overall mood and aesthetic of this book?"
                 />
               </Tooltip>
-            </Grid>
-
-            <Grid item xs={12}>
               <Tooltip title="Describe how characters should look across all images" placement="top">
                 <TextField
                   fullWidth
@@ -187,9 +180,6 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   helperText="How should characters be drawn/rendered?"
                 />
               </Tooltip>
-            </Grid>
-
-            <Grid item xs={12}>
               <Tooltip title="Describe the environment and setting style" placement="top">
                 <TextField
                   fullWidth
@@ -202,9 +192,6 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   helperText="How should environments and backgrounds be styled?"
                 />
               </Tooltip>
-            </Grid>
-
-            <Grid item xs={12}>
               <Tooltip title="Select the art style or rendering technique" placement="top">
                 <FormControl fullWidth>
                   <InputLabel>Art Style</InputLabel>
@@ -229,34 +216,26 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   </Select>
                 </FormControl>
               </Tooltip>
-            </Grid>
-
-            <Grid item xs={12}>
               <Typography variant="caption" color="text.secondary">
                 💡 Tip: These style guidelines will be included in every image generation prompt for this book.
                 Be specific but concise for best results.
               </Typography>
-            </Grid>
-          </Grid>
+          </Stack>
         </TabPanel>
 
         {/* Panel Config Tab */}
         <TabPanel value={activeTab} index={1}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
+          <Stack spacing={3}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 Configure how text panels (scene text overlays) should appear on generated images
               </Typography>
-            </Grid>
 
             {/* Font Settings */}
-            <Grid item xs={12}>
-              <Divider sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.secondary">FONT SETTINGS</Typography>
-              </Divider>
-            </Grid>
+            <Divider sx={{ mb: 2 }}>
+              <Typography variant="caption" color="text.secondary">FONT SETTINGS</Typography>
+            </Divider>
 
-            <Grid item xs={6}>
+            <Box display="flex" gap={2}>
               <Tooltip title="Choose the font family for text panels">
                 <FormControl fullWidth>
                   <InputLabel>Font Family</InputLabel>
@@ -278,9 +257,9 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   </Select>
                 </FormControl>
               </Tooltip>
-            </Grid>
+            </Box>
 
-            <Grid item xs={6}>
+            <Box sx={{ flex: 1 }}>
               <Tooltip title="Text size in pixels">
                 <TextField
                   fullWidth
@@ -294,9 +273,6 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   inputProps={{ min: 8, max: 72 }}
                 />
               </Tooltip>
-            </Grid>
-
-            <Grid item xs={12}>
               <Tooltip title="Horizontal alignment of text">
                 <FormControl fullWidth>
                   <InputLabel>Text Alignment</InputLabel>
@@ -314,16 +290,13 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   </Select>
                 </FormControl>
               </Tooltip>
-            </Grid>
+            </Box>
 
             {/* Panel Dimensions */}
-            <Grid item xs={12}>
+            <Box>
               <Divider sx={{ mb: 2 }}>
                 <Typography variant="caption" color="text.secondary">PANEL DIMENSIONS</Typography>
               </Divider>
-            </Grid>
-
-            <Grid item xs={12}>
               <Tooltip title="Where the text panel should be positioned on the image">
                 <FormControl fullWidth>
                   <InputLabel>Panel Position</InputLabel>
@@ -347,9 +320,6 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   </Select>
                 </FormControl>
               </Tooltip>
-            </Grid>
-
-            <Grid item xs={12}>
               <Typography variant="body2" gutterBottom>
                 Panel Width: {style.panelConfig?.widthPercentage || 80}%
               </Typography>
@@ -367,9 +337,6 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   valueLabelDisplay="auto"
                 />
               </Tooltip>
-            </Grid>
-
-            <Grid item xs={12}>
               <FormControlLabel
                 control={
                   <Switch
@@ -382,10 +349,10 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                 }
                 label="Auto Height (fit text)"
               />
-            </Grid>
+            </Box>
 
             {!style.panelConfig?.autoHeight && (
-              <Grid item xs={12}>
+              <Box>
                 <Typography variant="body2" gutterBottom>
                   Panel Height: {style.panelConfig?.heightPercentage || 20}%
                 </Typography>
@@ -403,17 +370,17 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                     valueLabelDisplay="auto"
                   />
                 </Tooltip>
-              </Grid>
+              </Box>
             )}
 
             {/* Colors and Styling */}
-            <Grid item xs={12}>
+            <Box>
               <Divider sx={{ mb: 2 }}>
                 <Typography variant="caption" color="text.secondary">COLORS & STYLING</Typography>
               </Divider>
-            </Grid>
+            </Box>
 
-            <Grid item xs={4}>
+            <Box sx={{ flex: 1 }}>
               <Tooltip title="Background color of the text panel">
                 <Box>
                   <Typography variant="body2" gutterBottom>Background</Typography>
@@ -431,9 +398,9 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   </Box>
                 </Box>
               </Tooltip>
-            </Grid>
+            </Box>
 
-            <Grid item xs={4}>
+            <Box sx={{ flex: 1 }}>
               <Tooltip title="Color of the text">
                 <Box>
                   <Typography variant="body2" gutterBottom>Text Color</Typography>
@@ -451,9 +418,9 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   </Box>
                 </Box>
               </Tooltip>
-            </Grid>
+            </Box>
 
-            <Grid item xs={4}>
+            <Box sx={{ flex: 1 }}>
               <Tooltip title="Color of the panel border">
                 <Box>
                   <Typography variant="body2" gutterBottom>Border Color</Typography>
@@ -471,9 +438,9 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   </Box>
                 </Box>
               </Tooltip>
-            </Grid>
+            </Box>
 
-            <Grid item xs={4}>
+            <Box sx={{ flex: 1 }}>
               <Tooltip title="Thickness of the border in pixels">
                 <TextField
                   fullWidth
@@ -487,9 +454,9 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   inputProps={{ min: 0, max: 10 }}
                 />
               </Tooltip>
-            </Grid>
+            </Box>
 
-            <Grid item xs={4}>
+            <Box sx={{ flex: 1 }}>
               <Tooltip title="Border corner rounding in pixels">
                 <TextField
                   fullWidth
@@ -503,9 +470,9 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   inputProps={{ min: 0, max: 50 }}
                 />
               </Tooltip>
-            </Grid>
+            </Box>
 
-            <Grid item xs={4}>
+            <Box sx={{ flex: 1 }}>
               <Tooltip title="Internal padding around text in pixels">
                 <TextField
                   fullWidth
@@ -519,16 +486,16 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   inputProps={{ min: 0, max: 100 }}
                 />
               </Tooltip>
-            </Grid>
+            </Box>
 
             {/* Gutters */}
-            <Grid item xs={12}>
+            <Box>
               <Divider sx={{ mb: 2 }}>
                 <Typography variant="caption" color="text.secondary">GUTTERS (spacing from edges)</Typography>
               </Divider>
-            </Grid>
+            </Box>
 
-            <Grid item xs={3}>
+            <Box sx={{ flex: 1 }}>
               <Tooltip title="Space from top edge">
                 <TextField
                   fullWidth
@@ -542,9 +509,9 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   inputProps={{ min: 0, max: 200 }}
                 />
               </Tooltip>
-            </Grid>
+            </Box>
 
-            <Grid item xs={3}>
+            <Box sx={{ flex: 1 }}>
               <Tooltip title="Space from bottom edge">
                 <TextField
                   fullWidth
@@ -558,9 +525,9 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   inputProps={{ min: 0, max: 200 }}
                 />
               </Tooltip>
-            </Grid>
+            </Box>
 
-            <Grid item xs={3}>
+            <Box sx={{ flex: 1 }}>
               <Tooltip title="Space from left edge">
                 <TextField
                   fullWidth
@@ -574,9 +541,9 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   inputProps={{ min: 0, max: 200 }}
                 />
               </Tooltip>
-            </Grid>
+            </Box>
 
-            <Grid item xs={3}>
+            <Box sx={{ flex: 1 }}>
               <Tooltip title="Space from right edge">
                 <TextField
                   fullWidth
@@ -590,8 +557,8 @@ export const BookStyleEditor: React.FC<BookStyleEditorProps> = ({
                   inputProps={{ min: 0, max: 200 }}
                 />
               </Tooltip>
-            </Grid>
-          </Grid>
+            </Box>
+          </Stack>
         </TabPanel>
       </DialogContent>
 

@@ -136,12 +136,12 @@ export const ImportStoryDialog: React.FC<ImportStoryDialogProps> = ({ open, onCl
 
     try {
       // Get the active book data
-      const bookData = BookService.getActiveBookData();
+      const bookData = await BookService.getActiveBookData();
       if (!bookData) {
         throw new Error('No active book selected. Please create or select a book first.');
       }
       
-      const activeBookId = BookService.getActiveBookId();
+      const activeBookId = await BookService.getActiveBookId();
       if (!activeBookId) {
         throw new Error('No active book selected');
       }
@@ -283,8 +283,8 @@ export const ImportStoryDialog: React.FC<ImportStoryDialogProps> = ({ open, onCl
         lastUpdated: new Date()
       };
 
-      BookService.saveBookData(activeBookId, updatedBookData);
-      BookService.updateBookStatistics(activeBookId, updatedBookData);
+      await BookService.saveBookData(activeBookId, updatedBookData);
+      await BookService.updateBookStatistics(activeBookId, updatedBookData);
 
       // Success!
       onSuccess();

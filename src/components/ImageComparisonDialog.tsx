@@ -7,13 +7,11 @@ import {
   Button,
   Box,
   Typography,
-  Grid,
   Card,
   CardMedia,
   CardContent,
   Checkbox,
   IconButton,
-  Divider,
   Chip,
   CircularProgress
 } from '@mui/material';
@@ -165,16 +163,16 @@ export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
           </Box>
         ) : viewMode === 'gallery' ? (
           // Gallery View
-          <Grid container spacing={2}>
+          <Box display="flex" flexWrap="wrap" gap={2}>
             {enrichedHistory.length === 0 ? (
-              <Grid item xs={12}>
+              <Box width="100%">
                 <Typography variant="body1" color="text.secondary" textAlign="center" py={4}>
                   No images generated yet for this scene.
                 </Typography>
-              </Grid>
+              </Box>
             ) : (
               enrichedHistory.slice().reverse().map((image) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={image.id}>
+                <Box key={image.id} sx={{ flexBasis: { xs: '100%', sm: 'calc(50% - 8px)', md: 'calc(33.33% - 11px)', lg: 'calc(25% - 12px)' } }}>
                   <Card 
                     sx={{ 
                       position: 'relative',
@@ -248,16 +246,24 @@ export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
                       </Box>
                     </CardContent>
                   </Card>
-                </Grid>
+                </Box>
               ))
             )}
-          </Grid>
+          </Box>
         ) : (
           // Comparison View
-          <Box>
-            <Grid container spacing={2}>
-              {selectedImagesList.map((image) => (
-                <Grid item xs={12} sm={6} md={selectedImagesList.length <= 2 ? 6 : 3} key={image.id}>
+          <Box display="flex" flexWrap="wrap" gap={2}>
+            {selectedImagesList.map((image) => (
+              <Box 
+                key={image.id} 
+                sx={{ 
+                  flexBasis: { 
+                    xs: '100%', 
+                    sm: 'calc(50% - 8px)', 
+                    md: selectedImagesList.length <= 2 ? 'calc(50% - 8px)' : 'calc(25% - 12px)' 
+                  } 
+                }}
+              >
                   <Card>
                     <CardContent>
                       <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
@@ -297,9 +303,8 @@ export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
                       </Box>
                     </CardContent>
                   </Card>
-                </Grid>
-              ))}
-            </Grid>
+              </Box>
+            ))}
           </Box>
         )}
       </DialogContent>

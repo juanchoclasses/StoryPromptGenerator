@@ -64,10 +64,10 @@ export const SceneList: React.FC<SceneListProps> = ({
 
 
 
-  const handleDeleteScene = (sceneId: string) => {
+  const handleDeleteScene = async (sceneId: string) => {
     if (!story) return;
     if (window.confirm('Are you sure you want to delete this scene?')) {
-      const activeBookData = BookService.getActiveBookData();
+      const activeBookData = await BookService.getActiveBookData();
       if (!activeBookData) return;
       
       const updatedStories = activeBookData.stories.map(s => {
@@ -79,7 +79,7 @@ export const SceneList: React.FC<SceneListProps> = ({
       });
       
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       
       // Update local state
       const updatedStory = updatedStories.find(s => s.id === story.id);
@@ -90,10 +90,10 @@ export const SceneList: React.FC<SceneListProps> = ({
     }
   };
 
-  const handleDuplicateScene = (sceneId: string) => {
+  const handleDuplicateScene = async (sceneId: string) => {
     if (!story) return;
     
-    const activeBookData = BookService.getActiveBookData();
+    const activeBookData = await BookService.getActiveBookData();
     if (!activeBookData) return;
     
     const sceneToDuplicate = scenes.find(scene => scene.id === sceneId);
@@ -120,7 +120,7 @@ export const SceneList: React.FC<SceneListProps> = ({
     });
     
     const updatedData = { ...activeBookData, stories: updatedStories };
-    BookService.saveActiveBookData(updatedData);
+    await BookService.saveActiveBookData(updatedData);
     
     // Update local state
     const updatedStory = updatedStories.find(s => s.id === story.id);
@@ -130,10 +130,10 @@ export const SceneList: React.FC<SceneListProps> = ({
     }
   };
 
-  const handleSaveScene = () => {
+  const handleSaveScene = async () => {
     if (!story || !sceneTitle.trim()) return;
 
-    const activeBookData = BookService.getActiveBookData();
+    const activeBookData = await BookService.getActiveBookData();
     if (!activeBookData) return;
 
     if (editingScene) {
@@ -157,15 +157,17 @@ export const SceneList: React.FC<SceneListProps> = ({
       });
       
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
     } else {
-      // Create new scene
+      // Create new scene (v4.0: include both name and ID arrays)
       const newScene: Scene = {
         id: crypto.randomUUID(),
         title: sceneTitle.trim(),
         description: sceneDescription.trim(),
-        characterIds: [],
-        elementIds: [],
+        characters: [], // v4.0: name-based references
+        elements: [], // v4.0: name-based references
+        characterIds: [], // Backward compatibility
+        elementIds: [], // Backward compatibility
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -178,7 +180,7 @@ export const SceneList: React.FC<SceneListProps> = ({
       });
       
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
     }
     
     setOpenDialog(false);
@@ -209,7 +211,7 @@ export const SceneList: React.FC<SceneListProps> = ({
     e.dataTransfer.dropEffect = 'move';
   };
 
-  const handleDrop = (e: React.DragEvent, targetSceneId: string) => {
+  const handleDrop = async (e: React.DragEvent, targetSceneId: string) => {
     e.preventDefault();
     if (!story || !draggedSceneId || draggedSceneId === targetSceneId) {
       setDraggedSceneId(null);
@@ -229,7 +231,7 @@ export const SceneList: React.FC<SceneListProps> = ({
     newScenes.splice(targetIndex, 0, draggedScene);
 
     // Update the story with the new scene order
-    const activeBookData = BookService.getActiveBookData();
+    const activeBookData = await BookService.getActiveBookData();
     if (!activeBookData) return;
     
     const updatedStories = activeBookData.stories.map(s => {
@@ -240,7 +242,7 @@ export const SceneList: React.FC<SceneListProps> = ({
     });
     
     const updatedData = { ...activeBookData, stories: updatedStories };
-    BookService.saveActiveBookData(updatedData);
+    await BookService.saveActiveBookData(updatedData);
     setScenes(newScenes);
     onStoryUpdate();
     setDraggedSceneId(null);
@@ -392,9 +394,8 @@ export const SceneList: React.FC<SceneListProps> = ({
                       </Typography>
                       <Box display="flex" flexWrap="wrap" gap={0.5}>
                         {scene.characterIds.map((characterId) => {
-                          const activeBookData = BookService.getActiveBookData();
-                          const allCharacters = activeBookData?.characters || [];
-                          const character = allCharacters.find(c => c.id === characterId);
+                          // Use story.characters (story-level) instead of book-level
+                          const character = story.characters.find(c => c.id === characterId);
                           return character ? (
                             <Chip
                               key={characterId}

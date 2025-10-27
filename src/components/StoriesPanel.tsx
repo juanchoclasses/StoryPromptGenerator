@@ -72,9 +72,9 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
 
   // Note: Stories are reloaded via onStoryUpdate callbacks throughout the component
 
-  const loadStories = () => {
+  const loadStories = async () => {
     // Get the active book's data
-    const activeBookData = BookService.getActiveBookData();
+    const activeBookData = await BookService.getActiveBookData();
     if (activeBookData) {
       setStories(activeBookData.stories);
     } else {
@@ -96,9 +96,9 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
     }
   };
 
-  const handleDeleteStory = (storyId: string) => {
+  const handleDeleteStory = async (storyId: string) => {
     if (window.confirm('Are you sure you want to delete this story? This action cannot be undone.')) {
-      const activeBookData = BookService.getActiveBookData();
+      const activeBookData = await BookService.getActiveBookData();
       if (!activeBookData) {
         showSnackbar('No active book selected', 'error');
         return;
@@ -106,21 +106,21 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
 
       const updatedStories = activeBookData.stories.filter(story => story.id !== storyId);
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       
       if (selectedStory?.id === storyId) {
         onStorySelect(null);
       }
-      loadStories();
+      await loadStories();
       onStoryUpdate();
       showSnackbar('Story deleted successfully', 'success');
     }
   };
 
-  const handleSaveStory = () => {
+  const handleSaveStory = async () => {
     if (!storyTitle.trim()) return;
 
-    const activeBookData = BookService.getActiveBookData();
+    const activeBookData = await BookService.getActiveBookData();
     if (!activeBookData) {
       showSnackbar('No active book selected', 'error');
       return;
@@ -135,7 +135,7 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
       );
       
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       onStorySelect(updatedStories.find(s => s.id === editingStory.id) || null);
     } else {
       // Create new story
@@ -155,12 +155,12 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
         ...activeBookData, 
         stories: [...activeBookData.stories, newStory] 
       };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       onStorySelect(newStory);
     }
 
     setOpenDialog(false);
-    loadStories();
+    await loadStories();
     onStoryUpdate();
     showSnackbar(editingStory ? 'Story updated successfully' : 'Story created successfully', 'success');
   };
@@ -168,8 +168,8 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
   const getStoryStats = (story: Story) => {
     if (!story.scenes) return { characters: 0, scenes: 0 };
     
-    const activeBookData = BookService.getActiveBookData();
-    const characters = activeBookData?.characters.length || 0;
+    // Use story-level characters instead of book-level
+    const characters = story.characters?.length || 0;
     const scenes = story.scenes.length;
 
     return { characters, scenes };
@@ -269,8 +269,8 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
   const performExport = async (story: Story) => {
     setIsExporting(true);
     try {
-      const bookCollection = BookService.getBookCollection();
-      const activeBookId = BookService.getActiveBookId();
+      const bookCollection = await BookService.getBookCollection();
+      const activeBookId = await BookService.getActiveBookId();
       const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : undefined;
       const bookTitle = activeBook?.title || 'Unknown Book';
       
@@ -319,15 +319,16 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
     if (!scene) return;
 
     // Get book data
-    const bookCollection = BookService.getBookCollection();
-    const activeBookId = BookService.getActiveBookId();
-    const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
+    const activeBookId = await BookService.getActiveBookId();
+    const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
     const aspectRatio = activeBook?.aspectRatio || '3:4';
-    const panelConfig = activeBook?.panelConfig || DEFAULT_PANEL_CONFIG;
+    const panelConfig = activeBook?.style?.panelConfig || DEFAULT_PANEL_CONFIG;
     
-    // Get characters and elements for this scene
-    const sceneCharacters = batchGenerationStory.characters.filter(char => scene.characterIds.includes(char.id));
-    const sceneElements = batchGenerationStory.elements.filter(elem => scene.elementIds.includes(elem.id));
+    // Get characters and elements for this scene (handle both new and legacy formats)
+    const characterIds = scene.characterIds || [];
+    const elementIds = scene.elementIds || [];
+    const sceneCharacters = batchGenerationStory.characters.filter(char => characterIds.includes(char.id));
+    const sceneElements = batchGenerationStory.elements.filter(elem => elementIds.includes(elem.id));
     
     // Generate prompt for this scene
     const characterSection = sceneCharacters.length > 0
@@ -398,7 +399,7 @@ TECHNICAL REQUIREMENTS:
     }
     
     // Save to scene in local storage
-    const activeBookData = BookService.getActiveBookData();
+    const activeBookData = await BookService.getActiveBookData();
     if (activeBookData) {
       // Create image metadata (NO URL to avoid localStorage quota)
       const imageId = crypto.randomUUID();
@@ -438,7 +439,7 @@ TECHNICAL REQUIREMENTS:
       });
       
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       
       // Don't reload stories here - it causes re-render which can close the dialog
       // The dialog will handle reloading when it closes
@@ -655,27 +656,21 @@ TECHNICAL REQUIREMENTS:
       />
 
       {/* Batch Image Generation Dialog */}
-      {batchGenerationStory && (() => {
-        const bookCollection = BookService.getBookCollection();
-        const activeBookId = BookService.getActiveBookId();
-        const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : undefined;
-        
-        return (
-          <BatchImageGenerationDialog
-            open={batchGenerationOpen}
-            onClose={() => {
-              setBatchGenerationOpen(false);
-              setBatchGenerationStory(null);
-              // Reload stories after batch generation completes
-              loadStories();
-              onStoryUpdate();
-            }}
-            story={batchGenerationStory}
-            activeBook={activeBook || null}
-            onGenerate={handleBatchGenerateScene}
-          />
-        );
-      })()}
+      {batchGenerationStory && (
+        <BatchImageGenerationDialog
+          open={batchGenerationOpen}
+          onClose={() => {
+            setBatchGenerationOpen(false);
+            setBatchGenerationStory(null);
+            // Reload stories after batch generation completes
+            loadStories();
+            onStoryUpdate();
+          }}
+          story={batchGenerationStory}
+          activeBook={null}
+          onGenerate={handleBatchGenerateScene}
+        />
+      )}
 
       {/* Export Validation Dialog */}
       <Dialog

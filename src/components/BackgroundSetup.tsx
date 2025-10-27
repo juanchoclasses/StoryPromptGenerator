@@ -42,10 +42,10 @@ export const BackgroundSetup: React.FC<BackgroundSetupProps> = ({ story, onStory
     };
   }, []);
 
-  const performSave = (value: string) => {
+  const performSave = async (value: string) => {
     if (!story) return;
     
-    const activeBookData = BookService.getActiveBookData();
+    const activeBookData = await BookService.getActiveBookData();
     if (!activeBookData) return;
     
     const updatedStories = activeBookData.stories.map(s => {
@@ -56,7 +56,7 @@ export const BackgroundSetup: React.FC<BackgroundSetupProps> = ({ story, onStory
     });
     
     const updatedData = { ...activeBookData, stories: updatedStories };
-    BookService.saveActiveBookData(updatedData);
+    await BookService.saveActiveBookData(updatedData);
     setIsDirty(false);
     
     // Mark that we're done editing so the next story update can refresh the state
@@ -83,10 +83,10 @@ export const BackgroundSetup: React.FC<BackgroundSetupProps> = ({ story, onStory
     
     // Auto-save after a short delay
     if (story) {
-      autoSaveTimerRef.current = setTimeout(() => {
+      autoSaveTimerRef.current = window.setTimeout(() => {
         performSave(newValue);
         // Don't call onStoryUpdate() here to avoid triggering parent re-render
-      }, 1000);
+      }, 1000) as unknown as number;
     }
   };
 

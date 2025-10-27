@@ -25,7 +25,7 @@ import {
   HourglassEmpty as PendingIcon,
   PlayArrow as GeneratingIcon
 } from '@mui/icons-material';
-import type { Story, Scene } from '../types/Story';
+import type { Story } from '../types/Story';
 import type { Book } from '../types/Book';
 import { IMAGE_MODELS } from '../constants/imageModels';
 
@@ -49,7 +49,7 @@ export const BatchImageGenerationDialog: React.FC<BatchImageGenerationDialogProp
   open,
   onClose,
   story,
-  activeBook,
+  activeBook: _activeBook,
   onGenerate
 }) => {
   const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS[0].value);

@@ -87,10 +87,10 @@ function App() {
     }
   }, [selectedScene]);
 
-  const handleDeleteImage = useCallback((imageId: string) => {
+  const handleDeleteImage = useCallback(async (imageId: string) => {
     if (!selectedStory || !selectedScene) return;
     
-    const activeBookData = BookService.getActiveBookData();
+    const activeBookData = await BookService.getActiveBookData();
     if (!activeBookData) return;
     
     const updatedStories = activeBookData.stories.map(s => {
@@ -116,7 +116,7 @@ function App() {
     });
     
     const updatedData = { ...activeBookData, stories: updatedStories };
-    BookService.saveActiveBookData(updatedData);
+    await BookService.saveActiveBookData(updatedData);
     
     // Delete from IndexedDB
     ImageStorageService.deleteImage(imageId).catch(error => {
@@ -165,9 +165,8 @@ function App() {
   const handleSaveSpecificImage = useCallback(async (imageUrl: string) => {
     if (!selectedStory || !selectedScene) return;
     
-    const bookCollection = BookService.getBookCollection();
-    const activeBookId = BookService.getActiveBookId();
-    const activeBook = activeBookId ? bookCollection.books.find(book => book.id === activeBookId) : null;
+    const activeBookId = await BookService.getActiveBookId();
+    const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
     
     if (activeBook) {
       const { FileSystemService } = await import('./services/FileSystemService');
@@ -179,11 +178,11 @@ function App() {
     }
   }, [selectedStory, selectedScene]);
 
-  const handleStoryUpdate = () => {
+  const handleStoryUpdate = async () => {
     setRefreshKey(prev => prev + 1);
     // Update selected story if it still exists
     if (selectedStory) {
-      const activeBookData = BookService.getActiveBookData();
+      const activeBookData = await BookService.getActiveBookData();
       if (activeBookData) {
         const updatedStory = activeBookData.stories.find(s => s.id === selectedStory.id);
         setSelectedStory(updatedStory || null);
@@ -201,13 +200,13 @@ function App() {
     }
   };
 
-  const handleStoryTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleStoryTitleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = event.target.value;
     setStoryTitle(newTitle);
     
     // Auto-save the story title
     if (selectedStory) {
-      const activeBookData = BookService.getActiveBookData();
+      const activeBookData = await BookService.getActiveBookData();
       if (!activeBookData) return;
       
       const updatedStories = activeBookData.stories.map(s => {
@@ -218,20 +217,20 @@ function App() {
       });
       
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       
       const updatedStory = updatedStories.find(s => s.id === selectedStory.id);
       setSelectedStory(updatedStory || null);
     }
   };
 
-  const handleStoryDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleStoryDescriptionChange = async (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newDescription = event.target.value;
     setStoryDescription(newDescription);
     
     // Auto-save the story description
     if (selectedStory) {
-      const activeBookData = BookService.getActiveBookData();
+      const activeBookData = await BookService.getActiveBookData();
       if (!activeBookData) return;
       
       const updatedStories = activeBookData.stories.map(s => {
@@ -242,7 +241,7 @@ function App() {
       });
       
       const updatedData = { ...activeBookData, stories: updatedStories };
-      BookService.saveActiveBookData(updatedData);
+      await BookService.saveActiveBookData(updatedData);
       
       const updatedStory = updatedStories.find(s => s.id === selectedStory.id);
       setSelectedStory(updatedStory || null);
@@ -250,8 +249,8 @@ function App() {
   };
 
   // Book management
-  const handleBookSelect = (bookId: string) => {
-    const data = BookService.getBookData(bookId);
+  const handleBookSelect = async (bookId: string) => {
+    const data = await BookService.getBookData(bookId);
     if (data) {
       setBookData(data);
       setSelectedStory(null);
@@ -261,20 +260,23 @@ function App() {
     }
   };
 
-  const handleBookUpdate = () => {
+  const handleBookUpdate = async () => {
     setRefreshKey(prev => prev + 1);
     // Reload current book data
-    const activeBookId = BookService.getActiveBookId();
+    const activeBookId = await BookService.getActiveBookId();
     if (activeBookId) {
-      const data = BookService.getBookData(activeBookId);
+      const data = await BookService.getBookData(activeBookId);
       setBookData(data);
     }
   };
 
   // Load initial book data
   React.useEffect(() => {
-    const data = BookService.getActiveBookData();
-    setBookData(data);
+    const loadData = async () => {
+      const data = await BookService.getActiveBookData();
+      setBookData(data);
+    };
+    loadData();
   }, []);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {

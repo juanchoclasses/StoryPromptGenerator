@@ -66,6 +66,7 @@ export class Story {
    */
   validate(): ValidationResult {
     const errors: string[] = [];
+    const warnings: string[] = [];
 
     if (!this.title || this.title.trim().length === 0) {
       errors.push('Story title is required');
@@ -93,17 +94,25 @@ export class Story {
       errors.push(`Duplicate element names: ${[...new Set(duplicateElements)].join(', ')}`);
     }
 
+    if (this.scenes.length === 0) {
+      warnings.push('Story has no scenes');
+    }
+
     // Validate all scenes
     this.scenes.forEach((scene, index) => {
       const sceneValidation = scene.validate(this);
       if (!sceneValidation.isValid) {
         errors.push(`Scene ${index + 1} (${scene.title}): ${sceneValidation.errors.join(', ')}`);
       }
+      if (sceneValidation.warnings.length > 0) {
+        warnings.push(`Scene ${index + 1} (${scene.title}): ${sceneValidation.warnings.join(', ')}`);
+      }
     });
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
+      warnings
     };
   }
 

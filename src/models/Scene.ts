@@ -57,6 +57,7 @@ export class Scene {
    */
   validate(story: Story): ValidationResult {
     const errors: string[] = [];
+    const warnings: string[] = [];
 
     if (!this.title || this.title.trim().length === 0) {
       errors.push('Scene title is required');
@@ -64,6 +65,10 @@ export class Scene {
 
     if (!this.description || this.description.trim().length === 0) {
       errors.push('Scene description is required');
+    }
+
+    if (this.characters.length === 0 && this.elements.length === 0) {
+      warnings.push('Scene has no characters or elements');
     }
 
     // Validate character references
@@ -82,7 +87,8 @@ export class Scene {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
+      warnings
     };
   }
 

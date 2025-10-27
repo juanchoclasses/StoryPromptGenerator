@@ -8,6 +8,7 @@ import { Story } from './Story';
 export interface ValidationResult {
   isValid: boolean;
   errors: string[];
+  warnings: string[];
 }
 
 /**
@@ -56,6 +57,7 @@ export class Book {
    */
   validate(): ValidationResult {
     const errors: string[] = [];
+    const warnings: string[] = [];
 
     if (!this.title || this.title.trim().length === 0) {
       errors.push('Book title is required');
@@ -72,17 +74,25 @@ export class Book {
       }
     }
 
+    if (this.stories.length === 0) {
+      warnings.push('Book has no stories');
+    }
+
     // Validate all stories
     this.stories.forEach((story, index) => {
       const storyValidation = story.validate();
       if (!storyValidation.isValid) {
         errors.push(`Story ${index + 1} (${story.title}): ${storyValidation.errors.join(', ')}`);
       }
+      if (storyValidation.warnings.length > 0) {
+        warnings.push(`Story ${index + 1} (${story.title}): ${storyValidation.warnings.join(', ')}`);
+      }
     });
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
+      warnings
     };
   }
 

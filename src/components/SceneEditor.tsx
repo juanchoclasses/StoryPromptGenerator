@@ -413,14 +413,23 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       'SceneDescription': currentScene.description || ''
     };
     
-    let prompt = `Create an illustration with the following requirements:
-
-SCENE CONTENT:
-`;
+    let prompt = `Create an illustration with the following requirements:\n\n`;
+    
+    // Book Style - visual guidelines for the entire book
+    if (activeBook) {
+      const style = activeBook.style;
+      if (style) {
+        const { formatBookStyleForPrompt } = require('../types/BookStyle');
+        const styleText = formatBookStyleForPrompt(style);
+        if (styleText) {
+          prompt += `## BOOK-WIDE VISUAL STYLE (apply to all elements):\n${styleText}\n\n`;
+        }
+      }
+    }
     
     // Book Background Setup - applies to all stories/scenes in this book
     if (activeBook?.backgroundSetup) {
-      prompt += `\n## BOOK-WIDE VISUAL WORLD (applies to all scenes):\n${activeBook.backgroundSetup}\n\n`;
+      prompt += `## BOOK-WIDE VISUAL WORLD (applies to all scenes):\n${activeBook.backgroundSetup}\n\n`;
     }
     
     // Story Background Setup - specific context for this story

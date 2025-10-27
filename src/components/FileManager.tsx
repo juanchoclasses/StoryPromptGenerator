@@ -23,15 +23,19 @@ import {
   Delete as DeleteIcon,
   Download as DownloadIcon,
   Upload as UploadIcon,
-  Book as BookIcon
+  Book as BookIcon,
+  Settings as SettingsIcon,
+  Palette as PaletteIcon
 } from '@mui/icons-material';
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { BookService } from '../services/BookService';
 import { MigrationService } from '../services/MigrationService';
 import type { BookMetadata, PanelConfig } from '../types/Book';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
+import type { BookStyle } from '../types/BookStyle';
+import { DEFAULT_BOOK_STYLE } from '../types/BookStyle';
 import { PanelConfigDialog } from './PanelConfigDialog';
-import { Settings as SettingsIcon } from '@mui/icons-material';
+import { BookStyleEditor } from './BookStyleEditor';
 
 interface FileManagerProps {
   onBookSelect: (bookId: string) => void;
@@ -56,6 +60,8 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
   const [editBookPanelConfig, setEditBookPanelConfig] = useState<PanelConfig>(DEFAULT_PANEL_CONFIG);
   const [panelConfigDialogOpen, setPanelConfigDialogOpen] = useState(false);
   const [panelConfigDialogMode, setPanelConfigDialogMode] = useState<'create' | 'edit'>('create');
+  const [styleEditorOpen, setStyleEditorOpen] = useState(false);
+  const [editingBookStyle, setEditingBookStyle] = useState<{ bookId: string, style: BookStyle } | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
@@ -154,8 +160,8 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
     showSnackbar(`Fixed statistics for ${fixedCount} books`, 'success');
   };
 
-  const loadBooks = () => {
-    const collection = BookService.getBookCollection();
+  const loadBooks = async () => {
+    const collection = await BookService.getBookCollection();
     setBooks(collection.books);
     setActiveBookId(collection.activeBookId);
   };
@@ -318,6 +324,46 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
     }
   };
 
+  const handleOpenStyleEditor = async (bookId: string) => {
+    try {
+      const book = await BookService.getBook(bookId);
+      if (book) {
+        setEditingBookStyle({
+          bookId: book.id,
+          style: book.style || DEFAULT_BOOK_STYLE
+        });
+        setStyleEditorOpen(true);
+      }
+    } catch (_error) {
+      showSnackbar('Failed to load book style', 'error');
+    }
+  };
+
+  const handleSaveBookStyle = async (style: BookStyle) => {
+    if (!editingBookStyle) return;
+    
+    try {
+      // Get the book, update its style, and save
+      const book = await BookService.getBook(editingBookStyle.bookId);
+      if (book) {
+        book.updateStyle(style);
+        // Use StorageService directly since BookService.updateBook doesn't handle style
+        const { StorageService } = await import('../services/StorageService');
+        await StorageService.saveBook(book);
+        
+        loadBooks();
+        onBookUpdate();
+        showSnackbar('Book style updated successfully', 'success');
+      }
+    } catch (error) {
+      console.error('Error updating book style:', error);
+      showSnackbar('Failed to update book style', 'error');
+    }
+    
+    setStyleEditorOpen(false);
+    setEditingBookStyle(null);
+  };
+
   return (
     <Box>
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
@@ -422,8 +468,6 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
                         )}
                         <Box display="flex" gap={1} mt={1}>
                           <Chip label={`${book.storyCount} stories`} size="small" variant="outlined" />
-                          <Chip label={`${book.characterCount} characters`} size="small" variant="outlined" />
-                          <Chip label={`${book.elementCount} elements`} size="small" variant="outlined" />
                         </Box>
                       </Box>
                     </Box>
@@ -448,6 +492,17 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
                           }}
                         >
                           <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Edit Book Style">
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenStyleEditor(book.id);
+                          }}
+                        >
+                          <PaletteIcon />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Delete Book">
@@ -604,6 +659,17 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
         onClose={() => setPanelConfigDialogOpen(false)}
         initialConfig={panelConfigDialogMode === 'create' ? newBookPanelConfig : editBookPanelConfig}
         onSave={handleSavePanelConfig}
+      />
+
+      {/* Book Style Editor */}
+      <BookStyleEditor
+        open={styleEditorOpen}
+        onClose={() => {
+          setStyleEditorOpen(false);
+          setEditingBookStyle(null);
+        }}
+        initialStyle={editingBookStyle?.style}
+        onSave={handleSaveBookStyle}
       />
 
       {/* Snackbar */}

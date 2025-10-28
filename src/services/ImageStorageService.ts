@@ -453,34 +453,52 @@ class ImageStorageServiceClass {
   ): Promise<Map<string, string>> {
     await this.ensureReady();
 
+    // Check if character-images store exists
+    if (!this.db!.objectStoreNames.contains(CHARACTER_STORE_NAME)) {
+      console.log('Character images store not found - returning empty map');
+      return new Map<string, string>();
+    }
+
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([CHARACTER_STORE_NAME], 'readonly');
-      const objectStore = transaction.objectStore(CHARACTER_STORE_NAME);
-      const index = objectStore.index('characterName');
-      const request = index.openCursor(IDBKeyRange.only(characterName));
+      try {
+        const transaction = this.db!.transaction([CHARACTER_STORE_NAME], 'readonly');
+        const objectStore = transaction.objectStore(CHARACTER_STORE_NAME);
+        const index = objectStore.index('characterName');
+        const request = index.openCursor(IDBKeyRange.only(characterName));
 
-      const imageMap = new Map<string, string>();
+        const imageMap = new Map<string, string>();
 
-      request.onsuccess = (event) => {
-        const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
-        if (cursor) {
-          const storedImage = cursor.value as StoredCharacterImage;
-          // Only include images for this specific story
-          if (storedImage.storyId === storyId) {
-            const blobUrl = URL.createObjectURL(storedImage.blob);
-            imageMap.set(storedImage.imageId, blobUrl);
+        request.onsuccess = (event) => {
+          const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+          if (cursor) {
+            const storedImage = cursor.value as StoredCharacterImage;
+            // Only include images for this specific story
+            if (storedImage.storyId === storyId) {
+              const blobUrl = URL.createObjectURL(storedImage.blob);
+              imageMap.set(storedImage.imageId, blobUrl);
+            }
+            cursor.continue();
+          } else {
+            console.log(`✓ Loaded ${imageMap.size} images for character: ${characterName}`);
+            resolve(imageMap);
           }
-          cursor.continue();
-        } else {
-          console.log(`✓ Loaded ${imageMap.size} images for character: ${characterName}`);
-          resolve(imageMap);
-        }
-      };
+        };
 
-      request.onerror = () => {
-        console.error('Failed to get character images:', request.error);
-        reject(request.error);
-      };
+        request.onerror = () => {
+          console.error('Failed to get character images:', request.error);
+          // Resolve with empty map instead of rejecting
+          resolve(new Map<string, string>());
+        };
+
+        // Add transaction error handler
+        transaction.onerror = () => {
+          console.error('Transaction error:', transaction.error);
+          resolve(new Map<string, string>());
+        };
+      } catch (error) {
+        console.error('Error in getAllCharacterImages:', error);
+        resolve(new Map<string, string>());
+      }
     });
   }
 

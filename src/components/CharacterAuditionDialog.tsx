@@ -79,17 +79,25 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
   const [uploading, setUploading] = useState(false);
 
   const loadGallery = useCallback(async () => {
+    // If character has no image gallery metadata, don't try to load from IndexedDB
+    if (!character.imageGallery || character.imageGallery.length === 0) {
+      setGalleryImages(new Map());
+      setLoadingGallery(false);
+      return;
+    }
+
     setLoadingGallery(true);
     try {
       const images = await CharacterImageService.loadCharacterGallery(storyId, character.name);
       setGalleryImages(images);
     } catch (err) {
       console.error('Failed to load character gallery:', err);
-      setError('Failed to load character images');
+      // Don't show error for empty gallery - just set empty map
+      setGalleryImages(new Map());
     } finally {
       setLoadingGallery(false);
     }
-  }, [storyId, character.name]);
+  }, [storyId, character.name, character.imageGallery]);
 
   // Load gallery images when dialog opens
   useEffect(() => {

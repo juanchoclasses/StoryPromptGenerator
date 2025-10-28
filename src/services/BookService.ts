@@ -144,29 +144,32 @@ export class BookService {
         title: story.title,
         description: story.description,
         backgroundSetup: story.backgroundSetup,
-        scenes: story.scenes.map((scene: {
-          id: string;
-          title: string;
-          description: string;
-          textPanel?: string;
-          characters: string[];
-          elements: string[];
-          imageHistory: unknown[];
-          createdAt: Date;
-          updatedAt: Date;
-        }) => ({
+        scenes: story.scenes.map(scene => ({
           id: scene.id,
           title: scene.title,
           description: scene.description,
           textPanel: scene.textPanel,
-          characterIds: scene.characters,
-          elementIds: scene.elements,
-          imageHistory: scene.imageHistory,
+          characters: scene.characters || [],
+          elements: scene.elements || [],
+          characterIds: scene.characters || [], // DEPRECATED: for backward compat
+          elementIds: scene.elements || [], // DEPRECATED: for backward compat
+          imageHistory: scene.imageHistory || [],
           createdAt: scene.createdAt,
           updatedAt: scene.updatedAt
         })),
-        characters: story.characters,
-        elements: story.elements,
+        // Add dummy IDs for backward compatibility with old Character type
+        characters: story.characters.map(char => ({
+          id: char.name, // Use name as ID for backward compatibility
+          name: char.name,
+          description: char.description
+        })),
+        // Add dummy IDs for backward compatibility with old StoryElement type
+        elements: story.elements.map(elem => ({
+          id: elem.name, // Use name as ID for backward compatibility
+          name: elem.name,
+          description: elem.description,
+          category: elem.category
+        })),
         characterIds: [], // Deprecated
         elementIds: [], // Deprecated
         createdAt: story.createdAt,
@@ -194,23 +197,36 @@ export class BookService {
    * Converts StoryData format to Book model and saves
    */
   static async saveBookData(bookId: string, data: StoryData): Promise<void> {
+    // Import Scene class for proper reconstruction
+    const { Scene: SceneClass } = await import('../models/Scene.js');
+    
     const book = await StorageService.getBook(bookId);
     if (!book) {
       throw new Error(`Book with ID ${bookId} not found`);
     }
 
-    // Update stories from data
-    book.stories = data.stories.map(storyData => new Story({
-      id: storyData.id,
-      title: storyData.title,
-      description: storyData.description,
-      backgroundSetup: storyData.backgroundSetup,
-      characters: storyData.characters || [],
-      elements: storyData.elements || [],
-      scenes: storyData.scenes,
-      createdAt: storyData.createdAt,
-      updatedAt: storyData.updatedAt
-    }));
+    // Update stories from data with properly reconstructed scenes
+    book.stories = data.stories.map(storyData => {
+      // Convert plain scene objects to Scene instances
+      const sceneInstances = (storyData.scenes || []).map(sceneData => {
+        if (sceneData instanceof SceneClass) {
+          return sceneData; // Already a Scene instance
+        }
+        return new SceneClass(sceneData); // Convert plain object to Scene instance
+      });
+      
+      return new Story({
+        id: storyData.id,
+        title: storyData.title,
+        description: storyData.description,
+        backgroundSetup: storyData.backgroundSetup,
+        characters: storyData.characters || [],
+        elements: storyData.elements || [],
+        scenes: sceneInstances,
+        createdAt: storyData.createdAt,
+        updatedAt: storyData.updatedAt
+      });
+    });
 
     // Validate before saving
     const validation = book.validate();
@@ -245,6 +261,7 @@ export class BookService {
    * Note: In v4.0, statistics are calculated on-demand
    * @deprecated This method is no longer needed in v4.0
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static async updateBookStatistics(..._args: unknown[]): Promise<void> {
     // Statistics are now calculated on-demand from the book's stories
     // This method is kept for backward compatibility but doesn't need to do anything

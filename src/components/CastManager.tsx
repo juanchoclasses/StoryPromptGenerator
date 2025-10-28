@@ -22,7 +22,8 @@ import {
   Person as PersonIcon,
   ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
-import type { Character, Story } from '../types/Story';
+import type { Character } from '../models/Story';
+import type { Story } from '../types/Story';
 import { BookService } from '../services/BookService';
 
 interface CastManagerProps {
@@ -60,18 +61,25 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
     setOpenDialog(true);
   };
 
-  const handleDeleteCharacter = async (characterId: string) => {
+  const handleDeleteCharacter = async (characterName: string) => {
     if (!story) return;
     const activeBookData = await BookService.getActiveBookData();
     if (!activeBookData) return;
     
     if (window.confirm('Are you sure you want to delete this character? This will also remove them from all scenes.')) {
-      const updatedCharacters = story.characters.filter(char => char.id !== characterId);
+      const updatedCharacters = story.characters.filter(char => char.name !== characterName);
       
       // Update the story in the book data
+      // Convert model Character[] to old format with IDs for backward compatibility
+      const charactersWithIds = updatedCharacters.map(char => ({
+        id: char.name, // Use name as ID
+        name: char.name,
+        description: char.description
+      }));
+      
       const updatedStories = activeBookData.stories.map(s => 
         s.id === story.id 
-          ? { ...s, characters: updatedCharacters, updatedAt: new Date() }
+          ? { ...s, characters: charactersWithIds, updatedAt: new Date() }
           : s
       );
       const updatedData = { ...activeBookData, stories: updatedStories };
@@ -91,14 +99,13 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
     if (editingCharacter) {
       // Update existing character
       updatedCharacters = story.characters.map(char => 
-        char.id === editingCharacter.id 
-          ? { ...char, name: characterName.trim(), description: characterDescription }
+        char.name === editingCharacter.name 
+          ? { name: characterName.trim(), description: characterDescription }
           : char
       );
     } else {
       // Create new character
       const newCharacter: Character = {
-        id: crypto.randomUUID(),
         name: characterName.trim(),
         description: characterDescription
       };
@@ -106,9 +113,16 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
     }
     
     // Update the story in the book data
+    // Convert model Character[] to old format with IDs for backward compatibility
+    const charactersWithIds = updatedCharacters.map(char => ({
+      id: char.name, // Use name as ID
+      name: char.name,
+      description: char.description
+    }));
+    
     const updatedStories = activeBookData.stories.map(s => 
       s.id === story.id 
-        ? { ...s, characters: updatedCharacters, updatedAt: new Date() }
+        ? { ...s, characters: charactersWithIds, updatedAt: new Date() }
         : s
     );
     const updatedData = { ...activeBookData, stories: updatedStories };
@@ -196,7 +210,7 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
         ) : (
           <Box>
             {characters.map((character) => (
-              <Accordion key={character.id} sx={{ mb: 1 }}>
+              <Accordion key={character.name} sx={{ mb: 1 }}>
                 <AccordionSummary 
                   expandIcon={<ExpandMoreIcon />}
                   sx={{ 
@@ -227,7 +241,7 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
                     <Tooltip title="Delete character">
                       <IconButton
                         component="div"
-                        onClick={() => handleDeleteCharacter(character.id)}
+                        onClick={() => handleDeleteCharacter(character.name)}
                         color="error"
                         size="small"
                       >

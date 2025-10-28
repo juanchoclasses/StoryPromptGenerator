@@ -563,8 +563,12 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
               onChange={(e) => setNewBookAspectRatio(e.target.value)}
             >
               <MenuItem value="1:1">1:1 (Square)</MenuItem>
-              <MenuItem value="16:9">16:9 (Wide)</MenuItem>
+              <MenuItem value="2:3">2:3 (Portrait)</MenuItem>
+              <MenuItem value="3:4">3:4 (Portrait)</MenuItem>
               <MenuItem value="9:16">9:16 (Portrait)</MenuItem>
+              <MenuItem value="3:2">3:2 (Landscape)</MenuItem>
+              <MenuItem value="4:3">4:3 (Landscape)</MenuItem>
+              <MenuItem value="16:9">16:9 (Wide Landscape)</MenuItem>
             </Select>
           </FormControl>
           <Box sx={{ mt: 2 }}>
@@ -626,8 +630,12 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
               onChange={(e) => setEditBookAspectRatio(e.target.value)}
             >
               <MenuItem value="1:1">1:1 (Square)</MenuItem>
-              <MenuItem value="16:9">16:9 (Wide)</MenuItem>
+              <MenuItem value="2:3">2:3 (Portrait)</MenuItem>
+              <MenuItem value="3:4">3:4 (Portrait)</MenuItem>
               <MenuItem value="9:16">9:16 (Portrait)</MenuItem>
+              <MenuItem value="3:2">3:2 (Landscape)</MenuItem>
+              <MenuItem value="4:3">4:3 (Landscape)</MenuItem>
+              <MenuItem value="16:9">16:9 (Wide Landscape)</MenuItem>
             </Select>
           </FormControl>
           <Box sx={{ mt: 2 }}>

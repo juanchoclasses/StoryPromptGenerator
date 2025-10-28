@@ -69,7 +69,7 @@ export class Book {
     }
 
     if (this.aspectRatio) {
-      const validRatios = ['1:1', '9:16', '16:9'];
+      const validRatios = ['1:1', '2:3', '3:4', '9:16', '3:2', '4:3', '16:9'];
       if (!validRatios.includes(this.aspectRatio)) {
         errors.push(`Aspect ratio must be one of: ${validRatios.join(', ')}`);
       }

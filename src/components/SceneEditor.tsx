@@ -400,17 +400,26 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
 
   // Convert aspect ratio string to dimensions (ChatGPT/OpenAI standard sizes)
   const getImageDimensionsFromAspectRatio = (aspectRatio: string): { width: number; height: number } => {
-    // Use ChatGPT/OpenAI standard image sizes
+    // Standard image dimensions based on aspect ratio
+    // Using 1024px as base dimension for consistency
     switch (aspectRatio) {
       case '1:1':
         return { width: 1024, height: 1024 }; // Square
-      case '16:9':
-        return { width: 1792, height: 1024 }; // Wide
+      case '2:3':
+        return { width: 1024, height: 1536 }; // Portrait 2:3
+      case '3:4':
+        return { width: 1024, height: 1365 }; // Portrait 3:4
       case '9:16':
-        return { width: 1024, height: 1792 }; // Portrait
+        return { width: 1024, height: 1792 }; // Portrait 9:16
+      case '3:2':
+        return { width: 1536, height: 1024 }; // Landscape 3:2
+      case '4:3':
+        return { width: 1365, height: 1024 }; // Landscape 4:3
+      case '16:9':
+        return { width: 1792, height: 1024 }; // Wide Landscape 16:9
       default:
-        // Fallback to 9:16 portrait
-        return { width: 1024, height: 1792 };
+        // Fallback to 3:4 portrait (common for storybooks)
+        return { width: 1024, height: 1365 };
     }
   };
 

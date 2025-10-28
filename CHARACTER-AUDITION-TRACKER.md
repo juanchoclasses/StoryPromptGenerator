@@ -548,10 +548,21 @@ Implementing character image generation and gallery management system:
      - Reload UI from saved data
    - **Files**: `CastManager.tsx`
 
+7. **Character Image Storage Hanging** ✅
+   - **Issue**: Image generation hung after metadata creation, never completed
+   - **Root Cause**: `fetch()` hung when converting large data URLs (1MB+) to blobs
+   - **Fix**: 
+     - Replace `fetch()` with direct base64 decoding using `atob()`
+     - Convert decoded binary to Uint8Array
+     - Create Blob directly from bytes (much faster)
+   - **Files**: `ImageStorageService.ts`
+
 ### Commits
 - `7998fda` Fix infinite loading in Character Audition Dialog
 - `125769a` Fix empty prompt error and API mismatch
-- `[latest]` Fix character images not being saved to gallery
+- `19c5c37` Fix character images not being saved to gallery
+- `d496239` Add extensive debugging logging for character image save flow
+- `b67fb13` Fix character image storage hanging on large data URLs
 
 ---
 

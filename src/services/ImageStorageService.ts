@@ -327,7 +327,25 @@ class ImageStorageServiceClass {
     imageUrl: string,
     modelName: string
   ): Promise<void> {
+    console.log('>>> storeCharacterImage called for:', characterName, imageId);
+    console.log('    URL length:', imageUrl.length, 'chars');
+    
+    console.log('    Calling ensureReady()...');
     await this.ensureReady();
+    console.log('    ✓ ensureReady() complete');
+    console.log('    DB exists:', !!this.db);
+    console.log('    DB object stores:', this.db ? Array.from(this.db.objectStoreNames) : 'none');
+    
+    // Check if CHARACTER_STORE_NAME exists
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+    
+    if (!this.db.objectStoreNames.contains(CHARACTER_STORE_NAME)) {
+      console.error('CHARACTER_STORE_NAME not found in DB. Available stores:', Array.from(this.db.objectStoreNames));
+      throw new Error(`Object store "${CHARACTER_STORE_NAME}" does not exist. Database may need to be upgraded.`);
+    }
+    console.log('    ✓ CHARACTER_STORE_NAME exists');
 
     try {
       // Convert image URL to blob

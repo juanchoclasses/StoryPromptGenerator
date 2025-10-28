@@ -557,6 +557,15 @@ Implementing character image generation and gallery management system:
      - Create Blob directly from bytes (much faster)
    - **Files**: `ImageStorageService.ts`
 
+8. **Character Images Not Persisting When Dialog Closes** ✅
+   - **Issue**: Generated images disappeared when closing and reopening the dialog
+   - **Root Cause**: Dialog called `onClose()` directly without saving changes
+   - **Fix**: 
+     - Added `handleClose()` wrapper that calls `onUpdate()` before `onClose()`
+     - Updated all close buttons to use `handleClose()`
+     - Ensures character data is always saved when dialog closes
+   - **Files**: `CharacterAuditionDialog.tsx`
+
 ### Commits
 - `7998fda` Fix infinite loading in Character Audition Dialog
 - `125769a` Fix empty prompt error and API mismatch

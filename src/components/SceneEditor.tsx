@@ -34,6 +34,7 @@ import {
   TextFields as TextFieldsIcon
 } from '@mui/icons-material';
 import type { Scene, Story } from '../types/Story';
+import type { Character } from '../models/Story'; // v4.1: New Character type with imageGallery
 import { BookService } from '../services/BookService';
 import { ImageGenerationService } from '../services/ImageGenerationService';
 import { FileSystemService } from '../services/FileSystemService';
@@ -464,10 +465,25 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     
     if (selectedCast.length > 0) {
       prompt += `## Characters in this Scene\n`;
-      selectedCast.forEach(character => {
+      for (const character of selectedCast) {
         const characterDescription = replaceMacros(character.description, macros);
-        prompt += `[Character Definition: ${character.name}]\n${characterDescription}\n\n`;
-      });
+        prompt += `[Character Definition: ${character.name}]\n${characterDescription}\n`;
+        
+        // Include character image reference if available (v4.1+)
+        // Cast to new Character type to access imageGallery fields
+        const charWithImages = character as unknown as Character;
+        if (charWithImages.selectedImageId && charWithImages.imageGallery) {
+          const selectedImage = charWithImages.imageGallery.find(img => img.id === charWithImages.selectedImageId);
+          if (selectedImage) {
+            prompt += `\nREFERENCE IMAGE AVAILABLE: A previously generated image of ${character.name} exists.`;
+            prompt += `\nPlease maintain visual consistency with this character's established appearance:`;
+            prompt += `\n- Generated with: ${selectedImage.model.split('/').pop()}`;
+            prompt += `\n- Original prompt included: "${selectedImage.prompt.substring(0, 100)}..."`;
+            prompt += `\nIMPORTANT: Match the character's appearance, style, and visual characteristics from the reference image.`;
+          }
+        }
+        prompt += `\n\n`;
+      }
     }
     
     if (selectedElements.length > 0) {

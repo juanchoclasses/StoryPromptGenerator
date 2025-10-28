@@ -82,8 +82,11 @@ export class CharacterImageService {
 
     // Check for errors
     if (!result.success || !result.imageUrl) {
+      console.error('Image generation failed:', result.error);
       throw new Error(result.error || 'Failed to generate image');
     }
+
+    console.log('✓ Image generated successfully, URL length:', result.imageUrl.length);
 
     // Create character image metadata
     const imageId = uuidv4();
@@ -95,14 +98,22 @@ export class CharacterImageService {
       timestamp: new Date(),
     };
 
+    console.log('✓ Character image metadata created:', { id: imageId, model, urlPreview: result.imageUrl.substring(0, 50) });
+
     // Store in IndexedDB
-    await ImageStorageService.storeCharacterImage(
-      storyId,
-      character.name,
-      imageId,
-      result.imageUrl,
-      model
-    );
+    try {
+      await ImageStorageService.storeCharacterImage(
+        storyId,
+        character.name,
+        imageId,
+        result.imageUrl,
+        model
+      );
+      console.log('✓ Image stored in IndexedDB successfully');
+    } catch (error) {
+      console.error('✗ Failed to store image in IndexedDB:', error);
+      throw error;
+    }
 
     return characterImage;
   }
@@ -163,8 +174,11 @@ export class CharacterImageService {
     character: Character,
     characterImage: CharacterImage
   ): void {
+    console.log(`Adding image to ${character.name}'s gallery:`, characterImage.id);
+    
     if (!character.imageGallery) {
       character.imageGallery = [];
+      console.log(`  Created new imageGallery array for ${character.name}`);
     }
     
     // Limit gallery size to 10 images (configurable)
@@ -172,10 +186,12 @@ export class CharacterImageService {
     if (character.imageGallery.length >= MAX_GALLERY_SIZE) {
       console.warn(`Character ${character.name} has reached maximum gallery size (${MAX_GALLERY_SIZE})`);
       // Remove oldest image
-      character.imageGallery.shift();
+      const removed = character.imageGallery.shift();
+      console.log(`  Removed oldest image:`, removed?.id);
     }
     
     character.imageGallery.push(characterImage);
+    console.log(`✓ Image added to gallery. New gallery size: ${character.imageGallery.length}`);
   }
 
   /**

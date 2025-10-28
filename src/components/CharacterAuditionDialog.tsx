@@ -107,12 +107,18 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
   }, [open, loadGallery]);
 
   const handleGenerateImage = async () => {
+    console.log('=== Starting Character Image Generation ===');
+    console.log('Character:', character.name);
+    console.log('Story ID:', storyId);
+    console.log('Model:', selectedModel);
+    
     setGenerating(true);
     setError(null);
     setSuccess(null);
 
     try {
       // Generate the character image (always use 1:1 for character portraits)
+      console.log('Step 1: Calling generateCharacterImage...');
       const characterImage = await CharacterImageService.generateCharacterImage(
         character,
         storyId,
@@ -121,24 +127,34 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
         selectedModel,
         '1:1'
       );
+      console.log('✓ Step 1 complete: Image generated', characterImage.id);
 
       // Add to character's gallery (metadata only)
+      console.log('Step 2: Adding to gallery...');
       CharacterImageService.addImageToGallery(character, characterImage);
+      console.log('✓ Step 2 complete: Added to gallery. Gallery size:', character.imageGallery?.length);
 
       // If this is the first image, auto-select it
       if (!character.selectedImageId && characterImage.id) {
+        console.log('Step 3: Auto-selecting first image...');
         CharacterImageService.setSelectedCharacterImage(character, characterImage.id);
+        console.log('✓ Step 3 complete: Selected image:', character.selectedImageId);
       }
 
       // Notify parent to save changes
+      console.log('Step 4: Calling onUpdate() to save changes...');
       onUpdate();
+      console.log('✓ Step 4 complete: onUpdate() called');
 
       // Reload gallery to show new image
+      console.log('Step 5: Reloading gallery...');
       await loadGallery();
+      console.log('✓ Step 5 complete: Gallery reloaded');
 
+      console.log('=== Image Generation Complete! ===');
       setSuccess('Character image generated successfully!');
     } catch (err: unknown) {
-      console.error('Failed to generate character image:', err);
+      console.error('✗✗✗ Failed to generate character image:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(`Failed to generate image: ${errorMessage}`);
     } finally {

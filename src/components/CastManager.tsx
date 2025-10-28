@@ -96,17 +96,94 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
 
   const handleAuditionUpdate = async () => {
     // Save changes to book after character images are updated
-    if (!story) return;
-    const activeBookData = await BookService.getActiveBookData();
-    if (!activeBookData) return;
-
-    // Find the character in the story and use updated gallery/selectedImageId
-    const updatedStory = activeBookData.stories.find(s => s.id === story.id);
-    if (updatedStory) {
-      setCharacters(updatedStory.characters || []);
+    console.log('=== CastManager: handleAuditionUpdate called ===');
+    console.log('Story:', story?.title);
+    console.log('Audition Character:', auditionCharacter?.name);
+    console.log('Character imageGallery length:', auditionCharacter?.imageGallery?.length);
+    console.log('Character selectedImageId:', auditionCharacter?.selectedImageId);
+    
+    if (!story || !auditionCharacter) {
+      console.warn('Missing story or auditionCharacter, aborting save');
+      return;
     }
+    
+    try {
+      // Get the current book data from storage
+      console.log('Step 1: Getting active book ID...');
+      const bookId = await BookService.getActiveBookId();
+      if (!bookId) {
+        console.error('No active book ID found');
+        return;
+      }
+      console.log('✓ Book ID:', bookId);
+      
+      console.log('Step 2: Getting active book data...');
+      const activeBookData = await BookService.getActiveBookData();
+      if (!activeBookData) {
+        console.error('No active book data found');
+        return;
+      }
+      console.log('✓ Book data loaded, stories:', activeBookData.stories.length);
 
-    onStoryUpdate();
+      // Find the story in the book data
+      console.log('Step 3: Finding story in book data...');
+      const storyIndex = activeBookData.stories.findIndex(s => s.id === story.id);
+      if (storyIndex === -1) {
+        console.error('Story not found in book data:', story.id);
+        return;
+      }
+      console.log('✓ Story found at index:', storyIndex);
+
+      // Find the character in the story by name
+      console.log('Step 4: Finding character in story...');
+      const characterIndex = activeBookData.stories[storyIndex].characters.findIndex(
+        c => c.name === auditionCharacter.name
+      );
+      
+      if (characterIndex !== -1) {
+        console.log('✓ Character found at index:', characterIndex);
+        // Update the character in the book data with the modified version
+        // Copy over the imageGallery and selectedImageId from the modified character
+        const char = activeBookData.stories[storyIndex].characters[characterIndex] as Character;
+        console.log('  Before update - imageGallery length:', char.imageGallery?.length);
+        char.imageGallery = auditionCharacter.imageGallery;
+        char.selectedImageId = auditionCharacter.selectedImageId;
+        console.log('  After update - imageGallery length:', char.imageGallery?.length);
+        console.log('  After update - selectedImageId:', char.selectedImageId);
+      } else {
+        console.error('Character not found in story:', auditionCharacter.name);
+      }
+
+      // Save the book data with the updated character
+      console.log('Step 5: Saving book data...');
+      await BookService.saveBookData(bookId, activeBookData);
+      console.log('✓ Book data saved');
+
+      // Reload characters from the saved data
+      console.log('Step 6: Reloading characters...');
+      const updatedBookData = await BookService.getActiveBookData();
+      if (updatedBookData) {
+        const updatedStory = updatedBookData.stories.find(s => s.id === story.id);
+        if (updatedStory) {
+          console.log('  Updated story found, characters:', updatedStory.characters.length);
+          const updatedChar = updatedStory.characters.find(c => c.name === auditionCharacter.name);
+          if (updatedChar) {
+            console.log('  Updated character imageGallery length:', (updatedChar as Character).imageGallery?.length);
+          }
+          setCharacters(updatedStory.characters || []);
+        }
+      }
+      console.log('✓ Characters reloaded');
+
+      // Notify parent to refresh
+      console.log('Step 7: Calling onStoryUpdate...');
+      onStoryUpdate();
+      console.log('✓ onStoryUpdate called');
+      
+      console.log('=== handleAuditionUpdate Complete! ===');
+    } catch (err) {
+      console.error('✗✗✗ Failed to save character image changes:', err);
+    }
   };
 
   const handleDeleteCharacter = async (characterName: string) => {

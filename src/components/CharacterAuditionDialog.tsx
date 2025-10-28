@@ -106,6 +106,13 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     }
   }, [open, loadGallery]);
 
+  const handleClose = () => {
+    // Save changes before closing
+    console.log('Dialog closing - saving character changes...');
+    onUpdate();
+    onClose();
+  };
+
   const handleGenerateImage = async () => {
     console.log('=== Starting Character Image Generation ===');
     console.log('Character:', character.name);
@@ -300,7 +307,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
               🎭 Character Audition: {character.name}
             </Typography>
           </Box>
-          <IconButton onClick={onClose} size="small">
+          <IconButton onClick={handleClose} size="small">
             <CloseIcon />
           </IconButton>
         </Box>
@@ -516,7 +523,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Close</Button>
+        <Button onClick={handleClose}>Close</Button>
       </DialogActions>
     </Dialog>
 

@@ -4,6 +4,7 @@ export interface ImageGenerationOptions {
   prompt: string;
   model?: string;
   aspectRatio?: string;
+  referenceImages?: string[]; // Array of base64 data URLs for character references
 }
 
 export interface ImageGenerationResult {
@@ -29,6 +30,30 @@ export class ImageGenerationService {
       const model = options.model || SettingsService.getImageGenerationModel();
 
       console.log('Generating image with model:', model);
+      if (options.referenceImages && options.referenceImages.length > 0) {
+        console.log(`Including ${options.referenceImages.length} reference image(s)`);
+      }
+
+      // Build message content (multi-modal if reference images provided)
+      let messageContent;
+      if (options.referenceImages && options.referenceImages.length > 0) {
+        // Multi-modal: text + images
+        messageContent = [
+          {
+            type: 'text',
+            text: options.prompt
+          },
+          ...options.referenceImages.map(imageUrl => ({
+            type: 'image_url',
+            image_url: {
+              url: imageUrl
+            }
+          }))
+        ];
+      } else {
+        // Text only
+        messageContent = options.prompt;
+      }
 
       const response = await fetch(`${this.OPENROUTER_BASE_URL}/chat/completions`, {
         method: 'POST',
@@ -44,7 +69,7 @@ export class ImageGenerationService {
           messages: [
             {
               role: 'user',
-              content: options.prompt
+              content: messageContent
             }
           ],
           image_config: {

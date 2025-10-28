@@ -122,6 +122,13 @@ export class BookService {
   }
 
   /**
+   * Save a book directly (no conversion)
+   */
+  static async saveBook(book: Book): Promise<void> {
+    return await StorageService.saveBook(book);
+  }
+
+  /**
    * Set active book
    */
   static async setActiveBook(bookId: string | null): Promise<void> {
@@ -161,7 +168,9 @@ export class BookService {
         characters: story.characters.map(char => ({
           id: char.name, // Use name as ID for backward compatibility
           name: char.name,
-          description: char.description
+          description: char.description,
+          imageGallery: char.imageGallery, // Preserve character images (v4.1+)
+          selectedImageId: char.selectedImageId // Preserve selected image (v4.1+)
         })),
         // Add dummy IDs for backward compatibility with old StoryElement type
         elements: story.elements.map(elem => ({

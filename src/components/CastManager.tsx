@@ -108,67 +108,58 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
     }
     
     try {
-      // Get the current book data from storage
-      console.log('Step 1: Getting active book ID...');
-      const bookId = await BookService.getActiveBookId();
-      if (!bookId) {
-        console.error('No active book ID found');
+      // Get the current book directly (no conversion)
+      console.log('Step 1: Getting active book...');
+      const book = await BookService.getActiveBook();
+      if (!book) {
+        console.error('No active book found');
         return;
       }
-      console.log('✓ Book ID:', bookId);
-      
-      console.log('Step 2: Getting active book data...');
-      const activeBookData = await BookService.getActiveBookData();
-      if (!activeBookData) {
-        console.error('No active book data found');
-        return;
-      }
-      console.log('✓ Book data loaded, stories:', activeBookData.stories.length);
+      console.log('✓ Book loaded, stories:', book.stories.length);
 
-      // Find the story in the book data
-      console.log('Step 3: Finding story in book data...');
-      const storyIndex = activeBookData.stories.findIndex(s => s.id === story.id);
-      if (storyIndex === -1) {
-        console.error('Story not found in book data:', story.id);
+      // Find the story in the book
+      console.log('Step 2: Finding story in book...');
+      const bookStory = book.stories.find(s => s.id === story.id);
+      if (!bookStory) {
+        console.error('Story not found in book:', story.id);
         return;
       }
-      console.log('✓ Story found at index:', storyIndex);
+      console.log('✓ Story found');
 
       // Find the character in the story by name
-      console.log('Step 4: Finding character in story...');
-      const characterIndex = activeBookData.stories[storyIndex].characters.findIndex(
-        c => c.name === auditionCharacter.name
-      );
+      console.log('Step 3: Finding character in story...');
+      const char = bookStory.characters.find(c => c.name === auditionCharacter.name);
       
-      if (characterIndex !== -1) {
-        console.log('✓ Character found at index:', characterIndex);
-        // Update the character in the book data with the modified version
-        // Copy over the imageGallery and selectedImageId from the modified character
-        const char = activeBookData.stories[storyIndex].characters[characterIndex] as Character;
+      if (char) {
+        console.log('✓ Character found');
         console.log('  Before update - imageGallery length:', char.imageGallery?.length);
+        
+        // Update the character directly (no conversion needed!)
         char.imageGallery = auditionCharacter.imageGallery;
         char.selectedImageId = auditionCharacter.selectedImageId;
+        
         console.log('  After update - imageGallery length:', char.imageGallery?.length);
         console.log('  After update - selectedImageId:', char.selectedImageId);
       } else {
         console.error('Character not found in story:', auditionCharacter.name);
+        return;
       }
 
-      // Save the book data with the updated character
-      console.log('Step 5: Saving book data...');
-      await BookService.saveBookData(bookId, activeBookData);
-      console.log('✓ Book data saved');
+      // Save the book directly (no conversion!)
+      console.log('Step 4: Saving book...');
+      await BookService.saveBook(book);
+      console.log('✓ Book saved');
 
-      // Reload characters from the saved data
-      console.log('Step 6: Reloading characters...');
-      const updatedBookData = await BookService.getActiveBookData();
-      if (updatedBookData) {
-        const updatedStory = updatedBookData.stories.find(s => s.id === story.id);
+      // Reload characters from the saved book
+      console.log('Step 5: Reloading characters...');
+      const updatedBook = await BookService.getActiveBook();
+      if (updatedBook) {
+        const updatedStory = updatedBook.stories.find(s => s.id === story.id);
         if (updatedStory) {
           console.log('  Updated story found, characters:', updatedStory.characters.length);
           const updatedChar = updatedStory.characters.find(c => c.name === auditionCharacter.name);
           if (updatedChar) {
-            console.log('  Updated character imageGallery length:', (updatedChar as Character).imageGallery?.length);
+            console.log('  Updated character imageGallery length:', updatedChar.imageGallery?.length);
           }
           setCharacters(updatedStory.characters || []);
         }
@@ -176,7 +167,7 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
       console.log('✓ Characters reloaded');
 
       // Notify parent to refresh
-      console.log('Step 7: Calling onStoryUpdate...');
+      console.log('Step 6: Calling onStoryUpdate...');
       onStoryUpdate();
       console.log('✓ onStoryUpdate called');
       

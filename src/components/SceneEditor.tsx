@@ -414,6 +414,43 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     }
   };
 
+  /**
+   * Load character reference images from IndexedDB for characters with selected images
+   */
+  const loadCharacterImages = async (): Promise<string[]> => {
+    if (!story || !currentScene) return [];
+
+    const selectedCharacterNames = currentScene.characters || currentScene.characterIds || [];
+    const selectedCast = availableCharacters.filter(char => 
+      selectedCharacterNames.includes(char.name) || selectedCharacterNames.includes(char.id)
+    );
+
+    const imageUrls: string[] = [];
+    const { ImageStorageService } = await import('../services/ImageStorageService');
+
+    for (const character of selectedCast) {
+      const charWithImages = character as unknown as Character;
+      if (charWithImages.selectedImageId) {
+        try {
+          // Load image from IndexedDB
+          const imageUrl = await ImageStorageService.getCharacterImage(
+            story.id,
+            character.name,
+            charWithImages.selectedImageId
+          );
+          if (imageUrl) {
+            console.log(`✓ Loaded reference image for ${character.name}`);
+            imageUrls.push(imageUrl);
+          }
+        } catch (err) {
+          console.warn(`Failed to load image for ${character.name}:`, err);
+        }
+      }
+    }
+
+    return imageUrls;
+  };
+
   const generatePrompt = async () => {
     if (!story || !currentScene) return '';
 
@@ -475,11 +512,10 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         if (charWithImages.selectedImageId && charWithImages.imageGallery) {
           const selectedImage = charWithImages.imageGallery.find(img => img.id === charWithImages.selectedImageId);
           if (selectedImage) {
-            prompt += `\nREFERENCE IMAGE AVAILABLE: A previously generated image of ${character.name} exists.`;
-            prompt += `\nPlease maintain visual consistency with this character's established appearance:`;
-            prompt += `\n- Generated with: ${selectedImage.model.split('/').pop()}`;
-            prompt += `\n- Original prompt included: "${selectedImage.prompt.substring(0, 100)}..."`;
-            prompt += `\nIMPORTANT: Match the character's appearance, style, and visual characteristics from the reference image.`;
+            prompt += `\nREFERENCE IMAGE PROVIDED: A reference image of ${character.name} is included with this request.`;
+            prompt += `\nPlease maintain exact visual consistency with this character's appearance shown in the reference image.`;
+            prompt += `\nIMPORTANT: Match ALL visual characteristics from the reference image - appearance, style, colors, proportions, and distinctive features.`;
+            prompt += `\nThe character should look identical to the reference, just in this new scene and context.`;
           }
         }
         prompt += `\n\n`;
@@ -614,6 +650,14 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     }
 
     const prompt = await generatePrompt();
+    
+    // Load character reference images
+    console.log('Loading character reference images...');
+    const referenceImages = await loadCharacterImages();
+    if (referenceImages.length > 0) {
+      console.log(`✓ ${referenceImages.length} reference image(s) loaded`);
+    }
+    
     setIsGeneratingImage(true);
     setGeneratedImageUrl(null);
 
@@ -621,7 +665,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       const result = await ImageGenerationService.generateImage({ 
         prompt,
         aspectRatio,
-        model: modelName  // Use the selected model
+        model: modelName,  // Use the selected model
+        referenceImages: referenceImages.length > 0 ? referenceImages : undefined // Include reference images if available
       });
       
       if (result.success && result.imageUrl) {

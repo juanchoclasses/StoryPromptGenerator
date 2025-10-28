@@ -8,7 +8,7 @@
  * - Delete unwanted images
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -29,14 +29,16 @@ import {
   Card,
   CardMedia,
   CardActions,
-  Grid,
   Badge
 } from '@mui/material';
 import {
   Close as CloseIcon,
   CheckCircle as CheckCircleIcon,
   Delete as DeleteIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  Visibility as VisibilityIcon,
+  Upload as UploadIcon,
+  ContentCopy as ContentCopyIcon
 } from '@mui/icons-material';
 import type { Character } from '../models/Story';
 import type { Book } from '../models/Book';
@@ -68,15 +70,15 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
   const [success, setSuccess] = useState<string | null>(null);
   const [galleryImages, setGalleryImages] = useState<Map<string, string>>(new Map());
   const [loadingGallery, setLoadingGallery] = useState(false);
+  
+  // Prompt dialog state
+  const [showPromptDialog, setShowPromptDialog] = useState(false);
+  const [generatedPrompt, setGeneratedPrompt] = useState('');
+  
+  // File upload state
+  const [uploading, setUploading] = useState(false);
 
-  // Load gallery images when dialog opens
-  useEffect(() => {
-    if (open) {
-      loadGallery();
-    }
-  }, [open, character.name]);
-
-  const loadGallery = async () => {
+  const loadGallery = useCallback(async () => {
     setLoadingGallery(true);
     try {
       const images = await CharacterImageService.loadCharacterGallery(storyId, character.name);
@@ -87,7 +89,14 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     } finally {
       setLoadingGallery(false);
     }
-  };
+  }, [storyId, character.name]);
+
+  // Load gallery images when dialog opens
+  useEffect(() => {
+    if (open) {
+      loadGallery();
+    }
+  }, [open, loadGallery]);
 
   const handleGenerateImage = async () => {
     setGenerating(true);
@@ -95,14 +104,14 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     setSuccess(null);
 
     try {
-      // Generate the character image
+      // Generate the character image (always use 1:1 for character portraits)
       const characterImage = await CharacterImageService.generateCharacterImage(
         character,
         storyId,
         storyBackgroundSetup,
         book,
         selectedModel,
-        book.style?.aspectRatio || '1:1'
+        '1:1'
       );
 
       // Add to character's gallery (metadata only)
@@ -164,7 +173,91 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     return character.selectedImageId === imageId;
   };
 
+  const handleViewPrompt = () => {
+    // Build the prompt that would be used for generation
+    const prompt = CharacterImageService.buildCharacterPrompt(
+      character,
+      storyBackgroundSetup,
+      book
+    );
+    setGeneratedPrompt(prompt);
+    setShowPromptDialog(true);
+  };
+
+  const handleCopyPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedPrompt);
+      setSuccess('Prompt copied to clipboard!');
+    } catch {
+      setError('Failed to copy prompt');
+    }
+  };
+
+  const handleUploadImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file');
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      // Create a blob URL from the file
+      const blobUrl = URL.createObjectURL(file);
+
+      // Create character image metadata (without actual generation)
+      const imageId = crypto.randomUUID();
+      const characterImage = {
+        id: imageId,
+        url: blobUrl,
+        model: 'user-uploaded',
+        prompt: `Manual upload by user for ${character.name}`,
+        timestamp: new Date(),
+      };
+
+      // Store in IndexedDB using ImageStorageService
+      const { ImageStorageService } = await import('../services/ImageStorageService');
+      await ImageStorageService.storeCharacterImage(
+        storyId,
+        character.name,
+        imageId,
+        blobUrl,
+        'user-uploaded'
+      );
+
+      // Add to character's gallery
+      CharacterImageService.addImageToGallery(character, characterImage);
+
+      // If this is the first image, auto-select it
+      if (!character.selectedImageId) {
+        CharacterImageService.setSelectedCharacterImage(character, imageId);
+      }
+
+      // Notify parent to save changes
+      onUpdate();
+
+      // Reload gallery
+      await loadGallery();
+
+      setSuccess('Image uploaded successfully!');
+    } catch (err: unknown) {
+      console.error('Failed to upload image:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(`Failed to upload image: ${errorMessage}`);
+    } finally {
+      setUploading(false);
+      // Reset file input
+      event.target.value = '';
+    }
+  };
+
   return (
+    <>
     <Dialog
       open={open}
       onClose={onClose}
@@ -214,9 +307,9 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
         {/* Image Generation Section */}
         <Box mb={3}>
           <Typography variant="subtitle2" gutterBottom>
-            Generate Character Image:
+            Generate or Upload Character Image:
           </Typography>
-          <Box display="flex" gap={2} alignItems="center">
+          <Box display="flex" gap={2} alignItems="center" flexWrap="wrap">
             <FormControl sx={{ minWidth: 300 }}>
               <InputLabel>Model</InputLabel>
               <Select
@@ -238,11 +331,36 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
               onClick={handleGenerateImage}
               disabled={generating}
               startIcon={generating ? <CircularProgress size={20} /> : <RefreshIcon />}
-              sx={{ minWidth: 150 }}
             >
-              {generating ? 'Generating...' : 'Generate Image'}
+              {generating ? 'Generating...' : 'Generate'}
+            </Button>
+
+            <Button
+              variant="outlined"
+              onClick={handleViewPrompt}
+              startIcon={<VisibilityIcon />}
+            >
+              View Prompt
+            </Button>
+
+            <Button
+              variant="outlined"
+              component="label"
+              disabled={uploading}
+              startIcon={uploading ? <CircularProgress size={20} /> : <UploadIcon />}
+            >
+              {uploading ? 'Uploading...' : 'Upload Image'}
+              <input
+                type="file"
+                hidden
+                accept="image/*"
+                onChange={handleUploadImage}
+              />
             </Button>
           </Box>
+          <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
+            Generate with API, view the prompt for external tools, or upload an existing image
+          </Typography>
         </Box>
 
         {/* Error/Success Messages */}
@@ -289,13 +407,21 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
               </Typography>
             </Box>
           ) : (
-            <Grid container spacing={2}>
+            <Box 
+              display="grid" 
+              gridTemplateColumns={{
+                xs: '1fr',
+                sm: 'repeat(2, 1fr)',
+                md: 'repeat(3, 1fr)'
+              }}
+              gap={2}
+            >
               {character.imageGallery.map((img) => {
                 const imageUrl = galleryImages.get(img.id);
                 const selected = isImageSelected(img.id);
 
                 return (
-                  <Grid item xs={12} sm={6} md={4} key={img.id}>
+                  <Box key={img.id}>
                     <Card
                       sx={{
                         position: 'relative',
@@ -357,10 +483,10 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
                         </Typography>
                       </Box>
                     </Card>
-                  </Grid>
+                  </Box>
                 );
               })}
-            </Grid>
+            </Box>
           )}
         </Box>
       </DialogContent>
@@ -369,6 +495,56 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
         <Button onClick={onClose}>Close</Button>
       </DialogActions>
     </Dialog>
+
+    {/* Prompt View Dialog */}
+    <Dialog
+      open={showPromptDialog}
+      onClose={() => setShowPromptDialog(false)}
+      maxWidth="md"
+      fullWidth
+    >
+      <DialogTitle>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6">Character Generation Prompt</Typography>
+          <IconButton onClick={() => setShowPromptDialog(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+      </DialogTitle>
+      <DialogContent dividers>
+        <Typography variant="body2" color="textSecondary" gutterBottom>
+          This is the prompt that will be used to generate the character image. You can copy it to use with other AI tools (Midjourney, Stable Diffusion, etc.)
+        </Typography>
+        <TextField
+          multiline
+          fullWidth
+          value={generatedPrompt}
+          rows={20}
+          variant="outlined"
+          InputProps={{
+            readOnly: true,
+            sx: {
+              fontFamily: 'monospace',
+              fontSize: '0.9rem'
+            }
+          }}
+          sx={{ mt: 2 }}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button
+          onClick={handleCopyPrompt}
+          startIcon={<ContentCopyIcon />}
+          variant="contained"
+        >
+          Copy Prompt
+        </Button>
+        <Button onClick={() => setShowPromptDialog(false)}>
+          Close
+        </Button>
+      </DialogActions>
+    </Dialog>
+    </>
   );
 };
 

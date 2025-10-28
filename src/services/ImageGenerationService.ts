@@ -32,27 +32,66 @@ export class ImageGenerationService {
       console.log('Generating image with model:', model);
       if (options.referenceImages && options.referenceImages.length > 0) {
         console.log(`Including ${options.referenceImages.length} reference image(s)`);
+        options.referenceImages.forEach((img, i) => {
+          console.log(`  Image ${i + 1}: ${img.substring(0, 50)}... (${Math.round(img.length / 1024)}KB)`);
+        });
+      } else {
+        console.log('No reference images (text-only request)');
       }
 
       // Build message content (multi-modal if reference images provided)
       let messageContent;
       if (options.referenceImages && options.referenceImages.length > 0) {
         // Multi-modal: text + images
+        console.log('📸 Building MULTI-MODAL request (text + images)');
         messageContent = [
           {
             type: 'text',
             text: options.prompt
           },
-          ...options.referenceImages.map(imageUrl => ({
-            type: 'image_url',
-            image_url: {
-              url: imageUrl
-            }
-          }))
+          ...options.referenceImages.map((imageUrl, i) => {
+            console.log(`  Adding image ${i + 1} to content array`);
+            return {
+              type: 'image_url',
+              image_url: {
+                url: imageUrl
+              }
+            };
+          })
         ];
+        console.log(`✓ Message content array has ${messageContent.length} items (1 text + ${options.referenceImages.length} images)`);
       } else {
         // Text only
+        console.log('📝 Building TEXT-ONLY request');
         messageContent = options.prompt;
+      }
+
+      // Build request body
+      const requestBody = {
+        model: model,
+        modalities: ['image', 'text'], // Enable image generation
+        messages: [
+          {
+            role: 'user',
+            content: messageContent
+          }
+        ],
+        image_config: {
+          aspect_ratio: options.aspectRatio || '3:4' // Use book's aspect ratio or default to 3:4
+        }
+      };
+
+      // Log request structure (without full image data)
+      console.log('📤 API Request Structure:');
+      console.log('  Model:', requestBody.model);
+      console.log('  Modalities:', requestBody.modalities);
+      console.log('  Aspect Ratio:', requestBody.image_config.aspect_ratio);
+      console.log('  Message content type:', Array.isArray(messageContent) ? 'ARRAY (multi-modal)' : 'STRING (text-only)');
+      if (Array.isArray(messageContent)) {
+        console.log('  Message content items:');
+        messageContent.forEach((item, i) => {
+          console.log(`    [${i}] type: ${item.type}${item.type === 'image_url' ? ' (has image data)' : ''}`);
+        });
       }
 
       const response = await fetch(`${this.OPENROUTER_BASE_URL}/chat/completions`, {
@@ -63,19 +102,7 @@ export class ImageGenerationService {
           'HTTP-Referer': window.location.origin,
           'X-Title': 'Story Prompter - Image Generator'
         },
-        body: JSON.stringify({
-          model: model,
-          modalities: ['image', 'text'], // Enable image generation
-          messages: [
-            {
-              role: 'user',
-              content: messageContent
-            }
-          ],
-          image_config: {
-            aspect_ratio: options.aspectRatio || '3:4' // Use book's aspect ratio or default to 3:4
-          }
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {

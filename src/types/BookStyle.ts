@@ -1,4 +1,5 @@
-import { PanelConfig, DEFAULT_PANEL_CONFIG } from './Book';
+import type { PanelConfig } from './Book';
+import { DEFAULT_PANEL_CONFIG } from './Book';
 
 /**
  * BookStyle defines the visual style guidelines that apply to all stories in a book.

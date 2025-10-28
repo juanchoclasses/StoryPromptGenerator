@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Scene } from './Scene';
-import { ValidationResult } from './Book';
+import type { ValidationResult } from './Book';
 
 /**
  * Character in a story (name-based, no ID)

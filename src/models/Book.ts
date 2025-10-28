@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import { BookStyle, DEFAULT_BOOK_STYLE } from '../types/BookStyle';
+import type { BookStyle } from '../types/BookStyle';
+import { DEFAULT_BOOK_STYLE } from '../types/BookStyle';
 import { Story } from './Story';
 
 /**

@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { Story } from './Story';
-import { ValidationResult } from './Book';
+import type { ValidationResult } from './Book';
 
 /**
  * Generated image metadata (URL stored in IndexedDB)

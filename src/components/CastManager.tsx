@@ -20,11 +20,14 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Person as PersonIcon,
-  ExpandMore as ExpandMoreIcon
+  ExpandMore as ExpandMoreIcon,
+  TheaterComedy as TheaterComedyIcon
 } from '@mui/icons-material';
 import type { Character } from '../models/Story';
 import type { Story } from '../types/Story';
+import type { Book } from '../models/Book';
 import { BookService } from '../services/BookService';
+import { CharacterAuditionDialog } from './CharacterAuditionDialog';
 
 interface CastManagerProps {
   story: Story | null;
@@ -37,14 +40,34 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
   const [characterName, setCharacterName] = useState('');
   const [characterDescription, setCharacterDescription] = useState('');
+  
+  // Character Audition Dialog state
+  const [openAuditionDialog, setOpenAuditionDialog] = useState(false);
+  const [auditionCharacter, setAuditionCharacter] = useState<Character | null>(null);
+  const [activeBook, setActiveBook] = useState<Book | null>(null); // Book instance for audition dialog
 
   useEffect(() => {
     if (story) {
       setCharacters(story.characters || []);
+      // Load active book for audition dialog
+      loadActiveBook();
     } else {
       setCharacters([]);
+      setActiveBook(null);
     }
   }, [story]);
+
+  const loadActiveBook = async () => {
+    try {
+      const bookId = await BookService.getActiveBookId();
+      if (bookId) {
+        const book = await BookService.getBook(bookId);
+        setActiveBook(book);
+      }
+    } catch (error) {
+      console.error('Failed to load active book:', error);
+    }
+  };
 
   const handleAddCharacter = () => {
     if (!story) return;
@@ -59,6 +82,31 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
     setCharacterName(character.name);
     setCharacterDescription(character.description);
     setOpenDialog(true);
+  };
+
+  const handleOpenAudition = (character: Character) => {
+    setAuditionCharacter(character);
+    setOpenAuditionDialog(true);
+  };
+
+  const handleCloseAudition = () => {
+    setOpenAuditionDialog(false);
+    setAuditionCharacter(null);
+  };
+
+  const handleAuditionUpdate = async () => {
+    // Save changes to book after character images are updated
+    if (!story) return;
+    const activeBookData = await BookService.getActiveBookData();
+    if (!activeBookData) return;
+
+    // Find the character in the story and use updated gallery/selectedImageId
+    const updatedStory = activeBookData.stories.find(s => s.id === story.id);
+    if (updatedStory) {
+      setCharacters(updatedStory.characters || []);
+    }
+
+    onStoryUpdate();
   };
 
   const handleDeleteCharacter = async (characterName: string) => {
@@ -229,6 +277,16 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
                     </Typography>
                   </Box>
                   <Box display="flex" gap={1} onClick={(e) => e.stopPropagation()}>
+                    <Tooltip title="Character Audition - Generate images">
+                      <IconButton
+                        component="div"
+                        onClick={() => handleOpenAudition(character)}
+                        color="primary"
+                        size="small"
+                      >
+                        <TheaterComedyIcon />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="Edit character">
                       <IconButton
                         component="div"
@@ -261,6 +319,7 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
         )}
       </Box>
 
+      {/* Character Edit Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
         <DialogTitle>
           {editingCharacter ? 'Edit Character' : 'Add New Character'}
@@ -296,6 +355,19 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Character Audition Dialog */}
+      {auditionCharacter && activeBook && story && (
+        <CharacterAuditionDialog
+          open={openAuditionDialog}
+          character={auditionCharacter}
+          storyId={story.id}
+          storyBackgroundSetup={story.backgroundSetup}
+          book={activeBook}
+          onClose={handleCloseAudition}
+          onUpdate={handleAuditionUpdate}
+        />
+      )}
     </Paper>
   );
 }; 

@@ -330,12 +330,40 @@ class ImageStorageServiceClass {
     await this.ensureReady();
 
     try {
-      // Fetch the image as a blob
-      const response = await fetch(imageUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch image: ${response.status}`);
+      // Convert image URL to blob
+      let blob: Blob;
+      
+      if (imageUrl.startsWith('data:')) {
+        // Data URL - convert directly to blob without fetch (avoid hanging on large data URLs)
+        console.log('Converting data URL to blob (size:', imageUrl.length, 'chars)');
+        const [metadata, base64Data] = imageUrl.split(',');
+        const mimeMatch = metadata.match(/:(.*?);/);
+        const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+        
+        // Decode base64 to binary
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        blob = new Blob([bytes], { type: mimeType });
+        console.log('✓ Data URL converted to blob:', blob.size, 'bytes');
+      } else if (imageUrl.startsWith('blob:')) {
+        // Blob URL - fetch the blob
+        const response = await fetch(imageUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch blob: ${response.status}`);
+        }
+        blob = await response.blob();
+      } else {
+        // HTTP URL - fetch the image
+        const response = await fetch(imageUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch image: ${response.status}`);
+        }
+        blob = await response.blob();
       }
-      const blob = await response.blob();
 
       const fullKey = `${storyId}:${characterName}:${imageId}`;
       const storedImage: StoredCharacterImage = {

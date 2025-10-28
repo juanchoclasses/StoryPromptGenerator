@@ -575,6 +575,62 @@ Implementing character image generation and gallery management system:
 
 ---
 
+## Enhancement: Multi-Modal Character References (Post-Launch)
+
+**Status**: ✅ Complete  
+**Date**: October 28, 2025
+
+### Feature Added
+
+**Multi-Modal Character Image References**
+- **Before**: Text-only references ("REFERENCE IMAGE AVAILABLE")
+- **After**: Actual character images sent to AI with prompt
+- **Benefit**: True visual consistency - AI can actually see the character
+
+### Implementation
+
+1. **ImageGenerationService**:
+   - Added `referenceImages?: string[]` to ImageGenerationOptions
+   - Support multi-modal content format (text + images)
+   - Send character images as `image_url` objects
+   - Fallback to text-only if no images provided
+
+2. **SceneEditor**:
+   - Added `loadCharacterImages()` function
+   - Load images from IndexedDB for characters with selectedImageId
+   - Pass loaded images to ImageGenerationService
+   - Updated prompt text to "REFERENCE IMAGE PROVIDED"
+   - Clearer instructions for visual consistency
+
+3. **Prompt Changes**:
+   - OLD: "REFERENCE IMAGE AVAILABLE: A previously generated image exists..."
+   - NEW: "REFERENCE IMAGE PROVIDED: A reference image is included with this request..."
+   - Emphasis on matching ALL visual characteristics
+
+### Technical Details
+
+Multi-modal request format:
+```json
+{
+  "messages": [{
+    "role": "user",
+    "content": [
+      { "type": "text", "text": "prompt..." },
+      { "type": "image_url", "image_url": { "url": "data:image/png;base64,..." }}
+    ]
+  }]
+}
+```
+
+### Files Modified
+- `src/services/ImageGenerationService.ts`
+- `src/components/SceneEditor.tsx`
+
+### Commit
+- `0f883f3` Add multi-modal character reference images to scene generation
+
+---
+
 **Last Updated**: October 28, 2025
 
 

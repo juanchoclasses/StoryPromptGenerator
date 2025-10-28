@@ -22,27 +22,35 @@ export class CharacterImageService {
     storyBackgroundSetup: string,
     book: Book
   ): string {
-    const bookStylePrompt = formatBookStyleForPrompt(book.style);
+    const bookStylePrompt = book.style ? formatBookStyleForPrompt(book.style) : '';
     
-    return `
-${bookStylePrompt}
-
-Story Context:
-${storyBackgroundSetup}
-
-Character to Generate:
-Name: ${character.name}
-Description: ${character.description}
-
-IMPORTANT REQUIREMENTS:
-1. Generate this character on a plain white background
-2. The character should be clearly visible and well-lit against the white background
-3. Focus on capturing the character's unique features and personality as described
-4. The character should be centered in the image
-5. Show the full character or a clear portrait view
-
-Do not include any text, labels, or scene elements in the image.
-`.trim();
+    let prompt = '';
+    
+    // Add book style if available
+    if (bookStylePrompt && bookStylePrompt.trim()) {
+      prompt += `${bookStylePrompt}\n\n`;
+    }
+    
+    // Add story context if available
+    if (storyBackgroundSetup && storyBackgroundSetup.trim()) {
+      prompt += `Story Context:\n${storyBackgroundSetup}\n\n`;
+    }
+    
+    // Character details (required)
+    prompt += `Character to Generate:\n`;
+    prompt += `Name: ${character.name}\n`;
+    prompt += `Description: ${character.description || 'A character'}\n\n`;
+    
+    // Requirements
+    prompt += `IMPORTANT REQUIREMENTS:\n`;
+    prompt += `1. Generate this character on a plain white background\n`;
+    prompt += `2. The character should be clearly visible and well-lit against the white background\n`;
+    prompt += `3. Focus on capturing the character's unique features and personality as described\n`;
+    prompt += `4. The character should be centered in the image\n`;
+    prompt += `5. Show the full character or a clear portrait view\n\n`;
+    prompt += `Do not include any text, labels, or scene elements in the image.`;
+    
+    return prompt.trim();
   }
 
   /**
@@ -60,14 +68,28 @@ Do not include any text, labels, or scene elements in the image.
     // Build the prompt
     const prompt = this.buildCharacterPrompt(character, storyBackgroundSetup, book);
 
+    // Validate prompt is not empty
+    if (!prompt || prompt.trim().length === 0) {
+      throw new Error('Failed to generate prompt: Character description is required');
+    }
+
     // Generate the image
-    const imageUrl = await ImageGenerationService.generateImage(prompt, model, aspectRatio);
+    const result = await ImageGenerationService.generateImage({
+      prompt,
+      model,
+      aspectRatio
+    });
+
+    // Check for errors
+    if (!result.success || !result.imageUrl) {
+      throw new Error(result.error || 'Failed to generate image');
+    }
 
     // Create character image metadata
     const imageId = uuidv4();
     const characterImage: CharacterImage = {
       id: imageId,
-      url: imageUrl,
+      url: result.imageUrl,
       model,
       prompt,
       timestamp: new Date(),
@@ -78,7 +100,7 @@ Do not include any text, labels, or scene elements in the image.
       storyId,
       character.name,
       imageId,
-      imageUrl,
+      result.imageUrl,
       model
     );
 

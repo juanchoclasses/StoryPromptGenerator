@@ -497,6 +497,54 @@ Implementing character image generation and gallery management system:
 
 ---
 
+## Bug Fixes & Refinements (Post-Launch)
+
+**Status**: ✅ Complete  
+**Time**: 1 hour
+
+### Fixed Issues
+
+1. **Infinite Loading on First Open** ✅
+   - **Issue**: Endless loading spinner when opening dialog for character with no images
+   - **Root Cause**: Dialog tried to load from IndexedDB even when `character.imageGallery` was empty
+   - **Fix**: Added early return if no images exist, skip IndexedDB query entirely
+   - **Files**: `CharacterAuditionDialog.tsx`, `ImageStorageService.ts`
+
+2. **Empty Prompt Error (400)** ✅
+   - **Issue**: OpenRouter API error "Input must have at least 1 token"
+   - **Root Cause**: Prompt could be empty if book.style/storyBackgroundSetup were undefined
+   - **Fix**: 
+     - Added null checks and fallbacks in `buildCharacterPrompt()`
+     - Added validation before API call
+     - Ensured prompt always has at least character name/description
+   - **Files**: `CharacterImageService.ts`
+
+3. **ImageGenerationService API Mismatch** ✅
+   - **Issue**: Type errors - `generateImage()` signature changed
+   - **Root Cause**: Service now uses options object and returns result object
+   - **Fix**: Updated `CharacterImageService` to use new API:
+     - `generateImage({ prompt, model, aspectRatio })`
+     - Check `result.success` and `result.imageUrl`
+     - Proper error handling
+   - **Files**: `CharacterImageService.ts`
+
+4. **MUI v7 Compatibility** ✅
+   - **Issue**: Grid component warnings in gallery
+   - **Fix**: Replaced Grid with Box + `display="grid"`
+   - **Files**: `CharacterAuditionDialog.tsx`
+
+5. **Enhanced User Flexibility** ✅
+   - **Added**: "View Prompt" button for external tool users
+   - **Added**: "Upload Image" button for manual image uploads
+   - **Added**: Prompt display dialog with copy functionality
+   - **Files**: `CharacterAuditionDialog.tsx`
+
+### Commits
+- `7998fda` Fix infinite loading in Character Audition Dialog
+- `[pending]` Fix empty prompt error and API mismatch
+
+---
+
 **Last Updated**: October 28, 2025
 
 

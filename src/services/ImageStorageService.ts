@@ -40,25 +40,34 @@ class ImageStorageServiceClass {
    * Initialize IndexedDB database
    */
   private async initDatabase(): Promise<void> {
+    console.log('>>> initDatabase: Opening IndexedDB', DB_NAME, 'version', DB_VERSION);
+    
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
       request.onerror = () => {
-        console.error('IndexedDB failed to open:', request.error);
+        console.error('✗✗✗ IndexedDB failed to open:', request.error);
         reject(request.error);
+      };
+
+      request.onblocked = () => {
+        console.warn('⚠️ IndexedDB upgrade blocked - close other tabs or windows using this database');
       };
 
       request.onsuccess = () => {
         this.db = request.result;
-        console.log('✓ IndexedDB opened successfully');
+        console.log('✓ IndexedDB opened successfully, version:', this.db.version);
+        console.log('  Available stores:', Array.from(this.db.objectStoreNames));
         resolve();
       };
 
       request.onupgradeneeded = (event) => {
+        console.log('>>> IndexedDB upgrade needed from version', (event as IDBVersionChangeEvent).oldVersion, 'to', DB_VERSION);
         const db = (event.target as IDBOpenDBRequest).result;
         
         // Create scene images object store if it doesn't exist
         if (!db.objectStoreNames.contains(STORE_NAME)) {
+          console.log('  Creating store:', STORE_NAME);
           const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
           objectStore.createIndex('sceneId', 'sceneId', { unique: false });
           objectStore.createIndex('timestamp', 'timestamp', { unique: false });
@@ -67,12 +76,15 @@ class ImageStorageServiceClass {
         
         // Create character images object store if it doesn't exist (v4.1+)
         if (!db.objectStoreNames.contains(CHARACTER_STORE_NAME)) {
+          console.log('  Creating store:', CHARACTER_STORE_NAME);
           const characterStore = db.createObjectStore(CHARACTER_STORE_NAME, { keyPath: 'id' });
           characterStore.createIndex('storyId', 'storyId', { unique: false });
           characterStore.createIndex('characterName', 'characterName', { unique: false });
           characterStore.createIndex('timestamp', 'timestamp', { unique: false });
           console.log('✓ IndexedDB character images store created');
         }
+        
+        console.log('✓ IndexedDB upgrade complete, available stores:', Array.from(db.objectStoreNames));
       };
     });
   }

@@ -415,7 +415,39 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   };
 
   /**
+   * Convert blob URL to base64 data URL
+   */
+  const blobUrlToDataUrl = async (blobUrl: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
+        
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = canvas.toDataURL('image/png');
+        resolve(dataUrl);
+      };
+      
+      img.onerror = () => {
+        reject(new Error('Failed to load image'));
+      };
+      
+      img.src = blobUrl;
+    });
+  };
+
+  /**
    * Load character reference images from IndexedDB for characters with selected images
+   * Converts blob URLs to base64 data URLs for API compatibility
    */
   const loadCharacterImages = async (): Promise<string[]> => {
     if (!story || !currentScene) return [];
@@ -432,18 +464,25 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       const charWithImages = character as unknown as Character;
       if (charWithImages.selectedImageId) {
         try {
-          // Load image from IndexedDB
-          const imageUrl = await ImageStorageService.getCharacterImage(
+          // Load image from IndexedDB (returns blob URL)
+          const blobUrl = await ImageStorageService.getCharacterImage(
             story.id,
             character.name,
             charWithImages.selectedImageId
           );
-          if (imageUrl) {
-            console.log(`✓ Loaded reference image for ${character.name}`);
-            imageUrls.push(imageUrl);
+          
+          if (blobUrl) {
+            console.log(`✓ Loaded blob URL for ${character.name}`);
+            
+            // Convert blob URL to base64 data URL for API
+            console.log(`  Converting to base64...`);
+            const dataUrl = await blobUrlToDataUrl(blobUrl);
+            console.log(`  ✓ Converted to data URL (${Math.round(dataUrl.length / 1024)}KB)`);
+            
+            imageUrls.push(dataUrl);
           }
         } catch (err) {
-          console.warn(`Failed to load image for ${character.name}:`, err);
+          console.warn(`Failed to load/convert image for ${character.name}:`, err);
         }
       }
     }

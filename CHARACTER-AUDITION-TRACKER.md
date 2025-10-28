@@ -539,9 +539,19 @@ Implementing character image generation and gallery management system:
    - **Added**: Prompt display dialog with copy functionality
    - **Files**: `CharacterAuditionDialog.tsx`
 
+6. **Character Images Not Saved to Gallery** ✅
+   - **Issue**: Images generated successfully but didn't appear in gallery after refresh
+   - **Root Cause**: Modified character in memory, but fetched stale book data from storage when saving
+   - **Fix**: 
+     - Copy `imageGallery` and `selectedImageId` from modified character to book data
+     - Save updated book data (not stale data)
+     - Reload UI from saved data
+   - **Files**: `CastManager.tsx`
+
 ### Commits
 - `7998fda` Fix infinite loading in Character Audition Dialog
-- `[pending]` Fix empty prompt error and API mismatch
+- `125769a` Fix empty prompt error and API mismatch
+- `[latest]` Fix character images not being saved to gallery
 
 ---
 

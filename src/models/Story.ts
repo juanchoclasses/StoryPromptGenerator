@@ -3,11 +3,28 @@ import { Scene } from './Scene';
 import type { ValidationResult } from './Book';
 
 /**
+ * Character image metadata
+ * Stores information about generated character images
+ */
+export interface CharacterImage {
+  id: string; // UUID
+  url?: string; // Blob URL (loaded from IndexedDB on demand)
+  model: string; // Model used for generation
+  prompt: string; // Full prompt used for generation
+  timestamp: Date; // When the image was generated
+  width?: number; // Image width
+  height?: number; // Image height
+}
+
+/**
  * Character in a story (name-based, no ID)
  */
 export interface Character {
   name: string;
   description: string;
+  // Character image gallery (v4.1+)
+  imageGallery?: CharacterImage[]; // Array of generated character images
+  selectedImageId?: string; // ID of the currently selected/active image
 }
 
 /**

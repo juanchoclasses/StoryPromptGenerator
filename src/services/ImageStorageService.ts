@@ -6,12 +6,23 @@
  */
 
 const DB_NAME = 'StoryPromptImages';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Incremented for character-images store
 const STORE_NAME = 'images';
+const CHARACTER_STORE_NAME = 'character-images';
 
 interface StoredImage {
   id: string;           // GeneratedImage.id
   sceneId: string;      // Scene ID for cleanup
+  blob: Blob;           // The actual image data
+  timestamp: Date;      // When it was stored
+  modelName: string;    // Which model generated it
+}
+
+interface StoredCharacterImage {
+  id: string;           // Full key: storyId:characterName:imageId
+  storyId: string;      // Story ID for cleanup
+  characterName: string; // Character name for cleanup
+  imageId: string;      // Individual image ID
   blob: Blob;           // The actual image data
   timestamp: Date;      // When it was stored
   modelName: string;    // Which model generated it
@@ -46,12 +57,21 @@ class ImageStorageServiceClass {
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
         
-        // Create object store if it doesn't exist
+        // Create scene images object store if it doesn't exist
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
           objectStore.createIndex('sceneId', 'sceneId', { unique: false });
           objectStore.createIndex('timestamp', 'timestamp', { unique: false });
-          console.log('✓ IndexedDB object store created');
+          console.log('✓ IndexedDB scene images store created');
+        }
+        
+        // Create character images object store if it doesn't exist (v4.1+)
+        if (!db.objectStoreNames.contains(CHARACTER_STORE_NAME)) {
+          const characterStore = db.createObjectStore(CHARACTER_STORE_NAME, { keyPath: 'id' });
+          characterStore.createIndex('storyId', 'storyId', { unique: false });
+          characterStore.createIndex('characterName', 'characterName', { unique: false });
+          characterStore.createIndex('timestamp', 'timestamp', { unique: false });
+          console.log('✓ IndexedDB character images store created');
         }
       };
     });
@@ -282,6 +302,260 @@ class ImageStorageServiceClass {
 
       request.onerror = () => {
         console.error('Failed to clear images:', request.error);
+        reject(request.error);
+      };
+    });
+  }
+
+  // ========================================
+  // Character Image Methods (v4.1+)
+  // ========================================
+
+  /**
+   * Store a character image in IndexedDB
+   * @param storyId Story ID
+   * @param characterName Character name
+   * @param imageId Unique image ID
+   * @param imageUrl URL to fetch the image from (blob:, data:, or http:)
+   * @param modelName Model that generated the image
+   * @returns Promise that resolves when stored
+   */
+  async storeCharacterImage(
+    storyId: string,
+    characterName: string,
+    imageId: string,
+    imageUrl: string,
+    modelName: string
+  ): Promise<void> {
+    await this.ensureReady();
+
+    try {
+      // Fetch the image as a blob
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status}`);
+      }
+      const blob = await response.blob();
+
+      const fullKey = `${storyId}:${characterName}:${imageId}`;
+      const storedImage: StoredCharacterImage = {
+        id: fullKey,
+        storyId,
+        characterName,
+        imageId,
+        blob,
+        timestamp: new Date(),
+        modelName
+      };
+
+      return new Promise((resolve, reject) => {
+        const transaction = this.db!.transaction([CHARACTER_STORE_NAME], 'readwrite');
+        const objectStore = transaction.objectStore(CHARACTER_STORE_NAME);
+        const request = objectStore.put(storedImage);
+
+        request.onsuccess = () => {
+          console.log(`✓ Character image stored: ${characterName}/${imageId} (${blob.size} bytes)`);
+          resolve();
+        };
+
+        request.onerror = () => {
+          console.error('Failed to store character image:', request.error);
+          reject(request.error);
+        };
+      });
+    } catch (error) {
+      console.error('Error storing character image:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Retrieve a character image from IndexedDB
+   * @param storyId Story ID
+   * @param characterName Character name
+   * @param imageId Unique image ID
+   * @returns Blob URL that can be used in <img> src, or null if not found
+   */
+  async getCharacterImage(
+    storyId: string,
+    characterName: string,
+    imageId: string
+  ): Promise<string | null> {
+    await this.ensureReady();
+
+    const fullKey = `${storyId}:${characterName}:${imageId}`;
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([CHARACTER_STORE_NAME], 'readonly');
+      const objectStore = transaction.objectStore(CHARACTER_STORE_NAME);
+      const request = objectStore.get(fullKey);
+
+      request.onsuccess = () => {
+        const storedImage = request.result as StoredCharacterImage | undefined;
+        if (storedImage && storedImage.blob) {
+          const blobUrl = URL.createObjectURL(storedImage.blob);
+          console.log(`✓ Character image retrieved: ${characterName}/${imageId}`);
+          resolve(blobUrl);
+        } else {
+          console.log(`Character image not found: ${characterName}/${imageId}`);
+          resolve(null);
+        }
+      };
+
+      request.onerror = () => {
+        console.error('Failed to retrieve character image:', request.error);
+        reject(request.error);
+      };
+    });
+  }
+
+  /**
+   * Delete a specific character image from IndexedDB
+   * @param storyId Story ID
+   * @param characterName Character name
+   * @param imageId Unique image ID
+   */
+  async deleteCharacterImage(
+    storyId: string,
+    characterName: string,
+    imageId: string
+  ): Promise<void> {
+    await this.ensureReady();
+
+    const fullKey = `${storyId}:${characterName}:${imageId}`;
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([CHARACTER_STORE_NAME], 'readwrite');
+      const objectStore = transaction.objectStore(CHARACTER_STORE_NAME);
+      const request = objectStore.delete(fullKey);
+
+      request.onsuccess = () => {
+        console.log(`✓ Character image deleted: ${characterName}/${imageId}`);
+        resolve();
+      };
+
+      request.onerror = () => {
+        console.error('Failed to delete character image:', request.error);
+        reject(request.error);
+      };
+    });
+  }
+
+  /**
+   * Get all character images for a specific character
+   * @param storyId Story ID
+   * @param characterName Character name
+   * @returns Map of imageId -> blobUrl
+   */
+  async getAllCharacterImages(
+    storyId: string,
+    characterName: string
+  ): Promise<Map<string, string>> {
+    await this.ensureReady();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([CHARACTER_STORE_NAME], 'readonly');
+      const objectStore = transaction.objectStore(CHARACTER_STORE_NAME);
+      const index = objectStore.index('characterName');
+      const request = index.openCursor(IDBKeyRange.only(characterName));
+
+      const imageMap = new Map<string, string>();
+
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+        if (cursor) {
+          const storedImage = cursor.value as StoredCharacterImage;
+          // Only include images for this specific story
+          if (storedImage.storyId === storyId) {
+            const blobUrl = URL.createObjectURL(storedImage.blob);
+            imageMap.set(storedImage.imageId, blobUrl);
+          }
+          cursor.continue();
+        } else {
+          console.log(`✓ Loaded ${imageMap.size} images for character: ${characterName}`);
+          resolve(imageMap);
+        }
+      };
+
+      request.onerror = () => {
+        console.error('Failed to get character images:', request.error);
+        reject(request.error);
+      };
+    });
+  }
+
+  /**
+   * Delete all images for a specific character
+   * @param storyId Story ID
+   * @param characterName Character name
+   */
+  async deleteAllCharacterImages(
+    storyId: string,
+    characterName: string
+  ): Promise<void> {
+    await this.ensureReady();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([CHARACTER_STORE_NAME], 'readwrite');
+      const objectStore = transaction.objectStore(CHARACTER_STORE_NAME);
+      const index = objectStore.index('characterName');
+      const request = index.openCursor(IDBKeyRange.only(characterName));
+
+      let deleteCount = 0;
+
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+        if (cursor) {
+          const storedImage = cursor.value as StoredCharacterImage;
+          // Only delete images for this specific story
+          if (storedImage.storyId === storyId) {
+            objectStore.delete(cursor.primaryKey);
+            deleteCount++;
+          }
+          cursor.continue();
+        } else {
+          console.log(`✓ Deleted ${deleteCount} images for character: ${characterName}`);
+          resolve();
+        }
+      };
+
+      request.onerror = () => {
+        console.error('Failed to delete character images:', request.error);
+        reject(request.error);
+      };
+    });
+  }
+
+  /**
+   * Delete all character images for a specific story
+   * Useful for cleanup when a story is deleted
+   * @param storyId Story ID
+   */
+  async deleteCharacterImagesForStory(storyId: string): Promise<void> {
+    await this.ensureReady();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([CHARACTER_STORE_NAME], 'readwrite');
+      const objectStore = transaction.objectStore(CHARACTER_STORE_NAME);
+      const index = objectStore.index('storyId');
+      const request = index.openCursor(IDBKeyRange.only(storyId));
+
+      let deleteCount = 0;
+
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+        if (cursor) {
+          objectStore.delete(cursor.primaryKey);
+          deleteCount++;
+          cursor.continue();
+        } else {
+          console.log(`✓ Deleted ${deleteCount} character images for story: ${storyId}`);
+          resolve();
+        }
+      };
+
+      request.onerror = () => {
+        console.error('Failed to delete character images for story:', request.error);
         reject(request.error);
       };
     });

@@ -41,7 +41,7 @@ import {
 import type { Character } from '../models/Story';
 import type { Book } from '../models/Book';
 import { CharacterImageService } from '../services/CharacterImageService';
-import { IMAGE_GENERATION_MODELS } from '../constants/imageModels';
+import { IMAGE_MODELS } from '../constants/imageModels';
 
 interface CharacterAuditionDialogProps {
   open: boolean;
@@ -62,7 +62,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
   onClose,
   onUpdate
 }) => {
-  const [selectedModel, setSelectedModel] = useState(IMAGE_GENERATION_MODELS[0].id);
+  const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS[0].value);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -225,9 +225,9 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
                 onChange={(e) => setSelectedModel(e.target.value)}
                 disabled={generating}
               >
-                {IMAGE_GENERATION_MODELS.map((model) => (
-                  <MenuItem key={model.id} value={model.id}>
-                    {model.name}
+                {IMAGE_MODELS.map((model) => (
+                  <MenuItem key={model.value} value={model.value}>
+                    {model.label}
                   </MenuItem>
                 ))}
               </Select>

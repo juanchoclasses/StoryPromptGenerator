@@ -21,6 +21,7 @@ export interface SceneExchangeFormat {
   textPanel?: string;
   characters: string[];  // Character names (not IDs)
   elements: string[];    // Element names (not IDs)
+  imageHistory?: GeneratedImage[]; // Generated images for this scene
 }
 
 /**
@@ -183,15 +184,33 @@ export class Scene {
   }
 
   /**
-   * Convert to JSON export format (excludes image history and internal IDs)
+   * Convert to JSON export format for file export
    */
-  toJSON(): SceneExchangeFormat {
+  toExportJSON(): SceneExchangeFormat {
     return {
       title: this.title,
       description: this.description,
       textPanel: this.textPanel,
       characters: [...this.characters],
-      elements: [...this.elements]
+      elements: [...this.elements],
+      imageHistory: this.imageHistory ? [...this.imageHistory] : []
+    };
+  }
+
+  /**
+   * toJSON is used by JSON.stringify for storage - keep all fields including id
+   */
+  toJSON() {
+    return {
+      id: this.id,
+      title: this.title,
+      description: this.description,
+      textPanel: this.textPanel,
+      characters: this.characters,
+      elements: this.elements,
+      imageHistory: this.imageHistory,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt
     };
   }
 
@@ -204,7 +223,8 @@ export class Scene {
       description: data.description,
       textPanel: data.textPanel,
       characters: data.characters || [],
-      elements: data.elements || []
+      elements: data.elements || [],
+      imageHistory: data.imageHistory || []
     });
   }
 }

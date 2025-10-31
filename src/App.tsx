@@ -20,6 +20,7 @@ import { SceneList } from './components/SceneList';
 import { SceneEditor } from './components/SceneEditor';
 import { StoriesPanel } from './components/StoriesPanel';
 import { CastManager } from './components/CastManager';
+import { BookCastManager } from './components/BookCastManager';
 import { ElementsManager } from './components/ElementsManager';
 import { FileManager } from './components/FileManager';
 import { VersionInfo } from './components/VersionInfo';
@@ -30,6 +31,7 @@ import { ImageStorageService } from './services/ImageStorageService';
 import type { Scene, Story, GeneratedImage } from './types/Story';
 import type { StoryData } from './types/Story';
 import { BookService } from './services/BookService';
+import type { Book } from './models/Book';
 
 const theme = createTheme({
   palette: {
@@ -54,6 +56,7 @@ function App() {
   const imageClearHandlerRef = useRef<(() => void) | null>(null);
   const [storyDescription, setStoryDescription] = useState('');
   const [bookData, setBookData] = useState<StoryData | null>(null);
+  const [activeBook, setActiveBook] = useState<Book | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const handleStorySelect = (story: Story | null) => {
@@ -251,8 +254,10 @@ function App() {
   // Book management
   const handleBookSelect = async (bookId: string) => {
     const data = await BookService.getBookData(bookId);
+    const book = await BookService.getBook(bookId);
     if (data) {
       setBookData(data);
+      setActiveBook(book);
       setSelectedStory(null);
       setSelectedScene(null);
       setStoryTitle('');
@@ -266,7 +271,9 @@ function App() {
     const activeBookId = await BookService.getActiveBookId();
     if (activeBookId) {
       const data = await BookService.getBookData(activeBookId);
+      const book = await BookService.getBook(activeBookId);
       setBookData(data);
+      setActiveBook(book);
     }
   };
 
@@ -279,8 +286,17 @@ function App() {
     loadData();
   }, []);
 
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = async (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
+    
+    // Reload book data when switching to Book Characters tab to pick up any changes
+    if (newValue === 1) {
+      const activeBookId = await BookService.getActiveBookId();
+      if (activeBookId) {
+        const book = await BookService.getBook(activeBookId);
+        setActiveBook(book);
+      }
+    }
   };
 
   const navigateToStoryEditor = () => {
@@ -318,6 +334,7 @@ function App() {
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs value={activeTab} onChange={handleTabChange}>
             <Tab label="Books" />
+            <Tab label="Book Characters" disabled={!bookData} />
             <Tab label="Stories" disabled={!bookData} />
             <Tab label="Story Editor" disabled={!selectedStory} />
             <Tab label="Story Characters" disabled={!selectedStory} />
@@ -335,7 +352,16 @@ function App() {
           </Box>
         )}
 
-        {activeTab === 1 && bookData && (
+        {activeTab === 1 && activeBook && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <BookCastManager
+              book={activeBook}
+              onBookUpdate={handleBookUpdate}
+            />
+          </Box>
+        )}
+
+        {activeTab === 2 && bookData && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <StoriesPanel
               key={refreshKey}
@@ -347,7 +373,7 @@ function App() {
           </Box>
         )}
 
-        {activeTab === 2 && selectedStory && (
+        {activeTab === 3 && selectedStory && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Story Title and Description */}
             <Box sx={{ 
@@ -428,7 +454,7 @@ function App() {
           </Box>
         )}
 
-        {activeTab === 3 && selectedStory && (
+        {activeTab === 4 && selectedStory && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <CastManager
               story={selectedStory}
@@ -437,7 +463,7 @@ function App() {
           </Box>
         )}
 
-        {activeTab === 4 && selectedStory && (
+        {activeTab === 5 && selectedStory && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <ElementsManager
               story={selectedStory}
@@ -446,7 +472,7 @@ function App() {
           </Box>
         )}
 
-        {activeTab === 5 && (
+        {activeTab === 6 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <AboutPanel />
           </Box>

@@ -21,7 +21,8 @@ import {
   Delete as DeleteIcon,
   Person as PersonIcon,
   ExpandMore as ExpandMoreIcon,
-  TheaterComedy as TheaterComedyIcon
+  TheaterComedy as TheaterComedyIcon,
+  ArrowUpward as ArrowUpwardIcon
 } from '@mui/icons-material';
 import type { Character } from '../models/Story';
 import type { Story } from '../types/Story';
@@ -45,6 +46,9 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
   const [openAuditionDialog, setOpenAuditionDialog] = useState(false);
   const [auditionCharacter, setAuditionCharacter] = useState<Character | null>(null);
   const [activeBook, setActiveBook] = useState<Book | null>(null); // Book instance for audition dialog
+
+  // Promote to Book state
+  const [promoting, setPromoting] = useState(false);
 
   useEffect(() => {
     if (story) {
@@ -205,6 +209,35 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
     }
   };
 
+  const handlePromoteToBook = async (character: Character) => {
+    if (!story || !activeBook) return;
+
+    if (!window.confirm(
+      `Promote "${character.name}" to book level?\n\n` +
+      `This character will become available to all stories in "${activeBook.title}".`
+    )) {
+      return;
+    }
+
+    setPromoting(true);
+    try {
+      const result = await BookService.promoteCharacterToBook(activeBook.id, story.id, character.name);
+      
+      if (result.success) {
+        console.log(`✓ Successfully promoted "${character.name}" to book level`);
+        // Refresh the story data
+        onStoryUpdate();
+      } else {
+        alert(`Failed to promote character: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error promoting character:', error);
+      alert(`Error promoting character: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setPromoting(false);
+    }
+  };
+
   const handleSaveCharacter = async () => {
     if (!story) return;
     const activeBookData = await BookService.getActiveBookData();
@@ -353,6 +386,16 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
                         size="small"
                       >
                         <TheaterComedyIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Promote to book-level character">
+                      <IconButton
+                        component="div"
+                        onClick={() => handlePromoteToBook(character)}
+                        size="small"
+                        disabled={promoting}
+                      >
+                        <ArrowUpwardIcon />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Edit character">

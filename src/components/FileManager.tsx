@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -25,11 +25,13 @@ import {
   Upload as UploadIcon,
   Book as BookIcon,
   Settings as SettingsIcon,
-  Palette as PaletteIcon
+  Palette as PaletteIcon,
+  Folder as FolderIcon,
+  FolderOpen as FolderOpenIcon
 } from '@mui/icons-material';
-import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { FormControl, InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
 import { BookService } from '../services/BookService';
-import { MigrationService } from '../services/MigrationService';
+import { BookExportWithImagesService } from '../services/BookExportWithImagesService';
 import type { BookMetadata, PanelConfig } from '../types/Book';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 import type { BookStyle } from '../types/BookStyle';
@@ -65,86 +67,12 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
-  const [hasMigrated, setHasMigrated] = useState(false);
-
-  const migrateExistingData = useCallback(async () => {
-    // Check for various possible localStorage keys that might contain story data
-    const possibleKeys = ['story-data-v2', 'story-data', 'storyData'];
-    let existingData = null;
-    let dataKey = null;
-    
-    for (const key of possibleKeys) {
-      const data = localStorage.getItem(key);
-      if (data) {
-        existingData = data;
-        dataKey = key;
-        break;
-      }
-    }
-    
-    if (existingData) {
-      try {
-        const rawData = JSON.parse(existingData);
-        
-        // Use migration service to handle the data
-        const migrationResult = MigrationService.migrateData(rawData);
-        
-        if (migrationResult.success) {
-          // Check if there are already books in the collection
-          const collection = await BookService.getBookCollection();
-          let bookTitle = 'My First Book';
-          let bookDescription = 'Migrated from existing story data';
-          
-          // If there are already books, use a different title
-          if (collection.books.length > 0) {
-            bookTitle = 'Migrated Story Data';
-            bookDescription = 'Migrated from existing story data';
-          }
-          
-          // Create a new book with the migrated data
-          const newBook = await BookService.createBook(bookTitle, bookDescription);
-          
-          // Save the migrated data to the new book
-          await BookService.saveBookData(newBook.id, migrationResult.data);
-          
-          // Set as active book
-          await BookService.setActiveBook(newBook.id);
-          
-          // Reload books list
-          await loadBooks();
-          
-          // Remove the old data
-          if (dataKey) {
-            localStorage.removeItem(dataKey);
-          }
-          
-          showSnackbar('Existing story data migrated to your first book!', 'success');
-        } else {
-          console.error('Migration failed:', migrationResult.errors);
-          showSnackbar('Failed to migrate existing data', 'error');
-        }
-      } catch (error) {
-        console.error('Error migrating existing data:', error);
-        showSnackbar('Error migrating existing data', 'error');
-      }
-    }
-  }, []);
+  const [exportingBookId, setExportingBookId] = useState<string | null>(null);
+  const [importingBook, setImportingBook] = useState(false);
 
   useEffect(() => {
     loadBooks();
-    // Check for existing story-data-v2 and migrate if needed
-    if (!hasMigrated) {
-      migrateExistingData();
-      setHasMigrated(true);
-    }
-  }, [hasMigrated, migrateExistingData]);
-
-  const fixBookStatistics = async () => {
-    // This function is deprecated in v4.0 as statistics are calculated on-demand
-    // Keeping for backward compatibility
-    await loadBooks();
-    showSnackbar('Book statistics are now calculated automatically', 'success');
-  };
+  }, []);
 
   const loadBooks = async () => {
     const collection = await BookService.getBookCollection();
@@ -255,10 +183,47 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showSnackbar('Book exported successfully', 'success');
+      showSnackbar('Book exported successfully (JSON only)', 'success');
     } catch (error) {
       console.error('Error exporting book:', error);
       showSnackbar('Failed to export book', 'error');
+    }
+  };
+
+  const handleExportBookWithImages = async (bookId: string) => {
+    try {
+      setExportingBookId(bookId);
+      
+      // Get book to create filename
+      const book = await BookService.getBook(bookId);
+      if (!book) {
+        showSnackbar('Book not found', 'error');
+        return;
+      }
+
+      // Export the book with all images
+      const result = await BookExportWithImagesService.exportBookWithImages(bookId);
+      
+      if (!result.success || !result.blob) {
+        showSnackbar(result.error || 'Failed to export book with images', 'error');
+        return;
+      }
+
+      // Download the ZIP file
+      const filename = BookExportWithImagesService.generateExportFilename(book.title);
+      BookExportWithImagesService.downloadBlob(result.blob, filename);
+      
+      const stats = result.stats;
+      const sizeMB = stats ? (stats.totalSize / (1024 * 1024)).toFixed(2) : '?';
+      showSnackbar(
+        `Book exported with ${stats?.sceneImages || 0} scene images and ${stats?.characterImages || 0} character images (${sizeMB} MB)`,
+        'success'
+      );
+    } catch (error) {
+      console.error('Error exporting book with images:', error);
+      showSnackbar('Failed to export book with images', 'error');
+    } finally {
+      setExportingBookId(null);
     }
   };
 
@@ -276,13 +241,54 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
             await BookService.importBook(content);
             await loadBooks();
             onBookUpdate();
-            showSnackbar('Book imported successfully', 'success');
+            showSnackbar('Book imported successfully (JSON only)', 'success');
           } catch (error) {
             console.error('Error importing book:', error);
             showSnackbar('Failed to import book. Please check the file format.', 'error');
           }
         };
         reader.readAsText(file);
+      }
+    };
+    input.click();
+  };
+
+  const handleImportBookWithImages = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.zip';
+    input.onchange = async (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (file) {
+        try {
+          setImportingBook(true);
+          
+          // Import the book with images
+          const result = await BookExportWithImagesService.importBookWithImages(file);
+          
+          if (!result.success) {
+            showSnackbar(result.error || 'Failed to import book with images', 'error');
+            return;
+          }
+
+          await loadBooks();
+          onBookUpdate();
+          
+          const stats = result.stats;
+          let message = `Book imported with ${stats?.sceneImages || 0} scene images and ${stats?.characterImages || 0} character images`;
+          
+          if (result.warnings && result.warnings.length > 0) {
+            message += ` (${result.warnings.length} warnings - check console)`;
+            console.warn('Import warnings:', result.warnings);
+          }
+          
+          showSnackbar(message, 'success');
+        } catch (error) {
+          console.error('Error importing book with images:', error);
+          showSnackbar('Failed to import book with images', 'error');
+        } finally {
+          setImportingBook(false);
+        }
       }
     };
     input.click();
@@ -364,34 +370,25 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
         <Typography variant="h5" component="h2">
           Books
         </Typography>
-        <Box>
-          <Tooltip title="Import Book">
+        <Box display="flex" gap={1}>
+          <Tooltip title="Import Book (JSON only)">
             <IconButton onClick={handleImportBook} color="primary">
               <UploadIcon />
             </IconButton>
           </Tooltip>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              setHasMigrated(false);
-              migrateExistingData();
-            }}
-            sx={{ ml: 1 }}
-          >
-            Migrate Old Data
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={fixBookStatistics}
-            sx={{ ml: 1 }}
-          >
-            Fix Statistics
-          </Button>
+          <Tooltip title="Import Book with Images (ZIP)">
+            <IconButton 
+              onClick={handleImportBookWithImages} 
+              color="primary"
+              disabled={importingBook}
+            >
+              {importingBook ? <CircularProgress size={24} /> : <FolderOpenIcon />}
+            </IconButton>
+          </Tooltip>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setOpenCreateDialog(true)}
-            sx={{ ml: 1 }}
           >
             New Book
           </Button>
@@ -466,7 +463,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
                       </Box>
                     </Box>
                     <Box display="flex" gap={1}>
-                      <Tooltip title="Export Book">
+                      <Tooltip title="Export Book (JSON only)">
                         <IconButton
                           size="small"
                           onClick={(e) => {
@@ -475,6 +472,22 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
                           }}
                         >
                           <DownloadIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Export Book with Images (ZIP)">
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleExportBookWithImages(book.id);
+                          }}
+                          disabled={exportingBookId === book.id}
+                        >
+                          {exportingBookId === book.id ? (
+                            <CircularProgress size={20} />
+                          ) : (
+                            <FolderIcon />
+                          )}
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Edit Book Metadata">

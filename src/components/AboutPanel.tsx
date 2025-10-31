@@ -206,7 +206,6 @@ export const AboutPanel: React.FC = () => {
 │   └── VersionInfo.tsx        # Version display
 ├── services/           # Business logic and data management
 │   ├── BookService.ts         # Book and data management
-│   ├── MigrationService.ts    # Data version migration
 │   └── PromptService.ts       # Prompt management
 ├── types/             # TypeScript type definitions
 │   ├── Book.ts               # Book-related types

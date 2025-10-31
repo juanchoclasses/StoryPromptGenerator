@@ -3,13 +3,32 @@
     "title": "CS-100: Data Structures for Beginners",
     "description": "An introduction to fundamental computer science concepts including recursion, stacks, and queues, taught through whimsical storytelling and vivid imagery.",
     "backgroundSetup": "This book takes place in a magical realm where learning and imagination intertwine—a fantastical world where the laws of physics bend cheerfully, and knowledge blooms like wildflowers. Every location exists in a dimension where gravity is merely a suggestion, angles are delightfully askew, and colors are impossibly vibrant.\n\nVisual World Guidelines:\nThe entire world has a hand-painted, storybook quality with visible brushstrokes and playful imperfections that add charm. Buildings, trees, and objects lean, twist, and spiral organically, never quite standing perfectly straight. Shadows are soft and colorful rather than dark, often tinted with complementary hues (purple shadows, blue-green shadows, pink-orange shadows).\n\nArchitecture throughout this world features impossible geometry—towers that narrow at the base and widen at the top, staircases that loop back on themselves, doorways of unexpected shapes. Structures are built from oversized, whimsical materials: stacked books, giant pencils, enormous gears, and candy-striped beams.\n\nColor Palette Guidance:\nFavor a jewel-toned palette with pops of pastel. Think emerald greens, ruby reds, sapphire blues, and amethyst purples, balanced with soft peaches, mint greens, butter yellows, and sky blues. Avoid muddy or dull colors—everything should feel bright and optimistic, even in shadows.\n\nRecurring Visual Motifs:\nThroughout all scenes, you'll find floating mathematical symbols that drift like dandelion seeds, spiral patterns appearing in unexpected places, and whimsical creatures representing abstract concepts. The sky often contains multiple small suns or moons in playful arrangements. Plants and trees have exaggerated, curling forms with leaves shaped like gears, lightbulbs, question marks, and other symbols of thought and learning.\n\nAtmospheric Elements:\nThe air itself seems to shimmer with potential, occasionally showing faint sparkles of \"idea dust.\" Gravity allows for floating objects, suspended platforms, and characters who can bounce extraordinarily high. Scale is playfully inconsistent—a mushroom might tower overhead while a tree stands waist-high.\n\nCharacter Integration:\nAll characters in this world should feel at home in this environment—equally whimsical, with exaggerated proportions, expressive features, and the ability to interact impossibly with their surroundings. They should move with energy and enthusiasm, their body language always communicating wonder and curiosity.",
-    "aspectRatio": "9:16",
+    "aspectRatio": "3:4",
     "style": {
       "colorPalette": "Jewel-toned palette with pops of pastel: emerald greens, ruby reds, sapphire blues, amethyst purples, balanced with soft peaches, mint greens, butter yellows, and sky blues",
       "visualTheme": "Whimsical, educational, hand-painted storybook quality with visible brushstrokes and playful imperfections",
       "characterStyle": "Exaggerated proportions, expressive features, energetic and enthusiastic body language, ability to interact impossibly with surroundings",
       "environmentStyle": "Impossible geometry with lean, twist, and spiral; oversized whimsical materials; soft colorful shadows; floating objects and suspended platforms",
-      "artStyle": "Hand-painted storybook quality with visible brushstrokes, playful imperfections, and charm"
+      "artStyle": "comic-book",
+      "panelConfig": {
+        "fontFamily": "Comic Sans MS",
+        "fontSize": 24,
+        "textAlign": "left",
+        "widthPercentage": 90,
+        "heightPercentage": 15,
+        "autoHeight": true,
+        "position": "bottom-center",
+        "backgroundColor": "#57e5e2",
+        "fontColor": "#0d0c0c",
+        "borderColor": "#ffffff",
+        "borderWidth": 2,
+        "borderRadius": 8,
+        "padding": 20,
+        "gutterTop": 0,
+        "gutterBottom": 0,
+        "gutterLeft": 0,
+        "gutterRight": 0
+      }
     }
   },
   "stories": [
@@ -21,52 +40,293 @@
       },
       "characters": [
         {
+          "id": "Professor Fizzwinkle",
           "name": "Professor Fizzwinkle",
-          "description": ", a towering woman with a gravity-defying swirl of bright pink hair that reaches for the sky. She wears spectacles perched on her long, bendy nose, and a lab coat adorned with a chaotic collection of oversized, clunky buttons and pockets from which various peculiar gadgets protrude. Her arms are long and noodle-like, often gesturing wildly as she explains complex concepts. Her expression is one of enthusiastic, slightly bewildered brilliance, always with a twinkle in her eye and a wide, friendly smile. She moves with an energetic, bouncy gait, as if she has springs in her elongated,"
+          "description": ", a towering woman with a gravity-defying swirl of bright pink hair that reaches for the sky. She wears spectacles perched on her long, bendy nose, and a lab coat adorned with a chaotic collection of oversized, clunky buttons and pockets from which various peculiar gadgets protrude. Her arms are long and noodle-like, often gesturing wildly as she explains complex concepts. Her expression is one of enthusiastic, slightly bewildered brilliance, always with a twinkle in her eye and a wide, friendly smile. She moves with an energetic, bouncy gait, as if she has springs in her elongated,",
+          "imageGallery": [
+            {
+              "id": "253d454b-2830-4562-98da-f92af2332114",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "670e617c-b23a-447b-86bc-f8dfb51cf09c",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "89ddae20-aab0-407c-9c24-c8530daca6a5",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "ac2054d4-cf88-41e9-b4d1-9beaa8ec60e3",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "b8aff59f-7d85-4d01-89a0-1a1c8476932b",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "c10f567c-6b6b-48e2-bcd6-65294e2fc334",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "c5be0c51-203a-4fa3-9bb0-fbd5eccfcf6b",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "c70e70f0-1c2f-442a-bde3-f016db49259e",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "c954111a-d34a-4247-9fdc-f2d04df2d086",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "fa797db7-97bb-4219-aff1-d9f2269511be",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            }
+          ],
+          "selectedImageId": "253d454b-2830-4562-98da-f92af2332114"
         },
         {
+          "id": "Student Eager Noodler",
           "name": "Student Eager Noodler",
-          "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes."
+          "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes.",
+          "imageGallery": [
+            {
+              "id": "0a948875-ec25-4084-9502-2f32e6401c9e",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "0dbc3f9b-95be-49b1-aa0e-42b9c0b5d5b3",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "2b8e3d15-3b5a-426c-ae2f-fa9f52299406",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "a8cacf8f-5403-4f4a-b3c8-44905cea33f7",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            }
+          ],
+          "selectedImageId": "0a948875-ec25-4084-9502-2f32e6401c9e"
         },
         {
+          "id": "student Thoughtful Giggler",
           "name": "student Thoughtful Giggler",
-          "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet."
+          "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet.",
+          "imageGallery": [
+            {
+              "id": "01e85fe6-f099-40d0-a799-85636a5f0aaa",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "70e92028-171e-4aa2-a7ad-a8abd5a371ef",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "9ca789d7-db93-4d8a-8f81-214347a6ba78",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "9e95eda4-228c-4044-adf7-3fe9fd308d2b",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            }
+          ],
+          "selectedImageId": "01e85fe6-f099-40d0-a799-85636a5f0aaa"
         },
         {
+          "id": "Student Zippy Zapper",
           "name": "Student Zippy Zapper",
-          "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'"
+          "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'",
+          "imageGallery": [
+            {
+              "id": "47744b39-9d63-42ab-af73-48a11e3537ad",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "983aad8a-65d6-4cee-9094-802cc4525d44",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "a1226bd8-4668-45c6-bf64-28e6290bcfff",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "ca8244a2-927a-4e5f-95ed-a8e7c82ecc42",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            }
+          ],
+          "selectedImageId": "47744b39-9d63-42ab-af73-48a11e3537ad"
         },
         {
+          "id": "Student Quiet observer",
           "name": "Student Quiet observer",
-          "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook."
+          "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook.",
+          "imageGallery": [
+            {
+              "id": "07ef9943-c16d-4776-a000-37ffaf49305d",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "bbb3de86-34c8-425d-b039-38903e397b43",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "cb01bd7b-d2da-440c-a7e0-7d4099a38b34",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "e822ab3a-0c52-407a-9ffb-09c52ce1b2d7",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            }
+          ],
+          "selectedImageId": "07ef9943-c16d-4776-a000-37ffaf49305d"
         },
         {
+          "id": "Host",
           "name": "Host",
-          "description": "a small, nimble creature with a body like a question mark rendered in bright orange and green stripes. Its head is a single, enormous, inquisitive eye that swivels constantly, taking in every detail. It has tiny, impossibly fast legs that end in springy coils, allowing it to bounce and zip around. From its back sprouts a single, long, curly arm that often points emphatically or holds a tiny, shimmering pointer. The Explainer-of-Things communicates through enthusiastic squeaks and whistles, often appearing from behind objects or out of thin air to clarify a point or introduce a new concept with an eager, helpful demeanor"
+          "description": "a small, nimble creature with a body like a question mark rendered in bright orange and green stripes. Its head is a single, enormous, inquisitive eye that swivels constantly, taking in every detail. It has tiny, impossibly fast legs that end in springy coils, allowing it to bounce and zip around. From its back sprouts a single, long, curly arm that often points emphatically or holds a tiny, shimmering pointer. The Explainer-of-Things communicates through enthusiastic squeaks and whistles, often appearing from behind objects or out of thin air to clarify a point or introduce a new concept with an eager, helpful demeanor",
+          "imageGallery": [
+            {
+              "id": "11771af0-d27e-44e2-aad2-6aadded3b7ae",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "2768cac8-f060-474f-8998-744a69e86355",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "484041c8-3b2f-4421-b3e3-39e1e931c39a",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "c3f1e67f-b75a-41e2-96f8-527d01e041cc",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            }
+          ],
+          "selectedImageId": "11771af0-d27e-44e2-aad2-6aadded3b7ae"
+        },
+        {
+          "id": "Jack The young Professor",
+          "name": "Jack The young Professor",
+          "description": "Frazzled Professor of unusual disposition with a big floppy hat and concerning beard.  He wears headphones and is bouncing around to the tune of a music.  his pockets are overflowing with electronig gadgets.  he is usually surrounded by a cadre of robots.",
+          "imageGallery": [
+            {
+              "id": "99168ca7-3bcc-4758-bc92-7381da31077c",
+              "model": "google/gemini-2.5-flash-image",
+              "prompt": "Visual Theme: Whimsical, educational, hand-painted storybook quality with visible brushstrokes and playful imperfections\nArt Style: comic-book\nColor Palette: Jewel-toned palette with pops of pastel: emerald greens, ruby reds, sapphire blues, amethyst purples, balanced with soft peaches, mint greens, butter yellows, and sky blues\nCharacter Style: Exaggerated proportions, expressive features, energetic and enthusiastic body language, ability to interact impossibly with surroundings\nEnvironment Style: Impossible geometry with lean, twist, and spiral; oversized whimsical materials; soft colorful shadows; floating objects and suspended platforms\n\nStory Context:\nThe University of Curiosity, where students learn about fundamental data structures through hands-on demonstrations and magical visualizations. The university features specialized halls for each concept, including the Hall of Stacks (vertical organization) and the Hall of Queues (horizontal organization).\n\nCharacter to Generate:\nName: Jack The young Professor\nDescription: Frazzled Professor of unusual disposition with a big floppy hat and concerning beard.  He wears headphones and is bouncing around to the tune of a music.  his pockets are overflowing with electronig gadgets.  he is usually surrounded by a cadre of robots.\n\nIMPORTANT REQUIREMENTS:\n1. Generate this character on a plain white background\n2. The character should be clearly visible and well-lit against the white background\n3. Focus on capturing the character's unique features and personality as described\n4. The character should be centered in the image\n5. Show the full character or a clear portrait view\n\nDo not include any text, labels, or scene elements in the image.",
+              "timestamp": "2025-10-29T22:20:05.616Z"
+            },
+            {
+              "id": "0b47c4c9-8cc7-4b6f-8f4e-bc4aa4565522",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "8ba0ea94-9521-4716-910c-fa6d69009ada",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            },
+            {
+              "id": "b922ff30-fbaf-4142-9aa6-2e70f1628346",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:23:55.545Z"
+            }
+          ],
+          "selectedImageId": "99168ca7-3bcc-4758-bc92-7381da31077c"
         }
       ],
       "elements": [
         {
+          "id": "Classroom setting",
           "name": "Classroom setting",
           "description": "a classroom not bound by walls, but nestled in a whimsical clearing. Giant, candy-striped 'Thought-Trees' with leaves shaped like gears and lightbulbs provide dappled shade. Instead of desks, there are comfy, mushroom-shaped seating pods in various bright colors, each with a small, swiveling 'Idea-Screen' that floats magically in front of it. The chalkboard is a colossal, self-erasing 'Knowledge-Slate' propped on two wiggly, green stilts, adorned with glowing mathematical symbols. In the background, peculiar, spiral-shaped learning devices whir and hum softly. The ground is a patchwork of spongy, rainbow-colored moss, and cheerful, winged 'Logic-Bugs' flit between the Thought-Trees, occasionally landing to observe the lesson.",
           "category": "Rooms"
         },
         {
+          "id": "University entrance",
           "name": "University entrance",
           "description": "A grand, gloriously crooked archway that seems to lean slightly to the left, as if excited to welcome newcomers. The arch is constructed from stacked, oversized books in every color imaginable—crimson reds, sunshine yellows, deep purples, and brilliant blues—each spine embossed with golden, nonsensical titles like \"Thinkology Volume IX\" and \"The Art of Wondering Why.\"\nFlanking the entrance are two towering, spiral-striped columns that twist upward like candy canes, topped with enormous, brass bells that chime melodiously when curious thoughts pass beneath them. Between the columns dangles a cheerful banner reading \"Welcome to the University of Curiosity!\" in bouncing, hand-painted letters.\nThe pathway leading to the entrance is paved with smooth, rainbow-hued stepping stones, each one slightly bouncy underfoot. On either side of the path grow peculiar \"Welcome-Flowers\"—tall stalks with blooms shaped like tiny mortarboards that bob and wave as if nodding hello. Whimsical lamp posts shaped like elongated question marks illuminate the path, their bulbs glowing with a warm, inviting amber light.\nIn the background, you can glimpse the university's fantastical spires and turrets, all leaning at impossible angles, with windows that shimmer like stained glass kaleidoscopes. Floating pennants drift lazily through the air above, emblazoned with gears, lightbulbs, and other symbols of learning.",
           "category": "Rooms"
         },
         {
+          "id": "Hall of stacks",
           "name": "Hall of stacks",
           "description": "\n\nThe hallway gleams with polished, rainbow-striped tiles that seem to ripple underfoot, each one slightly bouncy as if eager to propel curious students forward. Tall, spiral-twisted columns line the corridor, each topped with floating bronze plaques displaying famous quotes about organization and order, though the words occasionally rearrange themselves in playful new patterns.\n\nAt the far end of the hall stands the magnificent entrance to the Hall of Stacks—a towering doorway framed by actual stacks of colorful, oversized books that impossibly balance one atop another, rising ten feet high on either side. Each book spine glows softly with titles like \"The Joy of LIFO,\" \"Last In, First Out for Beginners,\" and \"The Fundamental Stack Chronicles.\" The books occasionally shift and reorganize themselves with quiet whispers, demonstrating their own stack-like behavior.\n\nThe door itself is a marvel—constructed from gleaming copper plates arranged in ascending size, each plate engraved with intricate patterns of plates stacking upon plates, creating a recursive visual that seems to go on forever. At eye level, a brass doorknob shaped like a small tower of pancakes invites visitors to enter.\n\nAbove the entrance, suspended in mid-air by some enchantment of learning, floats an elegant sign carved from swirling amber wood. It reads \"Hall of Stacks - Where Last In is Always First Out!\" The letters themselves are stacked vertically, and as you watch, the top letter occasionally pops off and floats to the back of the line, perfectly demonstrating the principle within.\n\nOn either side of the entrance, ornate lamp posts cast warm, golden light. Each lamp is topped not with a traditional bulb, but with a miniature stack of glowing plates that pulses gently—the top plate brightest, demonstrating that the most recently added is always the most accessible.\n\nYour host stands just outside this entrance, one hand gesturing welcomingly toward the door while the other points emphatically at a small, elegant podium beside the entrance. On this podium sits a demonstration stack of rainbow-colored disks, each slightly smaller than the one below, all arranged on a golden spindle. Occasionally, the top disk lifts itself, hovers for a moment as if considering its options, then settles back down—a perfect, silent advertisement for the wonders that await within.\n\nThe very air around the entrance seems to hum with the gentle sound of organization—soft clicks and satisfying clinks, like well-ordered dishes being stacked after a delightful meal. Faint wisps of glittering \"comprehension dust\" drift from beneath the door, promising enlightenment to all who enter.\n\n-",
           "category": "Rooms"
         },
         {
+          "id": "Hall of Queues",
           "name": "Hall of Queues",
           "description": "\n\nFurther down the bouncy rainbow corridor, past three gently humming alcoves and around a corner that curves in a most agreeable spiral, lies the entrance to the Hall of Queues—a doorway that seems to stretch sideways rather than upward, emphasizing the orderly, patient procession that defines its purpose.\n\nThe entrance is framed by two magnificent sculptures: on the left, a bronze line of eager students frozen mid-step, each one slightly ahead of the one behind, their faces alight with anticipation. On the right, the same students emerge, satisfied and enlightened, having each received their turn. The sculptures seem to shimmer and shift ever so slightly, as if the queue is perpetually, patiently moving forward.\n\nThe doorway itself is wide and welcoming, constructed from smooth, flowing ribbons of polished silver and sky-blue glass that curve gracefully from one side to the other. These ribbons are arranged in perfect parallel lines, each one entering from the left and exiting on the right, creating a mesmerizing visual of orderly flow. Within the glass ribbons, tiny golden spheres travel slowly from left to right, each following the one before it at a respectful, even distance—a perpetual demonstration of \"First In, First Out.\"\n\nAbove the entrance hangs a long, horizontal banner made of silk in gentle gradient colors—starting with soft lavender on the left and transitioning to warm peach on the right. Embroidered in elegant flowing script, it declares: \"Hall of Queues - Where First In is Always First Out!\" The letters themselves form a perfect line, each one patiently waiting its turn to be read.\n\nFlanking the doorway are two curious lamp posts, but instead of standing straight, they arch gracefully, leaning toward each other to form a welcoming gateway. Each lamp contains not a single bulb but a string of small, glowing orbs arranged in a line within a transparent tube. As you watch, a new orb appears at one end, travels smoothly through the queue of lights, and gently exits the other end, casting a warm glow before fading—constantly demonstrating the principle of queues in motion.\n\nAt ground level, on either side of the entrance, decorative planters hold the most peculiar plants: \"Queue Vines\" with leaves that grow in perfect sequential order along their stems, each leaf slightly more developed than the one before it. The newest leaf buds emerge at the back, while the oldest, wisest leaves reach toward the entrance, having earned their place at the front through patient waiting.\n\nYour host stands beside a charming demonstration table positioned strategically near the entrance. On it, a transparent tunnel sits at a slight incline, and inside, a cheerful procession of different-colored marbles waits in perfect single file. Every few moments, the marble at the front rolls gently out and down a little ramp (accompanied by a delightful *tink!*), while a new marble of a different color joins the back of the queue. A small brass plaque on the table reads: \"Join the back, leave from the front—that's the queue way!\"\n\nThe air here feels different from the Hall of Stacks—less about vertical energy and more about horizontal flow. There's a gentle, forward-moving breeze, carrying with it the soft sound of footsteps proceeding in order, the patient rustle of organized waiting, and the satisfied sighs of those who've reached the front of the line. Occasionally, you hear a faint, melodious voice counting: \"One, two, three...\"\n\nNear the base of the door, a whimsical sign made of linked wooden chain-links reads: \"Please form an orderly queue to enter the Hall of Queues!\" And indeed, even the cobblestones leading to the entrance are arranged in a subtle arrow pattern, gently encouraging all visitors to approach in proper sequence.\n\nWisps of shimmering \"orderly mist\" drift from beneath the door—pale blue and silver, moving in smooth, sequential waves rather than chaotic swirls. It seems to whisper: \"First come, first served... patience is a virtue... everyone gets their turn...\"\n\n",
           "category": "Rooms"
         },
         {
+          "id": "Final Stage",
           "name": "Final Stage",
           "description": "\n\n\nAt the very end of the winding, wonderful corridors of the University of Curiosity, the hallway opens dramatically into a vast, circular plaza bathed in warm, golden afternoon light that streams through a magnificent domed ceiling of stained glass. Each pane depicts a different concept learned—stacks, queues, trees, and more—all swirling together in a celebratory dance of knowledge.\n\nIn the center of this plaza rises the Farewell Stage, an elegant circular platform that seems to hover just inches above the ground, rotating ever so slowly to ensure everyone in the audience gets a perfect view. The stage itself is crafted from polished rainbow-hued wood that shifts through gentle gradients of color—starting with the deep purple of new beginnings on one side and flowing through to the bright gold of accomplished understanding on the other.\n\nThe stage is framed by a magnificent arch constructed from intertwined representations of all the data structures: stacks of books forming one pillar, a flowing queue of students forming the other, with binary tree branches meeting at the apex in a perfect embrace of learning. Tiny lights wink and twinkle throughout the arch like stars of comprehension.\n\nAt the back of the stage, a grand curved backdrop rises gracefully, painted with a stunning mural of the entire university campus viewed from above—every hall, every tower, every impossible angle and delightful spiral visible in miniature. But the truly magical part is that the painted students in the mural occasionally wave, and the painted doors open and close softly, as if the entire university is alive and wishing everyone well.\n\nThe stage floor is inlaid with concentric circles of different materials—copper, silver, gold, and platinum—each representing a level of understanding achieved. Where the cast members stand, the floor is warmest and brightest, symbolizing their role as guides and teachers. Musical notes seem to float up from the stage boards themselves, creating a gentle, congratulatory melody that needs no instruments.\n\nSurrounding the stage, arranged in a perfect semi-circle, are the audience viewing areas: rows of comfortable, cushioned seats shaped like opened books, each one adjusting itself automatically to provide the perfect viewing angle. The seats are arranged in gentle tiers that curve upward and outward, creating an amphitheater effect where everyone can see clearly, no matter where they sit.\n\nOverhead, suspended by what can only be described as \"threads of understanding,\" float hundreds of small, glowing lanterns shaped like lightbulbs—the universal symbol of ideas and epiphanies. As the farewell unfolds, these lanterns glow brighter, and some even drift down gently into the audience, as if knowledge itself is being shared one last time.\n\nOn either side of the stage stand two magnificent podiums, each topped with an elegant brass bell. These are the \"Bells of Completion\"—when rung at the end of the presentation, they produce not just sound, but visible ripples of rainbow light that spread outward through the plaza, touching each audience member with a warm, tingling sensation of accomplishment.\n\nThe stage apron (the front edge) is decorated with a continuous banner that reads in flowing, cheerful script: \"The more that you learn, the more places you'll go!\" The letters seem to dance and shimmer, occasionally rearranging themselves into new encouraging phrases: \"Knowledge is a journey!\" \"Every ending is a beginning!\" \"Come back soon!\"\n\nAt the very corners of the stage sit four whimsical \"Farewell Fountains\"—small, ornate structures where instead of water, bubbles of pure, iridescent light rise upward, each bubble containing a tiny symbol: a stack, a queue, a smiling face, a waving hand. The bubbles drift up into the air and pop softly, releasing tiny sparkles that smell faintly of peppermint and possibility.\n\nBehind the stage, a grand staircase curves down and away, leading back out to the university entrance. This staircase is carpeted in plush velvet that changes color with each step—a rainbow gradient that symbolizes the journey from arrival to departure, from confusion to clarity, from question to answer.\n\nThe air in this plaza is filled with the gentle sound of applause waiting to happen, the rustle of pages closing on a well-read book, and the satisfied sighs of learning completed. Occasionally, you hear the distant, cheerful sound of other classes beginning elsewhere in the university—a reminder that while this journey ends, countless others continue.\n\nAbove the stage, in elegant floating letters that seem made of condensed cloud and sunshine, hover the words: \"Thank you for learning with us! Until we meet again in the halls of curiosity!\"\n\n",
           "category": "Rooms"
@@ -108,11 +368,11 @@
           "description": "The teacher is holding a plate in their hand and about to put it on a stack of plates that is precariously balancing on one foot that is held up in the air.  The other foot is on the floor and the whole arrangement is looking precarious.\n\nThe students are standing back in amazement.",
           "textPanel": "A stack is a pile, a tower so tall,\nWhere the last thing you add is the first one to fall.\nPush plates on top, they go up one by one,\nBut pop from the top when your dinner is done!",
           "characters": [
-            "Professor Fizzwinkle",
             "Student Eager Noodler",
             "student Thoughtful Giggler",
             "Student Zippy Zapper",
-            "Student Quiet observer"
+            "Student Quiet observer",
+            "Jack The young Professor"
           ],
           "elements": [
             "Classroom setting"
@@ -123,11 +383,11 @@
           "description": "The teacher has a stack of pancakes on the table in front of them.  They are eating the top one with happy look on their face",
           "textPanel": "Like pancakes you stack on a Saturday morn,\nThe top one you eat is the last one you've born.\nYou can't grab the bottom, that wouldn't be nice,\nSo Last-In-First-Out is our stack's sound advice!",
           "characters": [
-            "Professor Fizzwinkle",
             "Student Eager Noodler",
             "student Thoughtful Giggler",
             "Student Zippy Zapper",
-            "Student Quiet observer"
+            "Student Quiet observer",
+            "Jack The young Professor"
           ],
           "elements": [
             "Classroom setting"
@@ -138,11 +398,11 @@
           "description": "two of the students are holding up a stack of books, one of the others is holding a ladder and the last student is at the top reading the book on the top of the stack.  the teacher is standing back aghast",
           "textPanel": "Think of books in a stack reaching up to the sky,\nThe one on the top is the first one you'll pry.\nYou push and you pop from the very same end,\nThat's how a stack works, my dear little friend!",
           "characters": [
-            "Professor Fizzwinkle",
             "Student Eager Noodler",
             "student Thoughtful Giggler",
             "Student Zippy Zapper",
-            "Student Quiet observer"
+            "Student Quiet observer",
+            "Jack The young Professor"
           ],
           "elements": [
             "Classroom setting"
@@ -231,7 +491,9 @@
           "textPanel": "One's like a stack of plates piled up high,\nThe other's a line where you patiently wait by.\nA stack pops the top, a queue serves the first,\nChoose the wrong one and your program is cursed!",
           "characters": [
             "Professor Fizzwinkle",
-            "Student Quiet observer"
+            "Student Quiet observer",
+            "Jack The young Professor",
+            "Student Zippy Zapper"
           ],
           "elements": [
             "Classroom setting"
@@ -245,7 +507,8 @@
             "Student Eager Noodler",
             "student Thoughtful Giggler",
             "Student Zippy Zapper",
-            "Student Quiet observer"
+            "Student Quiet observer",
+            "Jack The young Professor"
           ],
           "elements": [
             "Classroom setting"
@@ -261,7 +524,8 @@
             "Student Zippy Zapper",
             "Student Quiet observer",
             "Professor Fizzwinkle",
-            "Host"
+            "Host",
+            "Jack The young Professor"
           ],
           "elements": [
             "Final Stage"
@@ -277,7 +541,8 @@
             "Student Eager Noodler",
             "student Thoughtful Giggler",
             "Student Zippy Zapper",
-            "Student Quiet observer"
+            "Student Quiet observer",
+            "Jack The young Professor"
           ],
           "elements": [
             "Final Stage"
@@ -292,96 +557,293 @@
       },
       "characters": [
         {
+          "id": "Manager Four",
           "name": "Manager Four",
-          "description": "A tall, enthusiastic character wearing a hard hat shaped like the number \"4\" with a factorial symbol (!) on top. She has four arms (because she's \"four\"!), each holding different tools: a speaking tube, a multiplication wrench, an order clipboard, and a celebration banner. Her vest is covered in badges showing \"4×3×2×1\" and she wears glasses shaped like multiplication signs. Her expression is eager and leadership-oriented—she starts the whole process! Her body is slightly squared (like the number 4) but bouncy and energetic. She's colored in bold ruby red with gold accents."
+          "description": "A tall, enthusiastic character wearing a hard hat shaped like the number \"4\" with a factorial symbol (!) on top. She has four arms (because she's \"four\"!), each holding different tools: a speaking tube, a multiplication wrench, an order clipboard, and a celebration banner. Her vest is covered in badges showing \"4×3×2×1\" and she wears glasses shaped like multiplication signs. Her expression is eager and leadership-oriented—she starts the whole process! Her body is slightly squared (like the number 4) but bouncy and energetic. She's colored in bold ruby red with gold accents.",
+          "imageGallery": [
+            {
+              "id": "da73527f-4f3a-42eb-9a4d-0b9bbf564319",
+              "model": "google/gemini-2.5-flash-image",
+              "prompt": "Visual Theme: Whimsical, educational, hand-painted storybook quality with visible brushstrokes and playful imperfections\nArt Style: Hand-painted storybook quality with visible brushstrokes, playful imperfections, and charm\nColor Palette: Jewel-toned palette with pops of pastel: emerald greens, ruby reds, sapphire blues, amethyst purples, balanced with soft peaches, mint greens, butter yellows, and sky blues\nCharacter Style: Exaggerated proportions, expressive features, energetic and enthusiastic body language, ability to interact impossibly with surroundings\nEnvironment Style: Impossible geometry with lean, twist, and spiral; oversized whimsical materials; soft colorful shadows; floating objects and suspended platforms\n\nStory Context:\nThe Factorial Factory is a vertical, whimsical building where each floor represents a level of recursion in calculating factorials. The factory has four main levels (4, 3, 2, and 1), connected by colorful speaking tubes that allow managers to communicate between floors. Each level has its own personality, with oversized gears, multiplication machines, and glowing numbers. The architecture is playfully impossible—staircases that spiral in impossible directions, conveyor belts that defy gravity, and walls covered in glowing mathematical equations. The color palette features jewel tones (ruby red for Level 4, emerald green for Level 3, sapphire blue for Level 2, and golden for Level 1) with cheerful lighting and floating number sprites. Everything has a hand-painted, storybook quality with visible brushstrokes and whimsical details. The factory demonstrates how recursion works: each level receives a problem, delegates part of it downward, waits for the answer to come back up, and then completes its own calculation.\n\nCharacter to Generate:\nName: Manager Four\nDescription: A tall, enthusiastic character wearing a hard hat shaped like the number \"4\" with a factorial symbol (!) on top. She has four arms (because she's \"four\"!), each holding different tools: a speaking tube, a multiplication wrench, an order clipboard, and a celebration banner. Her vest is covered in badges showing \"4×3×2×1\" and she wears glasses shaped like multiplication signs. Her expression is eager and leadership-oriented—she starts the whole process! Her body is slightly squared (like the number 4) but bouncy and energetic. She's colored in bold ruby red with gold accents.\n\nIMPORTANT REQUIREMENTS:\n1. Generate this character on a plain white background\n2. The character should be clearly visible and well-lit against the white background\n3. Focus on capturing the character's unique features and personality as described\n4. The character should be centered in the image\n5. Show the full character or a clear portrait view\n\nDo not include any text, labels, or scene elements in the image.",
+              "timestamp": "2025-10-28T17:28:03.811Z"
+            },
+            {
+              "id": "bfb1ffcf-d1be-4797-969b-456177cc15b2",
+              "model": "google/gemini-2.5-flash-image",
+              "prompt": "Visual Theme: Whimsical, educational, hand-painted storybook quality with visible brushstrokes and playful imperfections\nArt Style: Hand-painted storybook quality with visible brushstrokes, playful imperfections, and charm\nColor Palette: Jewel-toned palette with pops of pastel: emerald greens, ruby reds, sapphire blues, amethyst purples, balanced with soft peaches, mint greens, butter yellows, and sky blues\nCharacter Style: Exaggerated proportions, expressive features, energetic and enthusiastic body language, ability to interact impossibly with surroundings\nEnvironment Style: Impossible geometry with lean, twist, and spiral; oversized whimsical materials; soft colorful shadows; floating objects and suspended platforms\n\nStory Context:\nThe Factorial Factory is a vertical, whimsical building where each floor represents a level of recursion in calculating factorials. The factory has four main levels (4, 3, 2, and 1), connected by colorful speaking tubes that allow managers to communicate between floors. Each level has its own personality, with oversized gears, multiplication machines, and glowing numbers. The architecture is playfully impossible—staircases that spiral in impossible directions, conveyor belts that defy gravity, and walls covered in glowing mathematical equations. The color palette features jewel tones (ruby red for Level 4, emerald green for Level 3, sapphire blue for Level 2, and golden for Level 1) with cheerful lighting and floating number sprites. Everything has a hand-painted, storybook quality with visible brushstrokes and whimsical details. The factory demonstrates how recursion works: each level receives a problem, delegates part of it downward, waits for the answer to come back up, and then completes its own calculation.\n\nCharacter to Generate:\nName: Manager Four\nDescription: A tall, enthusiastic character wearing a hard hat shaped like the number \"4\" with a factorial symbol (!) on top. She has four arms (because she's \"four\"!), each holding different tools: a speaking tube, a multiplication wrench, an order clipboard, and a celebration banner. Her vest is covered in badges showing \"4×3×2×1\" and she wears glasses shaped like multiplication signs. Her expression is eager and leadership-oriented—she starts the whole process! Her body is slightly squared (like the number 4) but bouncy and energetic. She's colored in bold ruby red with gold accents.\n\nIMPORTANT REQUIREMENTS:\n1. Generate this character on a plain white background\n2. The character should be clearly visible and well-lit against the white background\n3. Focus on capturing the character's unique features and personality as described\n4. The character should be centered in the image\n5. Show the full character or a clear portrait view\n\nDo not include any text, labels, or scene elements in the image.",
+              "timestamp": "2025-10-28T17:28:16.479Z"
+            },
+            {
+              "id": "95a5997d-185a-4358-8a96-045fce89674c",
+              "model": "google/gemini-2.5-flash-image",
+              "prompt": "Visual Theme: Whimsical, educational, hand-painted storybook quality with visible brushstrokes and playful imperfections\nArt Style: Hand-painted storybook quality with visible brushstrokes, playful imperfections, and charm\nColor Palette: Jewel-toned palette with pops of pastel: emerald greens, ruby reds, sapphire blues, amethyst purples, balanced with soft peaches, mint greens, butter yellows, and sky blues\nCharacter Style: Exaggerated proportions, expressive features, energetic and enthusiastic body language, ability to interact impossibly with surroundings\nEnvironment Style: Impossible geometry with lean, twist, and spiral; oversized whimsical materials; soft colorful shadows; floating objects and suspended platforms\n\nStory Context:\nThe Factorial Factory is a vertical, whimsical building where each floor represents a level of recursion in calculating factorials. The factory has four main levels (4, 3, 2, and 1), connected by colorful speaking tubes that allow managers to communicate between floors. Each level has its own personality, with oversized gears, multiplication machines, and glowing numbers. The architecture is playfully impossible—staircases that spiral in impossible directions, conveyor belts that defy gravity, and walls covered in glowing mathematical equations. The color palette features jewel tones (ruby red for Level 4, emerald green for Level 3, sapphire blue for Level 2, and golden for Level 1) with cheerful lighting and floating number sprites. Everything has a hand-painted, storybook quality with visible brushstrokes and whimsical details. The factory demonstrates how recursion works: each level receives a problem, delegates part of it downward, waits for the answer to come back up, and then completes its own calculation.\n\nCharacter to Generate:\nName: Manager Four\nDescription: A tall, enthusiastic character wearing a hard hat shaped like the number \"4\" with a factorial symbol (!) on top. She has four arms (because she's \"four\"!), each holding different tools: a speaking tube, a multiplication wrench, an order clipboard, and a celebration banner. Her vest is covered in badges showing \"4×3×2×1\" and she wears glasses shaped like multiplication signs. Her expression is eager and leadership-oriented—she starts the whole process! Her body is slightly squared (like the number 4) but bouncy and energetic. She's colored in bold ruby red with gold accents.\n\nIMPORTANT REQUIREMENTS:\n1. Generate this character on a plain white background\n2. The character should be clearly visible and well-lit against the white background\n3. Focus on capturing the character's unique features and personality as described\n4. The character should be centered in the image\n5. Show the full character or a clear portrait view\n\nDo not include any text, labels, or scene elements in the image.",
+              "timestamp": "2025-10-28T17:28:28.063Z"
+            },
+            {
+              "id": "3cd9f67b-37e9-444a-8b4d-152b43c8db7b",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "3ff5f64d-5399-4737-ada5-f5efbc1cd825",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "9fa33adc-1ae0-4d86-b8b0-e27f9fb54097",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "ab856b1e-1ac9-4e01-a957-71bd11323339",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "c68d21d1-75a3-4cf4-a2bc-cabb367ba18f",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            }
+          ],
+          "selectedImageId": "95a5997d-185a-4358-8a96-045fce89674c"
         },
         {
+          "id": "Manager Three",
           "name": "Manager Three",
-          "description": "A medium-height character with three ponytails that bounce when she moves, each ponytail decorated with a small gear. Her hard hat is shaped like the number \"3\" and glows softly. She has three eyes arranged in a triangle on her face (whimsical style—not creepy!), allowing her to watch three directions at once: above (Level 4), her own work, and below (Level 2). She wears a jumpsuit with three pockets and carries a three-pronged tool for managing her multiplication machine. Her body has gentle curves like the number 3. She's colored in emerald green with silver accents. She's focused and efficient, like a middle manager keeping the chain going."
+          "description": "A medium-height character with three ponytails that bounce when she moves, each ponytail decorated with a small gear. Her hard hat is shaped like the number \"3\" and glows softly. She has three eyes arranged in a triangle on her face (whimsical style—not creepy!), allowing her to watch three directions at once: above (Level 4), her own work, and below (Level 2). She wears a jumpsuit with three pockets and carries a three-pronged tool for managing her multiplication machine. Her body has gentle curves like the number 3. She's colored in emerald green with silver accents. She's focused and efficient, like a middle manager keeping the chain going.",
+          "imageGallery": [
+            {
+              "id": "4e1f8c70-9366-4663-99d4-334d9c87c8ce",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "707e6780-ce5d-4a9f-b862-eedb571bcca5",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "cbb043f1-4d47-4cf5-8818-5739a4e866cd",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            }
+          ],
+          "selectedImageId": "4e1f8c70-9366-4663-99d4-334d9c87c8ce"
         },
         {
+          "id": "Manager Two",
           "name": "Manager Two",
-          "description": "A character with a body shaped like two stacked circles (like a snowman but only two parts), making him literally look like the number \"2\". His hard hat has two antennae with small lights on top. He has two tools always in hand: a speaking horn and a multiplication calculator. His outfit is a two-tone uniform: half sapphire blue, half sky blue, split down the middle. He wears goggles with two lenses that can swivel independently. His expression is friendly and methodical—he knows he's close to the base case and maintains steady focus. He has two mechanical hands that can spin independently like gears."
+          "description": "A character with a body shaped like two stacked circles (like a snowman but only two parts), making him literally look like the number \"2\". His hard hat has two antennae with small lights on top. He has two tools always in hand: a speaking horn and a multiplication calculator. His outfit is a two-tone uniform: half sapphire blue, half sky blue, split down the middle. He wears goggles with two lenses that can swivel independently. His expression is friendly and methodical—he knows he's close to the base case and maintains steady focus. He has two mechanical hands that can spin independently like gears.",
+          "imageGallery": [
+            {
+              "id": "7d0bedc5-6e9a-4061-9d52-624222d1ba48",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "a38896a5-0a62-4bdd-bfd6-9132088ac2ab",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "f75cca99-11d5-4069-9151-ce4969df7c6d",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            }
+          ],
+          "selectedImageId": "7d0bedc5-6e9a-4061-9d52-624222d1ba48"
         },
         {
+          "id": "Manager One",
           "name": "Manager One",
-          "description": "A small but MIGHTY character who stands on a glowing pedestal, making her seem more important than her size suggests. She's shaped like the number \"1\"—tall, thin, and perfectly straight, but with a large round head and a big smile. She wears a golden crown-shaped hard hat with \"BASE CASE\" written on it. Unlike the other managers, she has a special glowing aura because she's the ONLY one who can answer without help. Her outfit is completely golden with amethyst purple accents. She carries a stamp that says \"1! = 1\" which she uses with great pride and authority. She has one big tool belt with one perfect tool. Her expression is confident and foundational—she KNOWS she's essential! Single antenna on her hat glows like a lighthouse."
+          "description": "A small but MIGHTY character who stands on a glowing pedestal, making her seem more important than her size suggests. She's shaped like the number \"1\"—tall, thin, and perfectly straight, but with a large round head and a big smile. She wears a golden crown-shaped hard hat with \"BASE CASE\" written on it. Unlike the other managers, she has a special glowing aura because she's the ONLY one who can answer without help. Her outfit is completely golden with amethyst purple accents. She carries a stamp that says \"1! = 1\" which she uses with great pride and authority. She has one big tool belt with one perfect tool. Her expression is confident and foundational—she KNOWS she's essential! Single antenna on her hat glows like a lighthouse.",
+          "imageGallery": [
+            {
+              "id": "3faad8a1-1a24-4648-b5ae-e9a69ca09c48",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "486b021b-7d38-4585-9eb8-fe5266d0cbf7",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "f651216b-abfa-4de1-8c34-be1cb17d4646",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            }
+          ],
+          "selectedImageId": "3faad8a1-1a24-4648-b5ae-e9a69ca09c48"
         },
         {
+          "id": "The Number Sprites",
           "name": "The Number Sprites",
-          "description": "Small, floating helpers that carry the answers between levels. Each sprite looks like its number (a \"1\" sprite, a \"2\" sprite, a \"6\" sprite, and a \"24\" sprite), but with tiny wings, smiling faces, and sparkle trails. They're translucent and glow in their respective colors. The \"1\" sprite is tiny and golden. The \"2\" sprite is slightly bigger. The \"6\" sprite is medium-sized. The \"24\" sprite is the largest and most elaborate, covered in celebration sparkles. They don't speak but communicate through cheerful chimes and musical tones."
+          "description": "Small, floating helpers that carry the answers between levels. Each sprite looks like its number (a \"1\" sprite, a \"2\" sprite, a \"6\" sprite, and a \"24\" sprite), but with tiny wings, smiling faces, and sparkle trails. They're translucent and glow in their respective colors. The \"1\" sprite is tiny and golden. The \"2\" sprite is slightly bigger. The \"6\" sprite is medium-sized. The \"24\" sprite is the largest and most elaborate, covered in celebration sparkles. They don't speak but communicate through cheerful chimes and musical tones.",
+          "imageGallery": [
+            {
+              "id": "c08012ba-8541-46c4-803f-b3b9644827d2",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "c43faf23-6091-4bbb-8597-90cc8373cc3f",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "e63fb365-495b-4422-94c7-d09592cdb69e",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            }
+          ],
+          "selectedImageId": "c08012ba-8541-46c4-803f-b3b9644827d2"
         },
         {
+          "id": "The Calc-U-Trons",
           "name": "The Calc-U-Trons",
-          "description": "Each level has its own personality-filled multiplication machine (not quite characters, but animated and expressive). They have faces made of dials and displays, arms made of conveyor belts, and they light up and make happy whirring sounds when calculating. Each machine is decorated with its level's number and has a personality matching its manager—the Level 4 machine is enthusiastic and hasty, Level 3's is efficient and precise, Level 2's is steady and methodical, and Level 1's is simple but proud, with a sign that says \"NO MULTIPLICATION NEEDED - BASE CASE!\""
+          "description": "Each level has its own personality-filled multiplication machine (not quite characters, but animated and expressive). They have faces made of dials and displays, arms made of conveyor belts, and they light up and make happy whirring sounds when calculating. Each machine is decorated with its level's number and has a personality matching its manager—the Level 4 machine is enthusiastic and hasty, Level 3's is efficient and precise, Level 2's is steady and methodical, and Level 1's is simple but proud, with a sign that says \"NO MULTIPLICATION NEEDED - BASE CASE!\"",
+          "imageGallery": [
+            {
+              "id": "38607392-6270-4bd1-801a-e5539e4a4193",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "85dc1979-c88b-421e-a52f-28c1a19456d2",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "98fc2511-6b8a-410f-9edf-900a98d3e045",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            }
+          ],
+          "selectedImageId": "38607392-6270-4bd1-801a-e5539e4a4193"
         },
         {
+          "id": "Professor Factorial",
           "name": "Professor Factorial",
-          "description": "A wise, elderly character with a beard shaped like a factorial symbol (!). Wears a top hat with the recursive formula \"n! = n × (n-1)!\" written around the brim. Has a pocket watch that runs backwards and forwards simultaneously. Carries a pointer shaped like an arrow (→) to show the flow of recursion. Dressed in a professorial coat covered in mathematical patches and medals. Has kind, twinkling eyes behind spiral-shaped spectacles. Sometimes appears at different levels, sometimes shows up in the margins—a guide who helps explain what's happening."
+          "description": "A wise, elderly character with a beard shaped like a factorial symbol (!). Wears a top hat with the recursive formula \"n! = n × (n-1)!\" written around the brim. Has a pocket watch that runs backwards and forwards simultaneously. Carries a pointer shaped like an arrow (→) to show the flow of recursion. Dressed in a professorial coat covered in mathematical patches and medals. Has kind, twinkling eyes behind spiral-shaped spectacles. Sometimes appears at different levels, sometimes shows up in the margins—a guide who helps explain what's happening.",
+          "imageGallery": [
+            {
+              "id": "1f5878cb-8002-4434-a9e8-8b5a5403d251",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "626dfdb6-3441-4a73-8f01-919c24d6f71d",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            },
+            {
+              "id": "8992882a-d859-4fd8-b6ac-472c2f624d34",
+              "model": "unknown",
+              "prompt": "",
+              "timestamp": "2025-10-29T22:16:49.581Z"
+            }
+          ],
+          "selectedImageId": "1f5878cb-8002-4434-a9e8-8b5a5403d251"
         }
       ],
       "elements": [
         {
+          "id": "Multiplication Machine (Level 4)",
           "name": "Multiplication Machine (Level 4)",
           "description": "A whimsical machine with personality, featuring dials, displays, conveyor belts for arms, and lights that glow when calculating. Makes happy whirring sounds during multiplication.",
           "category": "Machinery"
         },
         {
+          "id": "Multiplication Machine (Level 3)",
           "name": "Multiplication Machine (Level 3)",
           "description": "A whimsical machine with personality, featuring dials, displays, conveyor belts for arms, and lights that glow when calculating. Makes happy whirring sounds during multiplication.",
           "category": "Machinery"
         },
         {
+          "id": "Multiplication Machine (Level 2)",
           "name": "Multiplication Machine (Level 2)",
           "description": "A whimsical machine with personality, featuring dials, displays, conveyor belts for arms, and lights that glow when calculating. Makes happy whirring sounds during multiplication.",
           "category": "Machinery"
         },
         {
+          "id": "Speaking Tube",
           "name": "Speaking Tube",
           "description": "A colorful communication tube that connects factory levels, used for passing questions downward during the recursive call process.",
           "category": "Machinery"
         },
         {
+          "id": "Return Tube",
           "name": "Return Tube",
           "description": "A glowing tube that carries answers upward from lower levels, showing the return values flowing back up through the recursion.",
           "category": "Machinery"
         },
         {
+          "id": "Conveyor Belt",
           "name": "Conveyor Belt",
           "description": "A rainbow-colored segment conveyor belt that carries numbers and calculations between different parts of the factory floor.",
           "category": "Machinery"
         },
         {
+          "id": "Factory Gears",
           "name": "Factory Gears",
           "description": "Oversized gears labeled with numbers, spinning and turning as calculations proceed. Some are shaped like factorial symbols (!).",
           "category": "Machinery"
         },
         {
+          "id": "Order Ticket",
           "name": "Order Ticket",
           "description": "A floating pneumatic ticket showing the factorial calculation request (e.g., \"4!\"), delivered from above to start the process.",
           "category": "Props"
         },
         {
+          "id": "Base Case Pedestal",
           "name": "Base Case Pedestal",
           "description": "A golden, glowing pedestal marking the foundation level where 1! = 1. Has special importance as the stopping point of recursion.",
           "category": "Set Pieces"
         },
         {
+          "id": "Factory Level 4",
           "name": "Factory Level 4",
           "description": "The top factory floor representing recursion depth 4, where the initial request arrives.",
           "category": "Set Pieces"
         },
         {
+          "id": "Factory Level 3",
           "name": "Factory Level 3",
           "description": "Factory floor representing recursion depth 3, one level down from the top.",
           "category": "Set Pieces"
         },
         {
+          "id": "Factory Level 2",
           "name": "Factory Level 2",
           "description": "Factory floor representing recursion depth 2, two levels down from the top.",
           "category": "Set Pieces"
         },
         {
+          "id": "Factory Level 1",
           "name": "Factory Level 1",
           "description": "The foundation factory floor representing recursion depth 1 - the base case level.",
           "category": "Set Pieces"
@@ -391,6 +853,7 @@
         {
           "title": "The Order Arrives",
           "description": "The top floor of the Factorial Factory. A large \"4!\" order ticket floats down from a pneumatic tube into the hands of Manager Four. The room is bright and busy, with gears labeled \"4\" spinning slowly, waiting for their answer. A large multiplication board shows \"4 × ?\" with a question mark glowing. A speaking tube extends downward through the floor, and Manager Four is leaning over it, calling down to Level 3. The atmosphere is one of anticipation—work has just begun!",
+          "textPanel": "The order comes in: \"Calculate four!\"\nThe manager says, \"I can't do this alone, that's for sure!\nFour-factorial means four times three-factorial, you see,\nSo I'll call the next floor down and wait patiently!\"",
           "characters": [
             "Manager Four"
           ],
@@ -398,12 +861,12 @@
             "Speaking Tube",
             "Factory Gears",
             "Order Ticket"
-          ],
-          "textPanel": "The order comes in: \"Calculate four!\"\nThe manager says, \"I can't do this alone, that's for sure!\nFour-factorial means four times three-factorial, you see,\nSo I'll call the next floor down and wait patiently!\""
+          ]
         },
         {
           "title": "Level 3 Springs to Life",
           "description": "Level 3 of the factory, positioned one floor below Level 4. Manager Three is catching the message coming up through a speaking tube from below, while simultaneously listening to a speaking tube from Level 4 above. The room is decorated with gears showing \"3\" and multiplication tables on the walls. A conveyor belt labeled \"3 × ?\" waits to move. Manager Three is pointing downward to Level 2, ready to pass along her own question. The space shows the middle of the recursive chain—receiving from above, delegating below.",
+          "textPanel": "Down on Level Three, a new manager appears,\n\"Calculate three-factorial!\" rings in her ears.\nBut three times two-factorial is what she must find,\nSo she calls Level Two—another floor to unwind!",
           "characters": [
             "Manager Three"
           ],
@@ -412,12 +875,12 @@
             "Conveyor Belt",
             "Factory Gears",
             "Factory Level 3"
-          ],
-          "textPanel": "Down on Level Three, a new manager appears,\n\"Calculate three-factorial!\" rings in her ears.\nBut three times two-factorial is what she must find,\nSo she calls Level Two—another floor to unwind!"
+          ]
         },
         {
           "title": "Level 2 Gets to Work",
           "description": "Level 2 of the factory, two floors below the top. Manager Two is at his workstation, which features prominent gears labeled \"2\" and a multiplication machine showing \"2 × ?\". He's speaking into a tube that descends to Level 1. The room has two speaking tubes—one coming from Level 3 above, one going to Level 1 below. Conveyor belts are paused, waiting for the answer from below. The factory machinery is elaborate but patient, showing how each level depends on the next.",
+          "textPanel": "Level Two springs to life with a whirr and a clank,\nThe manager says, \"Two-factorial? I need a lower rank!\"\n\"Two times one-factorial,\" he carefully states,\nAnd calls Level One while his answer awaits!",
           "characters": [
             "Manager Two"
           ],
@@ -427,12 +890,12 @@
             "Conveyor Belt",
             "Factory Gears",
             "Factory Level 2"
-          ],
-          "textPanel": "Level Two springs to life with a whirr and a clank,\nThe manager says, \"Two-factorial? I need a lower rank!\"\n\"Two times one-factorial,\" he carefully states,\nAnd calls Level One while his answer awaits!"
+          ]
         },
         {
           "title": "Level 1 Ready to Solve",
           "description": "Level 1 of the factory—the deepest floor with a special golden glow. Manager One is at her station, which is simpler but more important than the others. A large sign reads \"BASE CASE - 1! = 1\" in glowing letters. Unlike other levels, this floor has NO speaking tube going downward—this is where the recursion stops! The machinery here is ready to produce the answer immediately. The room has a foundational feeling, like the bedrock of the factory.",
+          "textPanel": "Down at Level One, the call comes through clear,\n\"We need one-factorial!\" the message appears.\nThe manager grins—this is easy to do,\n\"One-factorial equals one—that's always true!\"",
           "characters": [
             "Manager One"
           ],
@@ -440,21 +903,21 @@
             "Speaking Tube",
             "Base Case Pedestal",
             "Factory Level 1"
-          ],
-          "textPanel": "Down at Level One, the call comes through clear,\n\"We need one-factorial!\" the message appears.\nThe manager grins—this is easy to do,\n\"One-factorial equals one—that's always true!\""
+          ]
         },
         {
           "title": "The Base Case Celebration",
           "description": "Still on Level 1, but now Manager One is celebrating! She's holding up a glowing number \"1\" that she's just created. Sparkles of \"completion dust\" fill the air. The machinery around her is lit up with success lights. She's putting the number \"1\" into an \"ANSWER RETURN\" tube that will send it upward to Level 2. This is the turning point—the only level that can answer without help. The mood is triumphant and foundational.",
+          "textPanel": "\"I don't need to call anyone else!\" she exclaims with delight,\n\"One-factorial is one—I can answer outright!\"\nThe base case is reached, the foundation is laid,\nAnd now the answers flow back—the calls will be repaid!",
           "characters": [
             "Manager One"
           ],
-          "elements": [],
-          "textPanel": "\"I don't need to call anyone else!\" she exclaims with delight,\n\"One-factorial is one—I can answer outright!\"\nThe base case is reached, the foundation is laid,\nAnd now the answers flow back—the calls will be repaid!"
+          "elements": []
         },
         {
           "title": "Level 2 Multiplies",
           "description": "Back on Level 2. The number \"1\" has just arrived via the return tube from Level 1 below. Manager Two is at his multiplication machine, placing the \"1\" next to a \"2\" on the conveyor belt. The machine shows \"2 × 1 = 2\" in glowing numbers. The gears are turning actively now, and a new glowing \"2\" is being created. Manager Two is preparing to send this \"2\" up to Level 3 through the upward return tube. The atmosphere shows progress and momentum building.",
+          "textPanel": "The answer \"ONE\" travels up to Level Two,\nThe manager multiplies: \"Two times one—I'm through!\"\n\"Two-factorial equals TWO!\" he announces with pride,\nAnd sends this result to Level Three, up the side!",
           "characters": [
             "Manager Two"
           ],
@@ -464,12 +927,12 @@
             "Conveyor Belt",
             "Factory Gears",
             "Factory Level 2"
-          ],
-          "textPanel": "The answer \"ONE\" travels up to Level Two,\nThe manager multiplies: \"Two times one—I'm through!\"\n\"Two-factorial equals TWO!\" he announces with pride,\nAnd sends this result to Level Three, up the side!"
+          ]
         },
         {
           "title": "Level 3 Gets Her Answer",
           "description": "Level 3 is now active and calculating. Manager Three has received the glowing \"2\" from below and is running it through her multiplication machine. The display shows \"3 × 2 = 6\" in bright, cheerful numbers. A large glowing \"6\" is being produced on her conveyor belt. She's excitedly preparing to send this result upward to Level 4 through the return tube. The factory machinery is whirring with purpose. The recursive chain is nearly complete!",
+          "textPanel": "Level Three receives \"TWO\" with a cheerful chime,\nThe manager calculates: \"Three times two—it's time!\"\n\"Three-factorial equals SIX!\" she declares with glee,\nAnd shoots the answer upward to Level Four, you see!",
           "characters": [
             "Manager Three"
           ],
@@ -478,12 +941,12 @@
             "Return Tube",
             "Conveyor Belt",
             "Factory Level 3"
-          ],
-          "textPanel": "Level Three receives \"TWO\" with a cheerful chime,\nThe manager calculates: \"Three times two—it's time!\"\n\"Three-factorial equals SIX!\" she declares with glee,\nAnd shoots the answer upward to Level Four, you see!"
+          ]
         },
         {
           "title": "Level 4 - The Final Answer!",
           "description": "The top floor again—but now it's a celebration! Manager Four has received the glowing \"6\" from Level 3 below. His multiplication machine shows \"4 × 6 = 24\" in brilliant, sparkling numbers. A huge glowing \"24\" sits on the completion platform. Factory lights are flashing with success, confetti of numbers falls from the ceiling, and the original order ticket now reads \"4! = 24 ✓ COMPLETE!\" Manager Four is triumphantly holding up the final answer. All four levels can be glimpsed in the background, connected by glowing tubes showing how the answer traveled back up.",
+          "textPanel": "The top floor receives \"SIX\"—the wait is done!\nThe manager multiplies: \"Four times six—we've won!\"\n\"Four-factorial equals TWENTY-FOUR!\" rings through the air,\nThe order's complete! Success everywhere!",
           "characters": [
             "Manager Four"
           ],
@@ -491,22 +954,25 @@
             "Multiplication Machine (Level 4)",
             "Order Ticket",
             "Factory Level 4"
-          ],
-          "textPanel": "The top floor receives \"SIX\"—the wait is done!\nThe manager multiplies: \"Four times six—we've won!\"\n\"Four-factorial equals TWENTY-FOUR!\" rings through the air,\nThe order's complete! Success everywhere!"
+          ]
         },
         {
           "title": "The Complete Factory View",
           "description": "A cutaway view showing all four levels of the Factorial Factory simultaneously. Level 4 at the top (with \"24\"), Level 3 below it (with \"6\"), Level 2 below that (with \"2\"), and Level 1 at the bottom (with \"1\"). Glowing arrows show the path DOWN through the levels (4→3→2→1) and then back UP with answers (1→2→6→24). All four managers are visible at their stations, connected by speaking tubes and return tubes. The scene illustrates the complete recursive journey—down to the base case, then back up with solutions. It's a celebration of how all the pieces work together!",
-          "characters": [],
+          "textPanel": "And that's how recursion works in our factory grand,\nEach level calls down, then waits with answer in hand.\nBreak big problems to small, till the base case is found,\nThen build up the solution as answers rebound!\n\nFrom four down to one, then one back to twenty-four,\nEach manager played their part in this elegant chore.\nSo remember, dear students, when problems seem tall:\nJust break them in pieces—recursion solves all!",
+          "characters": [
+            "Manager Four",
+            "Manager Three",
+            "Manager Two",
+            "Manager One"
+          ],
           "elements": [
             "Speaking Tube",
             "Return Tube",
             "Base Case Pedestal"
-          ],
-          "textPanel": "And that's how recursion works in our factory grand,\nEach level calls down, then waits with answer in hand.\nBreak big problems to small, till the base case is found,\nThen build up the solution as answers rebound!\n\nFrom four down to one, then one back to twenty-four,\nEach manager played their part in this elegant chore.\nSo remember, dear students, when problems seem tall:\nJust break them in pieces—recursion solves all!"
+          ]
         }
       ]
     }
   ]
 }
-

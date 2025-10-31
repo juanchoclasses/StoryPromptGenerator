@@ -23,6 +23,10 @@
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
     "docx": "^9.5.1",
+    "highlight.js": "^11.11.1",
+    "jszip": "^3.10.1",
+    "katex": "^0.16.25",
+    "mermaid": "^11.12.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "uuid": "^13.0.0"

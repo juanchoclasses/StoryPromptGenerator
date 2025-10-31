@@ -62,6 +62,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const [sceneTitle, setSceneTitle] = useState('');
   const [sceneDescription, setSceneDescription] = useState('');
   const [textPanel, setTextPanel] = useState('');
+  const [activeBook, setActiveBook] = useState<any>(null); // Book instance for book-level characters
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -190,6 +191,18 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     };
     loadScene();
   }, [selectedScene, story]);
+
+  // Load active book to access book-level characters
+  useEffect(() => {
+    const loadBook = async () => {
+      const activeBookId = await BookService.getActiveBookId();
+      if (activeBookId) {
+        const book = await BookService.getBook(activeBookId);
+        setActiveBook(book);
+      }
+    };
+    loadBook();
+  }, [story]); // Reload when story changes
 
   const handleSceneTitleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = event.target.value;
@@ -937,7 +950,10 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     );
   }
 
-    const availableCharacters = story.characters || [];
+    // Merge book-level and story-level characters
+    const bookCharacters = (activeBook?.characters || []).map((c: any) => ({ ...c, isBookLevel: true }));
+    const storyCharacters = (story.characters || []).map((c: any) => ({ ...c, isBookLevel: false }));
+    const availableCharacters = [...bookCharacters, ...storyCharacters];
     const availableElements = story.elements || [];
 
   return (
@@ -1106,10 +1122,21 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
                 </Box>
               )}
             >
-              {availableCharacters.map((character) => (
-                <MenuItem key={character.id} value={character.id}>
-                  <Box>
-                    <Typography variant="body1">{character.name}</Typography>
+              {availableCharacters.map((character: any) => (
+                <MenuItem key={character.name} value={character.name}>
+                  <Box sx={{ width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="body1">{character.name}</Typography>
+                      {character.isBookLevel && (
+                        <Chip 
+                          label="Book" 
+                          size="small" 
+                          color="primary" 
+                          variant="outlined"
+                          sx={{ height: 20, fontSize: '0.7rem' }}
+                        />
+                      )}
+                    </Box>
                     <Typography variant="caption" color="text.secondary">
                       {character.description}
                     </Typography>

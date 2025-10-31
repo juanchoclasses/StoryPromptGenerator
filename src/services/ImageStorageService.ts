@@ -636,6 +636,81 @@ class ImageStorageServiceClass {
       };
     });
   }
+
+  // ========================================
+  // Book-Level Character Image Methods
+  // ========================================
+
+  /**
+   * Store a book-level character image in IndexedDB
+   * Uses bookId instead of storyId as the first part of the key
+   */
+  async storeBookCharacterImage(
+    bookId: string,
+    characterName: string,
+    imageId: string,
+    imageUrl: string,
+    modelName: string
+  ): Promise<void> {
+    // Use the same storage mechanism, just prefix with "book:" to differentiate
+    const prefixedBookId = `book:${bookId}`;
+    return this.storeCharacterImage(prefixedBookId, characterName, imageId, imageUrl, modelName);
+  }
+
+  /**
+   * Retrieve a book-level character image from IndexedDB
+   */
+  async getBookCharacterImage(
+    bookId: string,
+    characterName: string,
+    imageId: string
+  ): Promise<string | null> {
+    const prefixedBookId = `book:${bookId}`;
+    return this.getCharacterImage(prefixedBookId, characterName, imageId);
+  }
+
+  /**
+   * Get all character images for a book-level character
+   */
+  async getAllBookCharacterImages(
+    bookId: string,
+    characterName: string
+  ): Promise<Map<string, string>> {
+    const prefixedBookId = `book:${bookId}`;
+    return this.getAllCharacterImages(prefixedBookId, characterName);
+  }
+
+  /**
+   * Delete a specific book-level character image
+   */
+  async deleteBookCharacterImage(
+    bookId: string,
+    characterName: string,
+    imageId: string
+  ): Promise<void> {
+    const prefixedBookId = `book:${bookId}`;
+    return this.deleteCharacterImage(prefixedBookId, characterName, imageId);
+  }
+
+  /**
+   * Delete all images for a book-level character
+   */
+  async deleteAllBookCharacterImages(
+    bookId: string,
+    characterName: string
+  ): Promise<void> {
+    const prefixedBookId = `book:${bookId}`;
+    return this.deleteAllCharacterImages(prefixedBookId, characterName);
+  }
+
+  /**
+   * Delete all character images for a specific book
+   * Useful for cleanup when a book is deleted
+   */
+  async deleteCharacterImagesForBook(bookId: string): Promise<void> {
+    const prefixedBookId = `book:${bookId}`;
+    return this.deleteCharacterImagesForStory(prefixedBookId);
+  }
 }
 
 // Export singleton instance

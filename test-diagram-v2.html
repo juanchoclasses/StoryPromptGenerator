@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagram Renderer Test - Working Version</title>
+  
+  <!-- Mermaid -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  
+  <!-- Highlight.js -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 30px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .test-section {
+      margin-bottom: 40px;
+      padding: 20px;
+      background: #fafafa;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .test-section h2 {
+      color: #444;
+      margin-bottom: 15px;
+      font-size: 20px;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 600;
+      color: #555;
+      font-size: 14px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 13px;
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    select, input[type="number"], input[type="text"] {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 12px 24px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .output {
+      margin-top: 20px;
+      padding: 20px;
+      background: white;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      min-height: 100px;
+    }
+
+    .output canvas {
+      max-width: 100%;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      display: block;
+    }
+
+    .output img {
+      max-width: 100%;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      display: block;
+    }
+
+    .error {
+      color: #d32f2f;
+      background: #ffebee;
+      padding: 12px;
+      border-radius: 4px;
+      border: 1px solid #ef5350;
+      margin-top: 10px;
+    }
+
+    .success {
+      color: #388e3c;
+      background: #e8f5e9;
+      padding: 12px;
+      border-radius: 4px;
+      border: 1px solid #66bb6a;
+      margin-top: 10px;
+    }
+
+    .info {
+      background: #e3f2fd;
+      padding: 12px;
+      border-radius: 4px;
+      border: 1px solid #90caf9;
+      margin: 20px 0;
+      font-size: 13px;
+      color: #1976d2;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .button-secondary {
+      background: #6c757d;
+    }
+
+    .button-secondary:hover {
+      background: #545b62;
+    }
+
+    .loading {
+      display: inline-block;
+      margin-left: 10px;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #007bff;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🖼️ Diagram Renderer Test - Working Version</h1>
+    <p class="subtitle">Standalone testing for diagram rendering</p>
+
+    <div class="info">
+      <strong>✅ Libraries Loaded:</strong><br>
+      Mermaid: <span id="mermaid-status">Loading...</span><br>
+      KaTeX: <span id="katex-status">Loading...</span><br>
+      Highlight.js: <span id="hljs-status">Loading...</span>
+    </div>
+
+    <!-- Test 1: Mermaid Diagrams -->
+    <div class="test-section">
+      <h2>1. Mermaid Diagrams</h2>
+      
+      <div class="controls">
+        <div class="control-group">
+          <label>Mermaid Content:</label>
+          <textarea id="mermaid-content">graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> A</textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="control-group">
+            <label>Width (px):</label>
+            <input type="number" id="mermaid-width" value="800" min="200" max="2000">
+          </div>
+          <div class="control-group">
+            <label>Height (px):</label>
+            <input type="number" id="mermaid-height" value="600" min="200" max="2000">
+          </div>
+          <div class="control-group">
+            <label>Board Style:</label>
+            <select id="mermaid-board">
+              <option value="blackboard">Blackboard</option>
+              <option value="whiteboard">Whiteboard</option>
+              <option value="transparent">Transparent</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Border Style:</label>
+            <select id="mermaid-border">
+              <option value="frame">Frame</option>
+              <option value="shadow">Shadow</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button id="render-mermaid">Render Mermaid</button>
+        <button class="button-secondary" onclick="loadMermaidExample('flowchart')">Flowchart</button>
+        <button class="button-secondary" onclick="loadMermaidExample('sequence')">Sequence</button>
+      </div>
+
+      <div class="output" id="mermaid-output">
+        <p style="color: #999;">Click "Render Mermaid" to generate diagram</p>
+      </div>
+    </div>
+
+    <!-- Test 2: Math Equations -->
+    <div class="test-section">
+      <h2>2. Math Equations (LaTeX/KaTeX)</h2>
+      
+      <div class="controls">
+        <div class="control-group">
+          <label>LaTeX Content:</label>
+          <textarea id="math-content">E = mc^2</textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="control-group">
+            <label>Width (px):</label>
+            <input type="number" id="math-width" value="800" min="200" max="2000">
+          </div>
+          <div class="control-group">
+            <label>Height (px):</label>
+            <input type="number" id="math-height" value="400" min="200" max="2000">
+          </div>
+          <div class="control-group">
+            <label>Board Style:</label>
+            <select id="math-board">
+              <option value="blackboard">Blackboard</option>
+              <option value="whiteboard">Whiteboard</option>
+              <option value="transparent">Transparent</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Font Size:</label>
+            <input type="number" id="math-fontsize" value="32" min="12" max="72">
+          </div>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button id="render-math">Render Math</button>
+        <button class="button-secondary" onclick="loadMathExample('quadratic')">Quadratic</button>
+        <button class="button-secondary" onclick="loadMathExample('matrix')">Matrix</button>
+      </div>
+
+      <div class="output" id="math-output">
+        <p style="color: #999;">Click "Render Math" to generate equation</p>
+      </div>
+    </div>
+
+    <!-- Test 3: Code -->
+    <div class="test-section">
+      <h2>3. Code Syntax Highlighting</h2>
+      
+      <div class="controls">
+        <div class="control-group">
+          <label>Code Content:</label>
+          <textarea id="code-content">function quickSort(arr) {
+  if (arr.length <= 1) return arr;
+  const pivot = arr[0];
+  const left = arr.filter(x => x < pivot);
+  const right = arr.filter(x => x > pivot);
+  return [...quickSort(left), pivot, ...quickSort(right)];
+}</textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="control-group">
+            <label>Width (px):</label>
+            <input type="number" id="code-width" value="800" min="200" max="2000">
+          </div>
+          <div class="control-group">
+            <label>Height (px):</label>
+            <input type="number" id="code-height" value="400" min="200" max="2000">
+          </div>
+          <div class="control-group">
+            <label>Language:</label>
+            <select id="code-language">
+              <option value="javascript">JavaScript</option>
+              <option value="python">Python</option>
+              <option value="java">Java</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Font Size:</label>
+            <input type="number" id="code-fontsize" value="14" min="10" max="24">
+          </div>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button id="render-code">Render Code</button>
+      </div>
+
+      <div class="output" id="code-output">
+        <p style="color: #999;">Click "Render Code" to generate code block</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    console.log('Script loading...');
+
+    // Check library availability
+    window.addEventListener('load', () => {
+      console.log('Window loaded');
+      document.getElementById('mermaid-status').textContent = typeof mermaid !== 'undefined' ? '✅ Ready' : '❌ Not loaded';
+      document.getElementById('katex-status').textContent = typeof katex !== 'undefined' ? '✅ Ready' : '❌ Not loaded';
+      document.getElementById('hljs-status').textContent = typeof hljs !== 'undefined' ? '✅ Ready' : '❌ Not loaded';
+
+      console.log('Mermaid available:', typeof mermaid !== 'undefined');
+      console.log('KaTeX available:', typeof katex !== 'undefined');
+      console.log('Highlight.js available:', typeof hljs !== 'undefined');
+
+      // Initialize Mermaid
+      if (typeof mermaid !== 'undefined') {
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'dark',
+          securityLevel: 'loose'
+        });
+        console.log('Mermaid initialized');
+      }
+    });
+
+    // Simple diagram renderer functions
+    async function renderMermaidDiagram() {
+      console.log('renderMermaidDiagram called');
+      
+      const content = document.getElementById('mermaid-content').value;
+      const width = parseInt(document.getElementById('mermaid-width').value);
+      const height = parseInt(document.getElementById('mermaid-height').value);
+      const boardStyle = document.getElementById('mermaid-board').value;
+      const borderStyle = document.getElementById('mermaid-border').value;
+      const output = document.getElementById('mermaid-output');
+
+      console.log('Content:', content.substring(0, 50));
+      console.log('Dimensions:', width, 'x', height);
+
+      output.innerHTML = '<p>Rendering... <span class="spinner"></span></p>';
+
+      try {
+        if (typeof mermaid === 'undefined') {
+          throw new Error('Mermaid library not loaded');
+        }
+        // Render Mermaid to SVG
+        console.log('Calling mermaid.render...');
+        const { svg } = await mermaid.render('mermaid-' + Date.now(), content);
+        console.log('SVG generated, length:', svg.length);
+        
+        // Create canvas with board background
+        console.log('Creating board canvas...');
+        const canvas = createBoardCanvas(width, height, boardStyle, borderStyle);
+        const ctx = canvas.getContext('2d');
+
+        // Convert SVG to image and draw on canvas
+        console.log('Converting SVG to image...');
+        const img = await svgStringToImage(svg);
+        console.log('Image loaded:', img.width, 'x', img.height);
+        
+        // Calculate scaling
+        const scale = Math.min(
+          (width - 80) / img.width,
+          (height - 80) / img.height
+        );
+        const scaledWidth = img.width * scale;
+        const scaledHeight = img.height * scale;
+        const x = (width - scaledWidth) / 2;
+        const y = (height - scaledHeight) / 2;
+
+        ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
+        console.log('Image drawn on canvas');
+
+        output.innerHTML = '';
+        output.appendChild(canvas);
+        
+        const info = document.createElement('div');
+        info.className = 'success';
+        info.textContent = `✅ Rendered successfully! Size: ${width}x${height}px`;
+        output.appendChild(info);
+        console.log('✅ Rendering complete!');
+      } catch (error) {
+        console.error('❌ Error in renderMermaidDiagram:', error);
+        output.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+      }
+    }
+
+    async function renderMathEquation() {
+      console.log('renderMathEquation called');
+      
+      const content = document.getElementById('math-content').value;
+      const width = parseInt(document.getElementById('math-width').value);
+      const height = parseInt(document.getElementById('math-height').value);
+      const boardStyle = document.getElementById('math-board').value;
+      const fontSize = parseInt(document.getElementById('math-fontsize').value);
+      const output = document.getElementById('math-output');
+
+      output.innerHTML = '<p>Rendering... <span class="spinner"></span></p>';
+
+      try {
+        if (typeof katex === 'undefined') {
+          throw new Error('KaTeX library not loaded');
+        }
+        // Create canvas with board background
+        const canvas = createBoardCanvas(width, height, boardStyle, 'frame');
+        const ctx = canvas.getContext('2d');
+
+        // Render math to temporary div
+        const mathDiv = document.createElement('div');
+        mathDiv.style.position = 'absolute';
+        mathDiv.style.visibility = 'hidden';
+        mathDiv.style.fontSize = fontSize + 'px';
+        mathDiv.style.color = boardStyle === 'blackboard' ? '#ffffff' : '#000000';
+        document.body.appendChild(mathDiv);
+
+        katex.render(content, mathDiv, {
+          displayMode: true,
+          throwOnError: false
+        });
+
+        // Draw the rendered math (simplified - just draw text for now)
+        ctx.fillStyle = boardStyle === 'blackboard' ? '#ffffff' : '#000000';
+        ctx.font = `${fontSize}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(content, width / 2, height / 2);
+
+        document.body.removeChild(mathDiv);
+
+        output.innerHTML = '';
+        output.appendChild(canvas);
+        
+        const info = document.createElement('div');
+        info.className = 'success';
+        info.textContent = `✅ Rendered successfully! (Simplified rendering - formula shown as text)`;
+        output.appendChild(info);
+      } catch (error) {
+        output.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+        console.error(error);
+      }
+    }
+
+    async function renderCode() {
+      console.log('renderCode called');
+      
+      const content = document.getElementById('code-content').value;
+      const width = parseInt(document.getElementById('code-width').value);
+      const height = parseInt(document.getElementById('code-height').value);
+      const fontSize = parseInt(document.getElementById('code-fontsize').value);
+      const output = document.getElementById('code-output');
+
+      output.innerHTML = '<p>Rendering... <span class="spinner"></span></p>';
+
+      try {
+        const canvas = createBoardCanvas(width, height, 'blackboard', 'frame');
+        const ctx = canvas.getContext('2d');
+
+        // Draw code lines
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `${fontSize}px Monaco, Consolas, monospace`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+
+        const lines = content.split('\n');
+        const lineHeight = fontSize * 1.4;
+        let y = 40;
+
+        lines.forEach((line, index) => {
+          if (y + lineHeight < height - 40) {
+            ctx.fillText(line, 40, y);
+            y += lineHeight;
+          }
+        });
+
+        output.innerHTML = '';
+        output.appendChild(canvas);
+        
+        const info = document.createElement('div');
+        info.className = 'success';
+        info.textContent = `✅ Rendered ${lines.length} lines of code`;
+        output.appendChild(info);
+      } catch (error) {
+        output.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+        console.error(error);
+      }
+    }
+
+    // Helper: Create canvas with board styling
+    function createBoardCanvas(width, height, boardStyle, borderStyle) {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      // Background color
+      if (boardStyle === 'blackboard') {
+        ctx.fillStyle = '#2d3748';
+      } else if (boardStyle === 'whiteboard') {
+        ctx.fillStyle = '#ffffff';
+      } else {
+        ctx.fillStyle = 'transparent';
+      }
+      ctx.fillRect(0, 0, width, height);
+
+      // Add texture
+      if (boardStyle !== 'transparent') {
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const noise = (Math.random() - 0.5) * 10;
+          data[i] += noise;
+          data[i + 1] += noise;
+          data[i + 2] += noise;
+        }
+        ctx.putImageData(imageData, 0, 0);
+      }
+
+      // Border
+      if (borderStyle === 'frame') {
+        ctx.strokeStyle = '#8b7355';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(4, 4, width - 8, height - 8);
+      } else if (borderStyle === 'shadow') {
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetX = 5;
+        ctx.shadowOffsetY = 5;
+      }
+
+      return canvas;
+    }
+
+    // Helper: Convert SVG string to Image
+    function svgStringToImage(svgString) {
+      return new Promise((resolve, reject) => {
+        const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          resolve(img);
+        };
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    // Example loaders
+    function loadMermaidExample(type) {
+      const examples = {
+        flowchart: `graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> A`,
+        sequence: `sequenceDiagram
+    Alice->>John: Hello John!
+    John-->>Alice: Great!
+    Alice-)John: See you later!`
+      };
+      document.getElementById('mermaid-content').value = examples[type] || examples.flowchart;
+    }
+
+    function loadMathExample(type) {
+      const examples = {
+        quadratic: `x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}`,
+        matrix: `\\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix}`
+      };
+      document.getElementById('math-content').value = examples[type] || examples.quadratic;
+    }
+
+    // Event listeners - attach after DOM is ready
+    console.log('Setting up event listeners...');
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM Content Loaded');
+      
+      const mermaidBtn = document.getElementById('render-mermaid');
+      const mathBtn = document.getElementById('render-math');
+      const codeBtn = document.getElementById('render-code');
+      
+      console.log('Mermaid button:', mermaidBtn);
+      console.log('Math button:', mathBtn);
+      console.log('Code button:', codeBtn);
+      
+      if (mermaidBtn) {
+        mermaidBtn.addEventListener('click', function() {
+          console.log('Mermaid button clicked');
+          renderMermaidDiagram();
+        });
+        console.log('✅ Mermaid button listener attached');
+      }
+      
+      if (mathBtn) {
+        mathBtn.addEventListener('click', function() {
+          console.log('Math button clicked');
+          renderMathEquation();
+        });
+        console.log('✅ Math button listener attached');
+      }
+      
+      if (codeBtn) {
+        codeBtn.addEventListener('click', function() {
+          console.log('Code button clicked');
+          renderCode();
+        });
+        console.log('✅ Code button listener attached');
+      }
+    });
+  </script>
+</body>
+</html>
+

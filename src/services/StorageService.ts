@@ -110,6 +110,7 @@ export class StorageService {
           backgroundSetup: book.backgroundSetup,
           aspectRatio: book.aspectRatio,
           style: book.style,
+          characters: book.characters, // Include book-level characters
           stories: book.stories.map(story => ({
             id: story.id,
             title: story.title,
@@ -148,14 +149,64 @@ export class StorageService {
    * Get a book by ID
    */
   static async getBook(bookId: string): Promise<Book | null> {
+    console.log('📖 StorageService.getBook called for:', bookId);
     const data = await this.load();
-    return data.books.find(b => b.id === bookId) || null;
+    const bookData = data.books.find(b => b.id === bookId);
+    if (!bookData) {
+      console.log('   ❌ Book not found');
+      return null;
+    }
+    
+    console.log('   Raw bookData.characters from storage:', bookData.characters?.length || 0, bookData.characters?.map((c: any) => c.name) || []);
+    
+    // Import Story class to properly instantiate stories
+    const { Story: StoryClass } = await import('../models/Story.js');
+    
+    // Create a proper Book instance
+    const book = new Book({
+      id: bookData.id,
+      title: bookData.title,
+      description: bookData.description,
+      backgroundSetup: bookData.backgroundSetup,
+      aspectRatio: bookData.aspectRatio,
+      style: bookData.style,
+      characters: bookData.characters || [],
+      createdAt: bookData.createdAt,
+      updatedAt: bookData.updatedAt
+    });
+    
+    console.log('   Book instance created with', book.characters.length, 'characters:', book.characters.map(c => c.name));
+    
+    // Properly instantiate Story objects with all their data
+    if (bookData.stories) {
+      book.stories = (bookData.stories as any[]).map((storyData: any) => 
+        new StoryClass({
+          id: storyData.id,
+          title: storyData.title,
+          description: storyData.description,
+          backgroundSetup: storyData.backgroundSetup,
+          characters: storyData.characters || [],
+          elements: storyData.elements || [],
+          scenes: storyData.scenes || [],
+          createdAt: storyData.createdAt,
+          updatedAt: storyData.updatedAt
+        })
+      );
+    }
+    
+    return book;
   }
 
   /**
    * Save a book (create or update)
    */
   static async saveBook(book: Book): Promise<void> {
+    console.log('💾 StorageService.saveBook called');
+    console.log('   Book ID:', book.id);
+    console.log('   Book title:', book.title);
+    console.log('   Book characters before save:', book.characters.length, book.characters.map(c => c.name));
+    console.log('   Book stories:', book.stories.length);
+    
     const data = await this.load();
     const index = data.books.findIndex(b => b.id === book.id);
     
@@ -163,13 +214,22 @@ export class StorageService {
     
     if (index >= 0) {
       // Update existing book
+      console.log('   Updating existing book at index', index);
       data.books[index] = book;
+      console.log('   After assignment, data.books[index].characters:', data.books[index].characters?.length || 0, data.books[index].characters?.map((c: any) => c.name) || []);
     } else {
       // Add new book
+      console.log('   Adding new book');
       data.books.push(book);
     }
     
     this.save(data);
+    console.log('   ✅ Book saved to localStorage');
+    
+    // Verify what was actually saved
+    const verifyData = await this.load();
+    const savedBook = verifyData.books.find(b => b.id === book.id);
+    console.log('   📋 VERIFICATION - Characters in storage:', savedBook?.characters?.length || 0, savedBook?.characters?.map((c: any) => c.name) || []);
   }
 
   /**
@@ -226,7 +286,42 @@ export class StorageService {
    */
   static async getAllBooks(): Promise<Book[]> {
     const data = await this.load();
-    return data.books;
+    // Import Story class
+    const { Story: StoryClass } = await import('../models/Story.js');
+    
+    // Return proper Book instances with methods and properly instantiated stories
+    return data.books.map(bookData => {
+      const book = new Book({
+        id: bookData.id,
+        title: bookData.title,
+        description: bookData.description,
+        backgroundSetup: bookData.backgroundSetup,
+        aspectRatio: bookData.aspectRatio,
+        style: bookData.style,
+        characters: bookData.characters || [],
+        createdAt: bookData.createdAt,
+        updatedAt: bookData.updatedAt
+      });
+      
+      // Properly instantiate Story objects
+      if (bookData.stories) {
+        book.stories = (bookData.stories as any[]).map((storyData: any) => 
+          new StoryClass({
+            id: storyData.id,
+            title: storyData.title,
+            description: storyData.description,
+            backgroundSetup: storyData.backgroundSetup,
+            characters: storyData.characters || [],
+            elements: storyData.elements || [],
+            scenes: storyData.scenes || [],
+            createdAt: storyData.createdAt,
+            updatedAt: storyData.updatedAt
+          })
+        );
+      }
+      
+      return book;
+    });
   }
 
   /**
@@ -251,42 +346,6 @@ export class StorageService {
       return parsed.version === VERSION;
     } catch {
       return false;
-    }
-  }
-
-  /**
-   * Migrate from old version or clear storage
-   * For Version 4.0, we're starting fresh (user approved)
-   */
-  static migrate(): void {
-    // Check for old storage keys
-    const oldKeys = [
-      'book-story-data-v2',
-      'book-collection-v1',
-      'active-book-id'
-    ];
-    
-    const hasOldData = oldKeys.some(key => 
-      Object.keys(localStorage).some(k => k.includes(key))
-    );
-    
-    if (hasOldData) {
-      console.log('📦 Detected old storage format. Clearing for Version 4.0...');
-      
-      // Remove old storage keys
-      Object.keys(localStorage).forEach(key => {
-        if (oldKeys.some(oldKey => key.includes(oldKey))) {
-          localStorage.removeItem(key);
-        }
-      });
-      
-      console.log('✅ Old storage cleared. Ready for Version 4.0');
-    }
-    
-    // Initialize fresh storage if not already done
-    if (!this.isInitialized()) {
-      this.save(this.createEmptyData());
-      console.log('✅ Version 4.0 storage initialized');
     }
   }
 

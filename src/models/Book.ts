@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { BookStyle } from '../types/BookStyle';
 import { DEFAULT_BOOK_STYLE } from '../types/BookStyle';
-import { Story } from './Story';
+import { Story, type Character } from './Story';
 
 /**
  * Validation result from model validation
@@ -22,6 +22,7 @@ export interface BookExchangeFormat {
     backgroundSetup?: string;
     aspectRatio?: string;
     style: BookStyle;
+    characters?: Character[]; // Book-level characters
   };
   stories: any[]; // StoryExchangeFormat - avoid circular dependency
 }
@@ -37,6 +38,7 @@ export class Book {
   backgroundSetup?: string;
   aspectRatio?: string;
   style: BookStyle;
+  characters: Character[]; // Book-level characters shared across all stories
   stories: Story[];
   createdAt: Date;
   updatedAt: Date;
@@ -48,6 +50,7 @@ export class Book {
     this.backgroundSetup = data.backgroundSetup;
     this.aspectRatio = data.aspectRatio || '9:16';
     this.style = data.style || { ...DEFAULT_BOOK_STYLE };
+    this.characters = data.characters || []; // Book-level characters
     this.stories = data.stories || [];
     this.createdAt = data.createdAt || new Date();
     this.updatedAt = data.updatedAt || new Date();
@@ -98,6 +101,38 @@ export class Book {
   }
 
   /**
+   * Add a character to the book
+   */
+  addCharacter(character: Character): void {
+    // Check for duplicate name
+    if (this.findCharacterByName(character.name)) {
+      throw new Error(`Character with name "${character.name}" already exists at book level`);
+    }
+    this.characters.push(character);
+    this.touch();
+  }
+
+  /**
+   * Find a character by name (case-insensitive)
+   */
+  findCharacterByName(name: string): Character | undefined {
+    return this.characters.find(c => c.name.toLowerCase() === name.toLowerCase());
+  }
+
+  /**
+   * Delete a character from the book
+   */
+  deleteCharacter(name: string): boolean {
+    const initialLength = this.characters.length;
+    this.characters = this.characters.filter(c => c.name.toLowerCase() !== name.toLowerCase());
+    const deleted = this.characters.length < initialLength;
+    if (deleted) {
+      this.touch();
+    }
+    return deleted;
+  }
+
+  /**
    * Add a story to the book
    */
   addStory(story: Story): void {
@@ -144,18 +179,38 @@ export class Book {
   }
 
   /**
-   * Convert to JSON export format
+   * Convert to JSON export format for file export
+   * NOTE: This is explicitly called for export, NOT used for storage serialization
    */
-  toJSON(): BookExchangeFormat {
+  toExportJSON(): BookExchangeFormat {
     return {
       book: {
         title: this.title,
         description: this.description,
         backgroundSetup: this.backgroundSetup,
         aspectRatio: this.aspectRatio,
-        style: this.style
+        style: this.style,
+        characters: this.characters || [] // Include book-level characters
       },
-      stories: this.stories.map(story => story.toJSON())
+      stories: this.stories.map(story => story.toExportJSON())
+    };
+  }
+  
+  /**
+   * toJSON is used by JSON.stringify for storage - keep flat structure
+   */
+  toJSON() {
+    return {
+      id: this.id,
+      title: this.title,
+      description: this.description,
+      backgroundSetup: this.backgroundSetup,
+      aspectRatio: this.aspectRatio,
+      style: this.style,
+      characters: this.characters || [],
+      stories: this.stories,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt
     };
   }
 
@@ -171,7 +226,8 @@ export class Book {
       description: data.book.description,
       backgroundSetup: data.book.backgroundSetup,
       aspectRatio: data.book.aspectRatio,
-      style: data.book.style
+      style: data.book.style,
+      characters: data.book.characters || [] // Book-level characters
     });
 
     // Add stories

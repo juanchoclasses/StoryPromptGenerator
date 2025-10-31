@@ -292,9 +292,9 @@ export class Story {
   }
 
   /**
-   * Convert to JSON export format
+   * Convert to JSON export format for file export
    */
-  toJSON(): StoryExchangeFormat {
+  toExportJSON(): StoryExchangeFormat {
     return {
       story: {
         title: this.title,
@@ -303,7 +303,24 @@ export class Story {
       },
       characters: this.characters.map(c => ({ ...c })),
       elements: this.elements.map(e => ({ ...e })),
-      scenes: this.scenes.map(scene => scene.toJSON())
+      scenes: this.scenes.map(scene => scene.toExportJSON())
+    };
+  }
+
+  /**
+   * toJSON is used by JSON.stringify for storage - keep flat structure
+   */
+  toJSON() {
+    return {
+      id: this.id,
+      title: this.title,
+      description: this.description,
+      backgroundSetup: this.backgroundSetup,
+      characters: this.characters,
+      elements: this.elements,
+      scenes: this.scenes,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt
     };
   }
 

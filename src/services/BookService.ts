@@ -1,21 +1,15 @@
 import { Book } from '../models/Book';
-import { Story } from '../models/Story';
+import { Story, type Character } from '../models/Story';
 import { StorageService } from './StorageService';
 import type { StoryData } from '../types/Story';
 import type { PanelConfig } from '../types/Book';
+import { ImageStorageService } from './ImageStorageService';
 
 /**
  * BookService - High-level API for book management
  * Uses StorageService for persistence and Book model for business logic
  */
 export class BookService {
-  /**
-   * Initialize storage (run migration if needed)
-   */
-  static initialize(): void {
-    StorageService.migrate();
-  }
-
   /**
    * Get all books
    */
@@ -284,7 +278,7 @@ export class BookService {
     const book = await StorageService.getBook(bookId);
     if (!book) return null;
 
-    const exportData = book.toJSON();
+    const exportData = book.toExportJSON();
     return JSON.stringify(exportData, null, 2);
   }
 
@@ -336,6 +330,31 @@ export class BookService {
   }
 
   /**
+   * Import a Book instance directly (used by BookExportWithImagesService)
+   * This method accepts an already-constructed Book instance and saves it
+   */
+  static async importBookInstance(book: Book): Promise<Book> {
+    // Validate before saving
+    const validation = book.validate();
+    if (validation.warnings && validation.warnings.length > 0) {
+      console.warn('Imported book has validation warnings:', validation.warnings);
+    }
+    if (!validation.isValid) {
+      throw new Error(`Cannot import book: ${validation.errors.join(', ')}`);
+    }
+
+    // Generate new ID for imported book to avoid conflicts
+    book.id = crypto.randomUUID();
+
+    await StorageService.saveBook(book);
+
+    // Set as active book
+    await StorageService.setActiveBook(book.id);
+
+    return book;
+  }
+
+  /**
    * Get book collection (for backward compatibility with FileManager)
    */
   static async getBookCollection(): Promise<{
@@ -366,5 +385,226 @@ export class BookService {
       activeBookId: activeBook?.id || null,
       lastUpdated: appData.lastUpdated
     };
+  }
+
+  // ========================================
+  // Character Management (Book/Story Level)
+  // ========================================
+
+  /**
+   * Get usage information for a character across all stories in a book
+   * Returns which stories use this character in their scenes
+   */
+  static getCharacterUsageInBook(book: Book, characterName: string): {
+    storiesUsing: Array<{ id: string; title: string; sceneCount: number }>;
+    totalSceneCount: number;
+  } {
+    const storiesUsing: Array<{ id: string; title: string; sceneCount: number }> = [];
+    let totalSceneCount = 0;
+
+    for (const story of book.stories) {
+      const scenesWithCharacter = story.scenes.filter(scene =>
+        scene.characters.some(c => c.toLowerCase() === characterName.toLowerCase())
+      );
+
+      if (scenesWithCharacter.length > 0) {
+        storiesUsing.push({
+          id: story.id,
+          title: story.title,
+          sceneCount: scenesWithCharacter.length
+        });
+        totalSceneCount += scenesWithCharacter.length;
+      }
+    }
+
+    return { storiesUsing, totalSceneCount };
+  }
+
+  /**
+   * Promote a character from story-level to book-level
+   * Moves the character and all its images from a specific story to the book
+   * 
+   * @param bookId Book ID
+   * @param storyId Story ID where the character currently exists
+   * @param characterName Character name to promote
+   * @returns true if successful, false if character not found or already exists at book level
+   */
+  static async promoteCharacterToBook(
+    bookId: string,
+    storyId: string,
+    characterName: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const book = await StorageService.getBook(bookId);
+      if (!book) {
+        return { success: false, error: 'Book not found' };
+      }
+
+      const story = book.stories.find(s => s.id === storyId);
+      if (!story) {
+        return { success: false, error: 'Story not found' };
+      }
+
+      // Find character in story
+      const character = story.characters.find((c: any) => c.name.toLowerCase() === characterName.toLowerCase());
+      if (!character) {
+        return { success: false, error: 'Character not found in story' };
+      }
+
+      // Check if character already exists at book level BEFORE modifying anything
+      if (book.findCharacterByName(characterName)) {
+        console.error(`Character "${characterName}" already exists at book level`);
+        return { success: false, error: `Character "${characterName}" already exists at book level` };
+      }
+
+      // Move character images from story to book level
+      // Get all character images for this story character
+      const characterImages = await ImageStorageService.getAllCharacterImages(storyId, characterName);
+      
+      console.log(`Promoting character "${characterName}" from story "${story.title}" to book "${book.title}"`);
+      console.log(`Found ${characterImages.size} character images to move`);
+
+      // Store each image at book level
+      for (const [imageId, blobUrl] of characterImages.entries()) {
+        // Fetch the blob from the blob URL
+        const response = await fetch(blobUrl);
+        const blob = await response.blob();
+        const newBlobUrl = URL.createObjectURL(blob);
+        
+        // Store at book level (model name is preserved in metadata if needed)
+        await ImageStorageService.storeBookCharacterImage(bookId, characterName, imageId, newBlobUrl, 'unknown');
+        
+        // Clean up temporary blob URL
+        URL.revokeObjectURL(newBlobUrl);
+      }
+
+      // Add character to book
+      console.log('Adding character to book.characters array...');
+      book.characters.push(character);
+      console.log('Book now has', book.characters.length, 'characters');
+
+      // Remove character from story
+      story.characters = story.characters.filter((c: any) => c.name.toLowerCase() !== characterName.toLowerCase());
+      console.log('Story now has', story.characters.length, 'characters');
+
+      // Save book
+      console.log('Saving book to storage...');
+      await StorageService.saveBook(book);
+      console.log('Book saved successfully');
+
+      // IMPORTANT: Only delete from story level AFTER everything else succeeded
+      // This ensures we don't lose images if the save fails
+      await ImageStorageService.deleteAllCharacterImages(storyId, characterName);
+      console.log('✓ Deleted old images from story level');
+
+      console.log(`✓ Successfully promoted character "${characterName}" to book level`);
+      return { success: true };
+    } catch (error) {
+      console.error('Error promoting character to book:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Demote a character from book-level to story-level
+   * Only allowed if character is used in 0 or 1 story
+   * 
+   * @param bookId Book ID
+   * @param characterName Character name to demote
+   * @param targetStoryId Optional: specific story to move to (required if used in 0 stories)
+   * @returns Result object with success status and optional error message
+   */
+  static async demoteCharacterToStory(
+    bookId: string,
+    characterName: string,
+    targetStoryId?: string
+  ): Promise<{ success: boolean; error?: string; storiesUsing?: Array<{ id: string; title: string }> }> {
+    try {
+      const book = await StorageService.getBook(bookId);
+      if (!book) {
+        return { success: false, error: 'Book not found' };
+      }
+
+      // Find character in book
+      const character = book.findCharacterByName(characterName);
+      if (!character) {
+        return { success: false, error: 'Character not found at book level' };
+      }
+
+      // Check usage
+      const usage = this.getCharacterUsageInBook(book, characterName);
+
+      // Block if used in 2+ stories
+      if (usage.storiesUsing.length > 1) {
+        return {
+          success: false,
+          error: `Cannot demote "${characterName}". Character is used in ${usage.storiesUsing.length} stories. Remove from other stories first.`,
+          storiesUsing: usage.storiesUsing.map(s => ({ id: s.id, title: s.title }))
+        };
+      }
+
+      // Determine target story
+      let targetStory: Story | undefined;
+      
+      if (usage.storiesUsing.length === 1) {
+        // Used in one story - move to that story
+        targetStory = book.stories.find(s => s.id === usage.storiesUsing[0].id);
+      } else if (targetStoryId) {
+        // Not used anywhere but target specified
+        targetStory = book.stories.find(s => s.id === targetStoryId);
+      } else {
+        return {
+          success: false,
+          error: 'Character is not used in any story. Please specify a target story.'
+        };
+      }
+
+      if (!targetStory) {
+        return { success: false, error: 'Target story not found' };
+      }
+
+      // Check if target story already has this character
+      if (targetStory.characters.find(c => c.name.toLowerCase() === characterName.toLowerCase())) {
+        return {
+          success: false,
+          error: `Story "${targetStory.title}" already has a character named "${characterName}"`
+        };
+      }
+
+      console.log(`Demoting character "${characterName}" from book to story "${targetStory.title}"`);
+
+      // Move character images from book to story level
+      const characterImages = await ImageStorageService.getAllBookCharacterImages(bookId, characterName);
+      console.log(`Found ${characterImages.size} character images to move`);
+
+      // Store each image at story level
+      for (const [imageId, blobUrl] of characterImages.entries()) {
+        const response = await fetch(blobUrl);
+        const blob = await response.blob();
+        const newBlobUrl = URL.createObjectURL(blob);
+        
+        await ImageStorageService.storeCharacterImage(targetStory.id, characterName, imageId, newBlobUrl, 'unknown');
+        
+        URL.revokeObjectURL(newBlobUrl);
+      }
+
+      // Delete from book level
+      await ImageStorageService.deleteAllBookCharacterImages(bookId, characterName);
+
+      // Add character to target story
+      targetStory.characters.push(character);
+
+      // Remove character from book
+      book.deleteCharacter(characterName);
+
+      // Save book
+      await StorageService.saveBook(book);
+
+      console.log(`✓ Successfully demoted character "${characterName}" to story level`);
+      return { success: true };
+    } catch (error) {
+      console.error('Error demoting character to story:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   }
 }

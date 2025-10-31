@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Minimal Test</title>
+</head>
+<body>
+  <h1>Minimal Test</h1>
+  <button id="test-btn">Click Me</button>
+  <div id="output"></div>
+
+  <script>
+    alert('JavaScript is running!');
+    console.log('Console works!');
+    
+    document.getElementById('test-btn').onclick = function() {
+      alert('Button clicked!');
+      document.getElementById('output').innerHTML = 'Button works!';
+    };
+  </script>
+</body>
+</html>
+

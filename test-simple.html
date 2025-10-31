@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Diagram Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 20px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      min-height: 100px;
+    }
+    canvas {
+      border: 2px solid #ddd;
+      max-width: 100%;
+    }
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      background: #e3f2fd;
+      border: 1px solid #90caf9;
+    }
+    .error {
+      background: #ffebee;
+      border: 1px solid #ef5350;
+      color: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🖼️ Simple Diagram Test</h1>
+    <p>Click a button to test diagram rendering:</p>
+    
+    <div>
+      <button onclick="testBasic()">Test 1: Basic Canvas</button>
+      <button onclick="testMermaid()">Test 2: Mermaid</button>
+      <button onclick="testBlackboard()">Test 3: Blackboard</button>
+      <button onclick="checkConsole()">Check Console</button>
+    </div>
+
+    <div id="status" class="status">
+      Ready to test. Open browser console (F12) to see debug messages.
+    </div>
+
+    <div id="output"></div>
+  </div>
+
+  <script>
+    // Log to both console and page
+    function log(message, isError = false) {
+      console.log(message);
+      const statusDiv = document.getElementById('status');
+      statusDiv.textContent = message;
+      statusDiv.className = isError ? 'status error' : 'status';
+    }
+
+    // Check if we're running
+    log('✅ JavaScript is loaded and running');
+
+    // Check if Mermaid is loaded
+    window.addEventListener('load', () => {
+      if (typeof mermaid !== 'undefined') {
+        log('✅ Mermaid library loaded successfully');
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'dark',
+          securityLevel: 'loose'
+        });
+      } else {
+        log('❌ Mermaid library failed to load', true);
+      }
+    });
+
+    // Test 1: Basic canvas drawing
+    function testBasic() {
+      log('Test 1: Drawing basic canvas...');
+      const output = document.getElementById('output');
+      output.innerHTML = '';
+
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 400;
+        canvas.height = 300;
+        const ctx = canvas.getContext('2d');
+
+        // Draw a simple rectangle
+        ctx.fillStyle = '#2d3748';
+        ctx.fillRect(0, 0, 400, 300);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '30px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Hello Canvas!', 200, 150);
+
+        output.appendChild(canvas);
+        log('✅ Test 1 passed: Canvas rendered');
+      } catch (error) {
+        log('❌ Test 1 failed: ' + error.message, true);
+        console.error(error);
+      }
+    }
+
+    // Test 2: Mermaid rendering
+    async function testMermaid() {
+      log('Test 2: Rendering Mermaid diagram...');
+      const output = document.getElementById('output');
+      output.innerHTML = '<p>Rendering...</p>';
+
+      try {
+        if (typeof mermaid === 'undefined') {
+          throw new Error('Mermaid not loaded');
+        }
+
+        const diagramText = `graph TD
+    A[Start] --> B[End]`;
+
+        log('Calling mermaid.render...');
+        const { svg } = await mermaid.render('test-diagram', diagramText);
+        
+        log('SVG generated, creating element...');
+        output.innerHTML = svg;
+        log('✅ Test 2 passed: Mermaid diagram rendered');
+      } catch (error) {
+        log('❌ Test 2 failed: ' + error.message, true);
+        output.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+        console.error(error);
+      }
+    }
+
+    // Test 3: Blackboard with Mermaid
+    async function testBlackboard() {
+      log('Test 3: Rendering diagram on blackboard...');
+      const output = document.getElementById('output');
+      output.innerHTML = '<p>Rendering...</p>';
+
+      try {
+        if (typeof mermaid === 'undefined') {
+          throw new Error('Mermaid not loaded');
+        }
+
+        // Step 1: Create blackboard canvas
+        log('Step 1: Creating blackboard...');
+        const canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 600;
+        const ctx = canvas.getContext('2d');
+
+        // Background
+        ctx.fillStyle = '#2d3748';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Frame
+        ctx.strokeStyle = '#8b7355';
+        ctx.lineWidth = 12;
+        ctx.strokeRect(6, 6, 788, 588);
+
+        // Step 2: Render Mermaid
+        log('Step 2: Rendering Mermaid...');
+        const diagramText = `graph TD
+    A[Start] --> B{Question?}
+    B -->|Yes| C[Good]
+    B -->|No| D[Try Again]
+    D --> A`;
+
+        const { svg } = await mermaid.render('blackboard-diagram', diagramText);
+        
+        // Step 3: Convert SVG to image
+        log('Step 3: Converting SVG to image...');
+        const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+
+        img.onload = () => {
+          log('Step 4: Drawing on canvas...');
+          
+          // Calculate centered position
+          const scale = Math.min(700 / img.width, 500 / img.height);
+          const scaledW = img.width * scale;
+          const scaledH = img.height * scale;
+          const x = (800 - scaledW) / 2;
+          const y = (600 - scaledH) / 2;
+
+          ctx.drawImage(img, x, y, scaledW, scaledH);
+          
+          URL.revokeObjectURL(url);
+          output.innerHTML = '';
+          output.appendChild(canvas);
+          log('✅ Test 3 passed: Diagram on blackboard rendered');
+        };
+
+        img.onerror = (err) => {
+          log('❌ Failed to load SVG image', true);
+          console.error(err);
+        };
+
+        img.src = url;
+
+      } catch (error) {
+        log('❌ Test 3 failed: ' + error.message, true);
+        output.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+        console.error(error);
+      }
+    }
+
+    // Check console
+    function checkConsole() {
+      console.log('=== DIAGNOSTIC INFO ===');
+      console.log('Mermaid loaded:', typeof mermaid !== 'undefined');
+      console.log('Canvas supported:', !!document.createElement('canvas').getContext);
+      console.log('Blob supported:', typeof Blob !== 'undefined');
+      console.log('URL.createObjectURL supported:', typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function');
+      console.log('Browser:', navigator.userAgent);
+      console.log('======================');
+      log('Check the browser console (F12) for diagnostic info');
+    }
+
+    // Auto-run basic test on load
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        log('Page loaded. Try clicking Test 1, 2, or 3');
+      }, 500);
+    });
+  </script>
+</body>
+</html>
+

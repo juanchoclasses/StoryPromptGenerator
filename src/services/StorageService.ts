@@ -48,7 +48,7 @@ export class StorageService {
           // Reconstruct Story model instances first
           const reconstructedStories = bookData.stories ? bookData.stories.map((storyData: any) => {
             // Reconstruct Scene model instances
-            const reconstructedScenes = storyData.scenes ? storyData.scenes.map((sceneData: any) => {
+            const reconstructedScenes = storyData.scenes ? storyData.scenes.map((sceneData: any, idx: number) => {
               // Convert scene dates
               sceneData.createdAt = new Date(sceneData.createdAt);
               sceneData.updatedAt = new Date(sceneData.updatedAt);
@@ -59,6 +59,14 @@ export class StorageService {
                   ...img,
                   timestamp: new Date(img.timestamp)
                 }));
+              }
+              
+              if (idx === 0 && storyData.title?.includes('Dijkstra')) {
+                console.log('🔍 LOAD() - Scene 0 from localStorage:', {
+                  title: sceneData.title,
+                  hasDiagramPanel: !!sceneData.diagramPanel,
+                  diagramPanel: sceneData.diagramPanel
+                });
               }
               
               return new Scene(sceneData);
@@ -116,6 +124,7 @@ export class StorageService {
             title: story.title,
             description: story.description,
             backgroundSetup: story.backgroundSetup,
+            diagramStyle: story.diagramStyle, // Include diagram style
             characters: story.characters,
             elements: story.elements,
             scenes: story.scenes.map(scene => ({
@@ -123,6 +132,7 @@ export class StorageService {
               title: scene.title,
               description: scene.description,
               textPanel: scene.textPanel,
+              diagramPanel: scene.diagramPanel, // Include diagram panel
               characters: scene.characters,
               elements: scene.elements,
               imageHistory: scene.imageHistory,
@@ -213,6 +223,14 @@ export class StorageService {
     console.log('   Book title:', book.title);
     console.log('   Book characters before save:', book.characters.length, book.characters.map(c => c.name));
     console.log('   Book stories:', book.stories.length);
+    
+    // Check scenes before saving
+    book.stories.forEach((story, idx) => {
+      console.log(`   📚 Story ${idx}: ${story.title} with ${story.scenes.length} scenes`);
+      story.scenes.forEach((scene, sceneIdx) => {
+        console.log(`      📄 Scene ${sceneIdx}: ${scene.title} - hasDiagramPanel: ${!!scene.diagramPanel}, diagramPanel:`, scene.diagramPanel);
+      });
+    });
     
     const data = await this.load();
     const index = data.books.findIndex(b => b.id === book.id);

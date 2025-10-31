@@ -833,7 +833,15 @@ TECHNICAL REQUIREMENTS:
               type="number"
               label="Width (%)"
               value={tempDiagramStyle.widthPercentage}
-              onChange={(e) => setTempDiagramStyle({ ...tempDiagramStyle, widthPercentage: parseInt(e.target.value) || 35 })}
+              onChange={(e) => setTempDiagramStyle({ ...tempDiagramStyle, widthPercentage: parseInt(e.target.value) || 0 })}
+              onBlur={(e) => {
+                const val = parseInt(e.target.value);
+                if (isNaN(val) || val < 10) {
+                  setTempDiagramStyle({ ...tempDiagramStyle, widthPercentage: 10 });
+                } else if (val > 100) {
+                  setTempDiagramStyle({ ...tempDiagramStyle, widthPercentage: 100 });
+                }
+              }}
               InputProps={{ inputProps: { min: 10, max: 100 } }}
               fullWidth
               helperText="Percentage of image width (10-100%)"
@@ -843,7 +851,15 @@ TECHNICAL REQUIREMENTS:
               type="number"
               label="Height (%)"
               value={tempDiagramStyle.heightPercentage}
-              onChange={(e) => setTempDiagramStyle({ ...tempDiagramStyle, heightPercentage: parseInt(e.target.value) || 30 })}
+              onChange={(e) => setTempDiagramStyle({ ...tempDiagramStyle, heightPercentage: parseInt(e.target.value) || 0 })}
+              onBlur={(e) => {
+                const val = parseInt(e.target.value);
+                if (isNaN(val) || val < 10) {
+                  setTempDiagramStyle({ ...tempDiagramStyle, heightPercentage: 10 });
+                } else if (val > 100) {
+                  setTempDiagramStyle({ ...tempDiagramStyle, heightPercentage: 100 });
+                }
+              }}
               InputProps={{ inputProps: { min: 10, max: 100 } }}
               fullWidth
               helperText="Percentage of image height (10-100%)"
@@ -853,7 +869,15 @@ TECHNICAL REQUIREMENTS:
               type="number"
               label="Font Size"
               value={tempDiagramStyle.fontSize}
-              onChange={(e) => setTempDiagramStyle({ ...tempDiagramStyle, fontSize: parseInt(e.target.value) || 18 })}
+              onChange={(e) => setTempDiagramStyle({ ...tempDiagramStyle, fontSize: parseInt(e.target.value) || 0 })}
+              onBlur={(e) => {
+                const val = parseInt(e.target.value);
+                if (isNaN(val) || val < 8) {
+                  setTempDiagramStyle({ ...tempDiagramStyle, fontSize: 8 });
+                } else if (val > 48) {
+                  setTempDiagramStyle({ ...tempDiagramStyle, fontSize: 48 });
+                }
+              }}
               InputProps={{ inputProps: { min: 8, max: 48 } }}
               fullWidth
               helperText="Base font size in pixels"

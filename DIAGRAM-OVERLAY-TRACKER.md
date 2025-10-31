@@ -54,52 +54,63 @@ Add support for procedural diagrams (Mermaid, LaTeX math, code blocks) that can 
 
 ---
 
-## Phase 1: Data Model Extensions
+## Phase 1: Data Model Extensions ✅ COMPLETE (Committed: 510d087)
 
-### 1.1 Type Definitions (`src/types/Story.ts`)
-- [ ] Create `DiagramPanel` interface
-- [ ] Create `DiagramStyle` interface
-- [ ] Add `diagramPanel?: DiagramPanel` to Scene interface
-- [ ] Export types for use across app
+### 1.1 Type Definitions (`src/types/Story.ts`) ✅
+- [x] Create `DiagramPanel` interface ✅
+- [x] Create `DiagramStyle` interface ✅
+- [x] Add `diagramPanel?: DiagramPanel` to Scene interface ✅
+- [x] Add `diagramStyle?: DiagramStyle` to Story interface ✅
+- [x] Create `DiagramType` and `BoardStyle` type definitions ✅
+- [x] Create `DEFAULT_DIAGRAM_STYLE` and `WHITEBOARD_DIAGRAM_STYLE` constants ✅
+- [x] Export types for use across app ✅
 
-**Files to modify:**
-- `src/types/Story.ts`
+**Files modified:**
+- `src/types/Story.ts` ✅
 
 **Testing:**
-- [ ] TypeScript compilation passes
-- [ ] Existing code still compiles
+- [x] TypeScript compilation passes ✅
+- [x] Existing code still compiles ✅
 
 ---
 
-### 1.2 Book Configuration (`src/types/Book.ts`)
-- [ ] Add `diagramConfig?: DiagramStyle` to Book interface
-- [ ] Add `diagramConfig?: DiagramStyle` to BookMetadata interface
-- [ ] Create `DEFAULT_DIAGRAM_CONFIG` constant
-- [ ] Update any Book-related types
+### 1.2 Scene Model (`src/models/Scene.ts`) ✅
+- [x] Add `diagramPanel?: DiagramPanel` property ✅
+- [x] Update `SceneExchangeFormat` to include diagramPanel ✅
+- [x] Update `toJSON()` to serialize diagramPanel ✅
+- [x] Update `toExportJSON()` to export diagramPanel ✅
+- [x] Update `fromJSON()` to deserialize diagramPanel ✅
+- [x] Update constructor to accept diagramPanel ✅
 
-**Files to modify:**
-- `src/types/Book.ts`
+**Files modified:**
+- `src/models/Scene.ts` ✅
 
 **Testing:**
-- [ ] TypeScript compilation passes
-- [ ] Default config has sensible values
+- [x] Scene serialization includes diagram panel ✅
+- [x] Scene deserialization works correctly ✅
+- [x] Backward compatibility maintained (undefined diagram panels) ✅
 
 ---
 
-### 1.3 Scene Model (`src/models/Scene.ts`)
-- [ ] Add `diagramPanel?: DiagramPanel` property
-- [ ] Update `SceneExchangeFormat` to include diagramPanel
-- [ ] Update `toJSON()` to serialize diagramPanel
-- [ ] Update `fromJSON()` to deserialize diagramPanel
-- [ ] Update constructor to accept diagramPanel
+### 1.3 Story Model (`src/models/Story.ts`) ✅
+- [x] Add `diagramStyle?: DiagramStyle` property ✅
+- [x] Update `StoryExchangeFormat` to include diagramStyle ✅
+- [x] Update `toJSON()` to serialize diagramStyle ✅
+- [x] Update `toExportJSON()` to export diagramStyle ✅
+- [x] Update `fromJSON()` to deserialize diagramStyle ✅
+- [x] Update constructor to accept diagramStyle ✅
 
-**Files to modify:**
-- `src/models/Scene.ts`
+**Files modified:**
+- `src/models/Story.ts` ✅
 
 **Testing:**
-- [ ] Scene serialization includes diagram panel
-- [ ] Scene deserialization works correctly
-- [ ] Backward compatibility maintained (undefined diagram panels)
+- [x] Story serialization includes diagram style ✅
+- [x] Story deserialization works correctly ✅
+- [x] Backward compatibility maintained (undefined diagram styles) ✅
+
+**Design Decision:**
+- ✅ Diagram style defined at **Story level** (applies to all scenes in story)
+- ✅ Diagram content defined at **Scene level** (each scene can have different diagram or none)
 
 ---
 

@@ -3,9 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Diagram Test - Final</title>
+  <title>Diagram Renderer Test - All Types</title>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <!-- Highlight.js (NO default theme - we use custom colors) -->
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+  <!-- Marked.js for Markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@11.0.0/marked.min.js"></script>
   <style>
+    /* HIGH CONTRAST BLACKBOARD - Bright chalk colors like real classroom chalk */
+    .blackboard-style code { color: #ffffff !important; }                /* Base color - white */
+    .blackboard-style .hljs-keyword { color: #ff6b9d !important; }      /* Bright pink - keywords */
+    .blackboard-style .hljs-function { color: #5fff87 !important; }     /* Bright green - functions */
+    .blackboard-style .hljs-string { color: #ffff5f !important; }       /* Bright yellow - strings */
+    .blackboard-style .hljs-comment { color: #87ceeb !important; }      /* Sky blue - comments */
+    .blackboard-style .hljs-number { color: #d787ff !important; }       /* Bright purple - numbers */
+    .blackboard-style .hljs-literal { color: #d787ff !important; }      /* Bright purple - true/false/null */
+    .blackboard-style .hljs-built_in { color: #5fdfff !important; }     /* Bright cyan - built-ins */
+    .blackboard-style .hljs-title { color: #5fff87 !important; }        /* Bright green - class/function names */
+    .blackboard-style .hljs-class { color: #5fdfff !important; }        /* Bright cyan - class keyword */
+    .blackboard-style .hljs-type { color: #5fdfff !important; }         /* Bright cyan - types */
+    .blackboard-style .hljs-params { color: #ffaf5f !important; }       /* Bright orange - parameters */
+    .blackboard-style .hljs-attr { color: #5fff87 !important; }         /* Bright green - attributes */
+    .blackboard-style .hljs-variable { color: #ffffff !important; }     /* Pure white - variables */
+    .blackboard-style .hljs-punctuation { color: #ffffff !important; }  /* Pure white - punctuation */
+    .blackboard-style .hljs-operator { color: #ff6b9d !important; }     /* Bright pink - operators */
+    .blackboard-style .hljs-doctag { color: #5fdfff !important; }       /* Bright cyan - doc tags */
+    .blackboard-style .hljs-meta { color: #5fdfff !important; }         /* Bright cyan - meta */
+    .blackboard-style .hljs-name { color: #5fff87 !important; }         /* Bright green - tag names */
+    .blackboard-style .hljs-tag { color: #ff6b9d !important; }          /* Bright pink - tags */
+    
+    /* HIGH CONTRAST WHITEBOARD - Dark, saturated colors */
+    .whiteboard-style code { color: #24292e !important; }                /* Base color - dark gray */
+    .whiteboard-style .hljs-keyword { color: #d73a49 !important; }      /* Red - keywords */
+    .whiteboard-style .hljs-function { color: #005cc5 !important; }     /* Blue - functions */
+    .whiteboard-style .hljs-string { color: #22863a !important; }       /* Green - strings */
+    .whiteboard-style .hljs-comment { color: #6a737d !important; }      /* Gray - comments */
+    .whiteboard-style .hljs-number { color: #6f42c1 !important; }       /* Purple - numbers */
+    .whiteboard-style .hljs-literal { color: #6f42c1 !important; }      /* Purple - true/false/null */
+    .whiteboard-style .hljs-built_in { color: #005cc5 !important; }     /* Blue - built-ins */
+    .whiteboard-style .hljs-title { color: #6f42c1 !important; }        /* Purple - class/function names */
+    .whiteboard-style .hljs-class { color: #d73a49 !important; }        /* Red - class keyword */
+    .whiteboard-style .hljs-type { color: #005cc5 !important; }         /* Blue - types */
+    .whiteboard-style .hljs-params { color: #e36209 !important; }       /* Orange - parameters */
+    .whiteboard-style .hljs-attr { color: #005cc5 !important; }         /* Blue - attributes */
+    .whiteboard-style .hljs-variable { color: #24292e !important; }     /* Almost black - variables */
+    .whiteboard-style .hljs-punctuation { color: #24292e !important; }  /* Almost black - punctuation */
+    .whiteboard-style .hljs-operator { color: #d73a49 !important; }     /* Red - operators */
+    .whiteboard-style .hljs-doctag { color: #6a737d !important; }       /* Gray - doc tags */
+    .whiteboard-style .hljs-meta { color: #6a737d !important; }         /* Gray - meta */
+    .whiteboard-style .hljs-name { color: #22863a !important; }         /* Green - tag names */
+    .whiteboard-style .hljs-tag { color: #d73a49 !important; }          /* Red - tags */
+    
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
@@ -131,7 +182,134 @@
     </div>
     
     <button onclick="testMermaid()">Render Mermaid Diagram</button>
+    <button onclick="loadMermaidExample('sequence')">Load Sequence Example</button>
+    <button onclick="loadMermaidExample('class')">Load Class Diagram</button>
     <div id="output2"></div>
+
+    <h2>Test 3: Math Equations (LaTeX)</h2>
+    <label>LaTeX Code:</label>
+    <textarea id="math-input">E = mc^2
+
+x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}</textarea>
+    
+    <div class="controls">
+      <div>
+        <label>Width:</label>
+        <input type="number" id="math-width" value="800">
+      </div>
+      <div>
+        <label>Height:</label>
+        <input type="number" id="math-height" value="400">
+      </div>
+      <div>
+        <label>Font Size:</label>
+        <input type="number" id="math-fontsize" value="48">
+      </div>
+      <div>
+        <label>Board Style:</label>
+        <select id="math-board">
+          <option value="blackboard">Blackboard</option>
+          <option value="whiteboard">Whiteboard</option>
+        </select>
+      </div>
+    </div>
+    
+    <button onclick="testMath()">Render on Canvas</button>
+    <button onclick="testMathDirect()">Show Direct (No Canvas)</button>
+    <button onclick="loadMathExample('quadratic')">Quadratic Formula</button>
+    <button onclick="loadMathExample('integral')">Integral Example</button>
+    <button onclick="loadMathExample('sum')">Summation Example</button>
+    <div id="output3"></div>
+
+    <h2>Test 4: Code Block</h2>
+    <label>Code:</label>
+    <textarea id="code-input">function quickSort(arr) {
+  if (arr.length <= 1) return arr;
+  const pivot = arr[0];
+  const left = arr.filter(x => x < pivot);
+  const right = arr.filter(x => x > pivot);
+  return [...quickSort(left), pivot, ...quickSort(right)];
+}</textarea>
+    
+    <div class="controls">
+      <div>
+        <label>Width:</label>
+        <input type="number" id="code-width" value="800">
+      </div>
+      <div>
+        <label>Height:</label>
+        <input type="number" id="code-height" value="500">
+      </div>
+      <div>
+        <label>Font Size:</label>
+        <input type="number" id="code-fontsize" value="14">
+      </div>
+      <div>
+        <label>Language:</label>
+        <select id="code-language">
+          <option value="javascript">JavaScript</option>
+          <option value="python">Python</option>
+          <option value="java">Java</option>
+        </select>
+      </div>
+      <div>
+        <label>Board Style:</label>
+        <select id="code-board">
+          <option value="blackboard">Blackboard</option>
+          <option value="whiteboard">Whiteboard</option>
+        </select>
+      </div>
+    </div>
+    
+    <button onclick="testCode()">Render on Canvas</button>
+    <button onclick="testCodeDirect()">Show Direct (No Canvas)</button>
+    <button onclick="loadCodeExample('python')">Python Example</button>
+    <button onclick="loadCodeExample('java')">Java Example</button>
+    <button onclick="loadCodeExample('javascript')">JavaScript Example</button>
+    <div id="output4"></div>
+
+    <h2>Test 5: Markdown Text</h2>
+    <label>Markdown:</label>
+    <textarea id="custom-input"># Computer Science 101
+
+## Today's Lesson:
+
+- **Data Structures**
+- **Algorithms**
+- **Big O Notation**
+
+### Key Concepts:
+1. Arrays and Lists
+2. Trees and Graphs
+3. Time Complexity</textarea>
+    
+    <div class="controls">
+      <div>
+        <label>Width:</label>
+        <input type="number" id="custom-width" value="800">
+      </div>
+      <div>
+        <label>Height:</label>
+        <input type="number" id="custom-height" value="400">
+      </div>
+      <div>
+        <label>Board Style:</label>
+        <select id="custom-board">
+          <option value="blackboard">Blackboard</option>
+          <option value="whiteboard">Whiteboard</option>
+        </select>
+      </div>
+      <div>
+        <label>Font Size:</label>
+        <input type="number" id="custom-fontsize" value="24">
+      </div>
+    </div>
+    
+    <button onclick="testCustom()">Render on Canvas</button>
+    <button onclick="testCustomDirect()">Show Direct (No Canvas)</button>
+    <button onclick="loadMarkdownExample('lesson')">Lesson Example</button>
+    <button onclick="loadMarkdownExample('algorithm')">Algorithm Example</button>
+    <div id="output5"></div>
   </div>
 
   <script>
@@ -146,15 +324,37 @@
 
     window.addEventListener('load', () => {
       console.log('Window loaded');
+      
+      let libraries = [];
+      
       if (typeof mermaid !== 'undefined') {
         mermaid.initialize({
           startOnLoad: false,
           theme: 'dark',
           securityLevel: 'loose'
         });
-        log('✅ Ready - Mermaid loaded', 'success');
+        libraries.push('Mermaid');
+      }
+      
+      if (typeof katex !== 'undefined') {
+        libraries.push('KaTeX');
+      }
+      
+      if (typeof html2canvas !== 'undefined') {
+        libraries.push('html2canvas');
+      }
+      
+      if (typeof hljs !== 'undefined') {
+        libraries.push('highlight.js');
+      }
+      if (typeof marked !== 'undefined') {
+        libraries.push('marked.js');
+      }
+      
+      if (libraries.length > 0) {
+        log('✅ Ready - ' + libraries.join(', ') + ' loaded', 'success');
       } else {
-        log('❌ Mermaid not loaded', 'error');
+        log('❌ No libraries loaded', 'error');
       }
     });
 
@@ -280,6 +480,596 @@
         output.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
         log('❌ Error: ' + error.message, 'error');
       }
+    }
+
+    async function testMath() {
+      console.log('testMath called');
+      log('Rendering math equation to canvas...');
+      
+      const output = document.getElementById('output3');
+      output.innerHTML = '<p>Working...</p>';
+
+      try {
+        if (typeof katex === 'undefined') {
+          throw new Error('KaTeX not loaded');
+        }
+        
+        if (typeof html2canvas === 'undefined') {
+          throw new Error('html2canvas not loaded - needed for canvas conversion');
+        }
+
+        const mathText = document.getElementById('math-input').value;
+        const width = parseInt(document.getElementById('math-width').value);
+        const height = parseInt(document.getElementById('math-height').value);
+        const fontSize = parseInt(document.getElementById('math-fontsize').value);
+        const boardStyle = document.getElementById('math-board').value;
+
+        // Create a temporary container with the beautiful rendering
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.width = width + 'px';
+        tempContainer.style.height = height + 'px';
+        tempContainer.style.backgroundColor = boardStyle === 'blackboard' ? '#2d3748' : '#ffffff';
+        tempContainer.style.color = boardStyle === 'blackboard' ? '#ffffff' : '#000000';
+        tempContainer.style.padding = '40px';
+        tempContainer.style.boxSizing = 'border-box';
+        tempContainer.style.border = '12px solid #8b7355';
+        tempContainer.style.fontSize = fontSize + 'px';
+        tempContainer.style.display = 'flex';
+        tempContainer.style.flexDirection = 'column';
+        tempContainer.style.alignItems = 'center';
+        tempContainer.style.justifyContent = 'center';
+        
+        document.body.appendChild(tempContainer);
+
+        // Render KaTeX into the container
+        const lines = mathText.split('\n');
+        lines.forEach(line => {
+          if (line.trim()) {
+            const mathDiv = document.createElement('div');
+            mathDiv.style.margin = '20px 0';
+            
+            try {
+              katex.render(line, mathDiv, {
+                displayMode: true,
+                throwOnError: false,
+                output: 'html'
+              });
+            } catch (err) {
+              mathDiv.textContent = line;
+            }
+            
+            tempContainer.appendChild(mathDiv);
+          }
+        });
+
+        // Convert the beautiful HTML to canvas using html2canvas
+        const canvas = await html2canvas(tempContainer, {
+          width: width,
+          height: height,
+          backgroundColor: null,
+          scale: 2 // Higher quality
+        });
+
+        // Clean up
+        document.body.removeChild(tempContainer);
+
+        output.innerHTML = '';
+        output.appendChild(canvas);
+        log('✅ Math equation rendered to canvas with html2canvas!', 'success');
+        
+      } catch (error) {
+        console.error('Error:', error);
+        output.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+        log('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    async function testCode() {
+      console.log('testCode called');
+      log('Rendering code block with syntax highlighting...');
+      
+      const output = document.getElementById('output4');
+      output.innerHTML = '<p>Working...</p>';
+
+      try {
+        const codeText = document.getElementById('code-input').value;
+        const width = parseInt(document.getElementById('code-width').value);
+        const height = parseInt(document.getElementById('code-height').value);
+        const fontSize = parseInt(document.getElementById('code-fontsize').value);
+        const language = document.getElementById('code-language').value;
+        const boardStyle = document.getElementById('code-board').value;
+
+        // Create a temporary container with syntax highlighting
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.width = width + 'px';
+        tempContainer.style.height = height + 'px';
+        tempContainer.style.backgroundColor = boardStyle === 'blackboard' ? '#2d3748' : '#ffffff';
+        tempContainer.style.padding = '40px';
+        tempContainer.style.boxSizing = 'border-box';
+        tempContainer.style.border = '12px solid #8b7355';
+        tempContainer.style.overflow = 'auto';
+        tempContainer.className = boardStyle === 'blackboard' ? 'blackboard-style' : 'whiteboard-style';
+        
+        document.body.appendChild(tempContainer);
+
+        // Create pre and code elements for highlight.js
+        const pre = document.createElement('pre');
+        pre.style.margin = '0';
+        pre.style.padding = '0';
+        pre.style.background = 'transparent';
+        pre.style.fontSize = fontSize + 'px';
+        pre.style.lineHeight = '1.4';
+        
+        const code = document.createElement('code');
+        code.className = `language-${language}`;
+        code.textContent = codeText;
+        code.style.fontFamily = '"Monaco", "Consolas", "Courier New", monospace';
+        code.style.color = boardStyle === 'blackboard' ? '#ffffff' : '#24292e';
+        
+        pre.appendChild(code);
+        tempContainer.appendChild(pre);
+
+        // Apply syntax highlighting if highlight.js is available
+        if (typeof hljs !== 'undefined') {
+          hljs.highlightElement(code);
+          log('Applying syntax highlighting...');
+        } else {
+          log('highlight.js not available, rendering as plain text');
+        }
+
+        // Convert to canvas using html2canvas
+        const canvas = await html2canvas(tempContainer, {
+          width: width,
+          height: height,
+          backgroundColor: null,
+          scale: 2 // Higher quality
+        });
+
+        // Clean up
+        document.body.removeChild(tempContainer);
+
+        output.innerHTML = '';
+        output.appendChild(canvas);
+        log('✅ Code block rendered with syntax highlighting!', 'success');
+        
+      } catch (error) {
+        console.error('Error:', error);
+        output.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+        log('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    async function testCustom() {
+      console.log('testCustom called');
+      log('Rendering markdown to canvas...');
+      
+      const output = document.getElementById('output5');
+      output.innerHTML = '<p>Working...</p>';
+
+      try {
+        const markdownText = document.getElementById('custom-input').value;
+        const width = parseInt(document.getElementById('custom-width').value);
+        const height = parseInt(document.getElementById('custom-height').value);
+        const boardStyle = document.getElementById('custom-board').value;
+        const fontSize = parseInt(document.getElementById('custom-fontsize').value);
+
+        // Create a temporary container for markdown rendering
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.width = width + 'px';
+        tempContainer.style.height = height + 'px';
+        tempContainer.style.backgroundColor = boardStyle === 'blackboard' ? '#2d3748' : '#ffffff';
+        tempContainer.style.padding = '40px';
+        tempContainer.style.boxSizing = 'border-box';
+        tempContainer.style.border = '12px solid #8b7355';
+        tempContainer.style.overflow = 'auto';
+        tempContainer.style.color = boardStyle === 'blackboard' ? '#ffffff' : '#24292e';
+        tempContainer.style.fontSize = fontSize + 'px';
+        tempContainer.style.fontFamily = 'Arial, sans-serif';
+        tempContainer.style.lineHeight = '1.6';
+        
+        document.body.appendChild(tempContainer);
+
+        // Parse and render markdown
+        if (typeof marked !== 'undefined') {
+          tempContainer.innerHTML = marked.parse(markdownText);
+          log('Markdown parsed successfully');
+        } else {
+          tempContainer.textContent = markdownText;
+          log('marked.js not available, rendering as plain text');
+        }
+
+        // Style the rendered markdown
+        tempContainer.querySelectorAll('h1').forEach(el => {
+          el.style.fontSize = (fontSize * 1.8) + 'px';
+          el.style.marginTop = '0';
+          el.style.marginBottom = '20px';
+          el.style.fontWeight = 'bold';
+        });
+        tempContainer.querySelectorAll('h2').forEach(el => {
+          el.style.fontSize = (fontSize * 1.4) + 'px';
+          el.style.marginTop = '20px';
+          el.style.marginBottom = '15px';
+          el.style.fontWeight = 'bold';
+        });
+        tempContainer.querySelectorAll('h3').forEach(el => {
+          el.style.fontSize = (fontSize * 1.2) + 'px';
+          el.style.marginTop = '15px';
+          el.style.marginBottom = '10px';
+          el.style.fontWeight = 'bold';
+        });
+        tempContainer.querySelectorAll('ul, ol').forEach(el => {
+          el.style.marginLeft = '30px';
+          el.style.marginBottom = '15px';
+        });
+        tempContainer.querySelectorAll('li').forEach(el => {
+          el.style.marginBottom = '8px';
+        });
+        tempContainer.querySelectorAll('strong').forEach(el => {
+          el.style.fontWeight = 'bold';
+        });
+        tempContainer.querySelectorAll('em').forEach(el => {
+          el.style.fontStyle = 'italic';
+        });
+        tempContainer.querySelectorAll('p').forEach(el => {
+          el.style.marginBottom = '15px';
+        });
+
+        // Convert to canvas using html2canvas
+        const canvas = await html2canvas(tempContainer, {
+          width: width,
+          height: height,
+          backgroundColor: null,
+          scale: 2 // Higher quality
+        });
+
+        // Cleanup
+        document.body.removeChild(tempContainer);
+
+        output.innerHTML = '';
+        output.appendChild(canvas);
+        log('✅ Markdown rendered to canvas!', 'success');
+        
+      } catch (error) {
+        console.error('Error:', error);
+        output.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+        log('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testCustomDirect() {
+      console.log('testCustomDirect called');
+      log('Showing markdown directly...');
+      
+      const output = document.getElementById('output5');
+      output.innerHTML = '';
+
+      try {
+        const markdownText = document.getElementById('custom-input').value;
+        const boardStyle = document.getElementById('custom-board').value;
+        const fontSize = parseInt(document.getElementById('custom-fontsize').value);
+
+        // Create styled container
+        const container = document.createElement('div');
+        container.style.backgroundColor = boardStyle === 'blackboard' ? '#2d3748' : '#ffffff';
+        container.style.padding = '40px';
+        container.style.borderRadius = '8px';
+        container.style.border = '12px solid #8b7355';
+        container.style.minHeight = '300px';
+        container.style.maxHeight = '600px';
+        container.style.overflow = 'auto';
+        container.style.color = boardStyle === 'blackboard' ? '#ffffff' : '#24292e';
+        container.style.fontSize = fontSize + 'px';
+        container.style.fontFamily = 'Arial, sans-serif';
+        container.style.lineHeight = '1.6';
+
+        // Parse and render markdown
+        if (typeof marked !== 'undefined') {
+          container.innerHTML = marked.parse(markdownText);
+        } else {
+          container.textContent = markdownText;
+        }
+
+        // Style the rendered markdown
+        container.querySelectorAll('h1').forEach(el => {
+          el.style.fontSize = (fontSize * 1.8) + 'px';
+          el.style.marginTop = '0';
+          el.style.marginBottom = '20px';
+          el.style.fontWeight = 'bold';
+        });
+        container.querySelectorAll('h2').forEach(el => {
+          el.style.fontSize = (fontSize * 1.4) + 'px';
+          el.style.marginTop = '20px';
+          el.style.marginBottom = '15px';
+          el.style.fontWeight = 'bold';
+        });
+        container.querySelectorAll('h3').forEach(el => {
+          el.style.fontSize = (fontSize * 1.2) + 'px';
+          el.style.marginTop = '15px';
+          el.style.marginBottom = '10px';
+          el.style.fontWeight = 'bold';
+        });
+        container.querySelectorAll('ul, ol').forEach(el => {
+          el.style.marginLeft = '30px';
+          el.style.marginBottom = '15px';
+        });
+        container.querySelectorAll('li').forEach(el => {
+          el.style.marginBottom = '8px';
+        });
+        container.querySelectorAll('strong').forEach(el => {
+          el.style.fontWeight = 'bold';
+        });
+        container.querySelectorAll('em').forEach(el => {
+          el.style.fontStyle = 'italic';
+        });
+        container.querySelectorAll('p').forEach(el => {
+          el.style.marginBottom = '15px';
+        });
+
+        output.appendChild(container);
+        log('✅ Markdown rendered!', 'success');
+        
+      } catch (error) {
+        console.error('Error:', error);
+        output.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+        log('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    // Example loaders
+    function loadMermaidExample(type) {
+      const examples = {
+        sequence: `sequenceDiagram
+    Student->>Teacher: Can you explain recursion?
+    Teacher-->>Student: Sure! Let me explain recursion...
+    Teacher->>Teacher: First, understand recursion`,
+        class: `classDiagram
+    Stack <|-- ArrayStack
+    Stack : +push(item)
+    Stack : +pop()
+    Stack : +peek()
+    ArrayStack : -array[]
+    ArrayStack : -size`
+      };
+      document.getElementById('mermaid-input').value = examples[type] || examples.sequence;
+    }
+
+    function testMathDirect() {
+      console.log('testMathDirect called');
+      log('Rendering math directly (no canvas)...');
+      
+      const output = document.getElementById('output3');
+      output.innerHTML = '';
+
+      try {
+        if (typeof katex === 'undefined') {
+          throw new Error('KaTeX not loaded');
+        }
+
+        const mathText = document.getElementById('math-input').value;
+        const boardStyle = document.getElementById('math-board').value;
+        const fontSize = parseInt(document.getElementById('math-fontsize').value);
+
+        // Create styled container
+        const container = document.createElement('div');
+        container.style.backgroundColor = boardStyle === 'blackboard' ? '#2d3748' : '#ffffff';
+        container.style.color = boardStyle === 'blackboard' ? '#ffffff' : '#000000';
+        container.style.padding = '40px';
+        container.style.borderRadius = '8px';
+        container.style.border = '12px solid #8b7355';
+        container.style.fontSize = fontSize + 'px';
+        container.style.textAlign = 'center';
+        container.style.minHeight = '300px';
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.style.alignItems = 'center';
+        container.style.justifyContent = 'center';
+
+        // Split and render each line
+        const lines = mathText.split('\n');
+        lines.forEach(line => {
+          if (line.trim()) {
+            const mathDiv = document.createElement('div');
+            mathDiv.style.margin = '20px 0';
+            
+            try {
+              katex.render(line, mathDiv, {
+                displayMode: true,
+                throwOnError: false,
+                output: 'html'
+              });
+            } catch (err) {
+              mathDiv.textContent = line;
+            }
+            
+            container.appendChild(mathDiv);
+          }
+        });
+
+        output.appendChild(container);
+        log('✅ Math rendered directly with KaTeX!', 'success');
+        
+      } catch (error) {
+        console.error('Error:', error);
+        output.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+        log('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function loadMathExample(type) {
+      const examples = {
+        quadratic: `x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}`,
+        integral: `\\int_{a}^{b} f(x) \\, dx = F(b) - F(a)`,
+        sum: `\\sum_{i=1}^{n} i^2 = \\frac{n(n+1)(2n+1)}{6}`
+      };
+      document.getElementById('math-input').value = examples[type] || examples.quadratic;
+    }
+
+    function testCodeDirect() {
+      console.log('testCodeDirect called');
+      log('Rendering code directly (no canvas)...');
+      
+      const output = document.getElementById('output4');
+      output.innerHTML = '';
+
+      try {
+        const codeText = document.getElementById('code-input').value;
+        const fontSize = parseInt(document.getElementById('code-fontsize').value);
+        const language = document.getElementById('code-language').value;
+        const boardStyle = document.getElementById('code-board').value;
+
+        // Create styled container
+        const container = document.createElement('div');
+        container.style.backgroundColor = boardStyle === 'blackboard' ? '#2d3748' : '#ffffff';
+        container.style.padding = '40px';
+        container.style.borderRadius = '8px';
+        container.style.border = '12px solid #8b7355';
+        container.style.minHeight = '300px';
+        container.style.maxHeight = '600px';
+        container.style.overflow = 'auto';
+        container.className = boardStyle === 'blackboard' ? 'blackboard-style' : 'whiteboard-style';
+
+        // Create pre and code elements
+        const pre = document.createElement('pre');
+        pre.style.margin = '0';
+        pre.style.padding = '0';
+        pre.style.background = 'transparent';
+        pre.style.fontSize = fontSize + 'px';
+        pre.style.lineHeight = '1.4';
+        
+        const code = document.createElement('code');
+        code.className = `language-${language}`;
+        code.textContent = codeText;
+        code.style.fontFamily = '"Monaco", "Consolas", "Courier New", monospace';
+        
+        pre.appendChild(code);
+        container.appendChild(pre);
+
+        // Apply syntax highlighting
+        if (typeof hljs !== 'undefined') {
+          hljs.highlightElement(code);
+        }
+
+        output.appendChild(container);
+        log('✅ Code rendered with syntax highlighting!', 'success');
+        
+      } catch (error) {
+        console.error('Error:', error);
+        output.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+        log('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function loadCodeExample(type) {
+      const examples = {
+        python: `def factorial(n):
+    """Calculate factorial recursively"""
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+
+# Example usage
+result = factorial(5)  # Returns 120`,
+        java: `public class QuickSort {
+    public static void quickSort(int[] arr, int low, int high) {
+        if (low < high) {
+            int pi = partition(arr, low, high);
+            quickSort(arr, low, pi - 1);
+            quickSort(arr, pi + 1, high);
+        }
+    }
+    
+    private static int partition(int[] arr, int low, int high) {
+        int pivot = arr[high];
+        int i = (low - 1);
+        
+        for (int j = low; j < high; j++) {
+            if (arr[j] < pivot) {
+                i++;
+                // Swap arr[i] and arr[j]
+                int temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+        }
+        
+        // Swap arr[i+1] and arr[high]
+        int temp = arr[i + 1];
+        arr[i + 1] = arr[high];
+        arr[high] = temp;
+        
+        return i + 1;
+    }
+}`,
+        javascript: `function quickSort(arr) {
+  // Base case: arrays with 0 or 1 element are sorted
+  if (arr.length <= 1) {
+    return arr;
+  }
+  
+  // Choose pivot (middle element)
+  const pivot = arr[Math.floor(arr.length / 2)];
+  
+  // Partition into three arrays
+  const left = arr.filter(x => x < pivot);
+  const middle = arr.filter(x => x === pivot);
+  const right = arr.filter(x => x > pivot);
+  
+  // Recursively sort and combine
+  return [...quickSort(left), ...middle, ...quickSort(right)];
+}
+
+// Test the function
+const numbers = [64, 34, 25, 12, 22, 11, 90];
+console.log(quickSort(numbers));`
+      };
+      document.getElementById('code-input').value = examples[type] || examples.python;
+      if (type === 'python') {
+        document.getElementById('code-language').value = 'python';
+      } else if (type === 'java') {
+        document.getElementById('code-language').value = 'java';
+      } else if (type === 'javascript') {
+        document.getElementById('code-language').value = 'javascript';
+      }
+    }
+
+    function loadMarkdownExample(type) {
+      const examples = {
+        lesson: `# Computer Science 101
+
+## Today's Lesson:
+
+- **Data Structures**
+- **Algorithms**
+- **Big O Notation**
+
+### Key Concepts:
+1. Arrays and Lists
+2. Trees and Graphs
+3. Time Complexity`,
+        algorithm: `# QuickSort Algorithm
+
+## Overview
+A *divide-and-conquer* sorting algorithm that works by:
+
+1. **Choose a pivot** element
+2. **Partition** array into two sub-arrays
+3. **Recursively sort** sub-arrays
+
+### Time Complexity
+- **Best Case:** O(n log n)
+- **Average Case:** O(n log n)
+- **Worst Case:** O(n²)
+
+### Space Complexity
+- O(log n) for recursion stack`
+      };
+      document.getElementById('custom-input').value = examples[type] || examples.lesson;
     }
 
     console.log('=== All functions defined ===');

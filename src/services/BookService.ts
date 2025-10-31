@@ -145,11 +145,13 @@ export class BookService {
         title: story.title,
         description: story.description,
         backgroundSetup: story.backgroundSetup,
+        diagramStyle: story.diagramStyle, // Include diagram style
         scenes: story.scenes.map(scene => ({
           id: scene.id,
           title: scene.title,
           description: scene.description,
           textPanel: scene.textPanel,
+          diagramPanel: scene.diagramPanel, // Include diagram panel
           characters: scene.characters || [],
           elements: scene.elements || [],
           characterIds: scene.characters || [], // DEPRECATED: for backward compat

@@ -65,6 +65,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const [diagramType, setDiagramType] = useState<'mermaid' | 'math' | 'code' | 'markdown'>('mermaid');
   const [diagramContent, setDiagramContent] = useState('');
   const [diagramLanguage, setDiagramLanguage] = useState('javascript');
+  const [diagramPreviewOpen, setDiagramPreviewOpen] = useState(false);
+  const [diagramPreviewUrl, setDiagramPreviewUrl] = useState<string | null>(null);
   const [activeBook, setActiveBook] = useState<any>(null); // Book instance for book-level characters
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -329,6 +331,59 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       const updatedData = { ...activeBookData, stories: updatedStories };
       await BookService.saveActiveBookData(updatedData);
       // Don't call onStoryUpdate() here - it causes the scene to reload and clears the input
+    }
+  };
+
+  const handlePreviewDiagram = async () => {
+    if (!story?.diagramStyle) {
+      setSnackbarMessage('Please configure diagram style for this story first (in Stories panel)');
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    if (!diagramContent.trim()) {
+      setSnackbarMessage('Please enter diagram content first');
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    try {
+      // Import DiagramRenderService
+      const { overlayDiagramOnImage } = await import('../services/OverlayService');
+      
+      // Create a blank white canvas as base image
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      const blankImage = canvas.toDataURL('image/png');
+      
+      // Overlay the diagram
+      const diagramPanel = {
+        type: diagramType,
+        content: diagramContent,
+        language: diagramType === 'code' ? diagramLanguage : undefined
+      };
+      
+      const resultUrl = await overlayDiagramOnImage(
+        blankImage,
+        diagramPanel,
+        story.diagramStyle
+      );
+      
+      setDiagramPreviewUrl(resultUrl);
+      setDiagramPreviewOpen(true);
+    } catch (error) {
+      console.error('Error previewing diagram:', error);
+      setSnackbarMessage('Failed to preview diagram: ' + (error as Error).message);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     }
   };
 
@@ -1192,10 +1247,19 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           }}
         />
         
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={handlePreviewDiagram}
+          sx={{ mt: 2 }}
+        >
+          Preview Diagram
+        </Button>
+        
         {!story?.diagramStyle && (
           <Alert severity="info" sx={{ mt: 2 }}>
-            Note: Diagram style (colors, position, board type) needs to be configured at the story level. 
-            The diagram will use default blackboard style.
+            Note: Diagram style (colors, position, board type) needs to be configured at the story level.
+            Click the ⚙️ icon next to the story in the Stories panel to configure it.
           </Alert>
         )}
       </Box>
@@ -1443,6 +1507,30 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           )}
         </AccordionDetails>
       </Accordion>
+
+      {/* Diagram Preview Dialog */}
+      <Dialog
+        open={diagramPreviewOpen}
+        onClose={() => setDiagramPreviewOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Diagram Preview</DialogTitle>
+        <DialogContent>
+          {diagramPreviewUrl && (
+            <Box sx={{ textAlign: 'center', p: 2 }}>
+              <img 
+                src={diagramPreviewUrl} 
+                alt="Diagram Preview" 
+                style={{ maxWidth: '100%', height: 'auto' }}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDiagramPreviewOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={snackbarOpen}

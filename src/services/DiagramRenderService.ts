@@ -106,7 +106,8 @@ async function renderMermaid(
   const height = 600; // Will be scaled based on heightPercentage when compositing
 
   // Render Mermaid to SVG
-  const id = `mermaid-${Date.now()}-${Math.random()}`;
+  // Generate a valid CSS ID (no dots allowed)
+  const id = `mermaid-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   const { svg } = await mermaid.render(id, content);
 
   // Create temporary container

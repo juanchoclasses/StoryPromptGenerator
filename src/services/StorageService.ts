@@ -48,7 +48,7 @@ export class StorageService {
           // Reconstruct Story model instances first
           const reconstructedStories = bookData.stories ? bookData.stories.map((storyData: any) => {
             // Reconstruct Scene model instances
-            const reconstructedScenes = storyData.scenes ? storyData.scenes.map((sceneData: any, idx: number) => {
+            const reconstructedScenes = storyData.scenes ? storyData.scenes.map((sceneData: any) => {
               // Convert scene dates
               sceneData.createdAt = new Date(sceneData.createdAt);
               sceneData.updatedAt = new Date(sceneData.updatedAt);
@@ -59,14 +59,6 @@ export class StorageService {
                   ...img,
                   timestamp: new Date(img.timestamp)
                 }));
-              }
-              
-              if (idx === 0 && storyData.title?.includes('Dijkstra')) {
-                console.log('🔍 LOAD() - Scene 0 from localStorage:', {
-                  title: sceneData.title,
-                  hasDiagramPanel: !!sceneData.diagramPanel,
-                  diagramPanel: sceneData.diagramPanel
-                });
               }
               
               return new Scene(sceneData);
@@ -159,15 +151,11 @@ export class StorageService {
    * Get a book by ID
    */
   static async getBook(bookId: string): Promise<Book | null> {
-    console.log('📖 StorageService.getBook called for:', bookId);
     const data = await this.load();
     const bookData = data.books.find(b => b.id === bookId);
     if (!bookData) {
-      console.log('   ❌ Book not found');
       return null;
     }
-    
-    console.log('   Raw bookData.characters from storage:', bookData.characters?.length || 0, bookData.characters?.map((c: any) => c.name) || []);
     
     // Import Story class to properly instantiate stories
     const { Story: StoryClass } = await import('../models/Story.js');
@@ -185,8 +173,6 @@ export class StorageService {
       updatedAt: bookData.updatedAt
     });
     
-    console.log('   Book instance created with', book.characters.length, 'characters:', book.characters.map(c => c.name));
-    
     // Properly instantiate Story objects with all their data
     if (bookData.stories) {
       // Import Scene class to properly instantiate scenes
@@ -196,7 +182,6 @@ export class StorageService {
         // Convert plain scene objects to Scene instances (if not already)
         const sceneInstances = (storyData.scenes || []).map((sceneData: any) => {
           if (sceneData instanceof SceneClass) {
-            console.log('⚠️ Scene is already an instance:', sceneData.title, 'hasDiagramPanel:', !!sceneData.diagramPanel);
             return sceneData; // Already a Scene instance, don't re-instantiate
           }
           return new SceneClass(sceneData);
@@ -224,20 +209,6 @@ export class StorageService {
    * Save a book (create or update)
    */
   static async saveBook(book: Book): Promise<void> {
-    console.log('💾 StorageService.saveBook called');
-    console.log('   Book ID:', book.id);
-    console.log('   Book title:', book.title);
-    console.log('   Book characters before save:', book.characters.length, book.characters.map(c => c.name));
-    console.log('   Book stories:', book.stories.length);
-    
-    // Check scenes before saving
-    book.stories.forEach((story, idx) => {
-      console.log(`   📚 Story ${idx}: ${story.title} with ${story.scenes.length} scenes`);
-      story.scenes.forEach((scene, sceneIdx) => {
-        console.log(`      📄 Scene ${sceneIdx}: ${scene.title} - hasDiagramPanel: ${!!scene.diagramPanel}, diagramPanel:`, scene.diagramPanel);
-      });
-    });
-    
     const data = await this.load();
     const index = data.books.findIndex(b => b.id === book.id);
     
@@ -245,22 +216,13 @@ export class StorageService {
     
     if (index >= 0) {
       // Update existing book
-      console.log('   Updating existing book at index', index);
       data.books[index] = book;
-      console.log('   After assignment, data.books[index].characters:', data.books[index].characters?.length || 0, data.books[index].characters?.map((c: any) => c.name) || []);
     } else {
       // Add new book
-      console.log('   Adding new book');
       data.books.push(book);
     }
     
     this.save(data);
-    console.log('   ✅ Book saved to localStorage');
-    
-    // Verify what was actually saved
-    const verifyData = await this.load();
-    const savedBook = verifyData.books.find(b => b.id === book.id);
-    console.log('   📋 VERIFICATION - Characters in storage:', savedBook?.characters?.length || 0, savedBook?.characters?.map((c: any) => c.name) || []);
   }
 
   /**

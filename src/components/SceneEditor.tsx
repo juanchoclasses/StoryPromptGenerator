@@ -841,7 +841,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         
         // Apply overlays (text and/or diagram) if present
         const hasTextPanel = textPanel && textPanel.trim();
-        const hasDiagramPanel = currentScene?.diagramPanel;
+        // Use current state for diagram, not saved scene data (which may be stale)
+        const hasDiagramPanel = diagramContent && diagramContent.trim();
         
         if (hasTextPanel || hasDiagramPanel) {
           try {
@@ -869,10 +870,14 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
               };
             }
             
-            // Add diagram panel if present
+            // Add diagram panel if present (use current state values)
             if (hasDiagramPanel && story?.diagramStyle) {
               overlayOptions.diagramPanel = {
-                panel: currentScene.diagramPanel,
+                panel: {
+                  type: diagramType,
+                  content: diagramContent,
+                  language: diagramType === 'code' ? diagramLanguage : undefined
+                },
                 style: story.diagramStyle
               };
             }

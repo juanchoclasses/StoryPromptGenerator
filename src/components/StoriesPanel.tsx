@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  MenuItem,
   IconButton,
   Tooltip,
   Snackbar,
@@ -807,8 +808,8 @@ TECHNICAL REQUIREMENTS:
               })}
               fullWidth
             >
-              <option value="blackboard">Blackboard (dark gray with white chalk)</option>
-              <option value="whiteboard">Whiteboard (white with dark markers)</option>
+              <MenuItem value="blackboard">Blackboard (dark gray with white chalk)</MenuItem>
+              <MenuItem value="whiteboard">Whiteboard (white with dark markers)</MenuItem>
             </TextField>
 
             <TextField
@@ -818,14 +819,14 @@ TECHNICAL REQUIREMENTS:
               onChange={(e) => setTempDiagramStyle({ ...tempDiagramStyle, position: e.target.value as any })}
               fullWidth
             >
-              <option value="top-left">Top Left</option>
-              <option value="top-center">Top Center</option>
-              <option value="top-right">Top Right</option>
-              <option value="middle-left">Middle Left</option>
-              <option value="middle-right">Middle Right</option>
-              <option value="bottom-left">Bottom Left</option>
-              <option value="bottom-center">Bottom Center</option>
-              <option value="bottom-right">Bottom Right</option>
+              <MenuItem value="top-left">Top Left</MenuItem>
+              <MenuItem value="top-center">Top Center</MenuItem>
+              <MenuItem value="top-right">Top Right</MenuItem>
+              <MenuItem value="middle-left">Middle Left</MenuItem>
+              <MenuItem value="middle-right">Middle Right</MenuItem>
+              <MenuItem value="bottom-left">Bottom Left</MenuItem>
+              <MenuItem value="bottom-center">Bottom Center</MenuItem>
+              <MenuItem value="bottom-right">Bottom Right</MenuItem>
             </TextField>
 
             <TextField

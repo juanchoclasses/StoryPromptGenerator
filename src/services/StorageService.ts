@@ -193,8 +193,14 @@ export class StorageService {
       const { Scene: SceneClass } = await import('../models/Scene.js');
       
       book.stories = (bookData.stories as any[]).map((storyData: any) => {
-        // Convert plain scene objects to Scene instances
-        const sceneInstances = (storyData.scenes || []).map((sceneData: any) => new SceneClass(sceneData));
+        // Convert plain scene objects to Scene instances (if not already)
+        const sceneInstances = (storyData.scenes || []).map((sceneData: any) => {
+          if (sceneData instanceof SceneClass) {
+            console.log('⚠️ Scene is already an instance:', sceneData.title, 'hasDiagramPanel:', !!sceneData.diagramPanel);
+            return sceneData; // Already a Scene instance, don't re-instantiate
+          }
+          return new SceneClass(sceneData);
+        });
         
         return new StoryClass({
           id: storyData.id,

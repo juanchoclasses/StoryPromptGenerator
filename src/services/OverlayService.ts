@@ -311,5 +311,170 @@ export async function overlayTextOnImage(
   return await composeImageWithPanel(baseImg, panel, compositeOptions);
 }
 
+/**
+ * Overlay a diagram panel onto an image
+ * Similar to overlayTextOnImage but for diagrams (Mermaid, Math, Code, Markdown)
+ */
+export async function overlayDiagramOnImage(
+  imageDataUrl: string,
+  diagramPanel: { type: string; content: string; language?: string },
+  diagramStyle: {
+    boardStyle: string;
+    backgroundColor: string;
+    foregroundColor: string;
+    position: string;
+    widthPercentage: number;
+    heightPercentage: number;
+    borderColor: string;
+    borderWidth: number;
+    padding: number;
+    fontSize: number;
+    gutterTop: number;
+    gutterBottom: number;
+    gutterLeft: number;
+    gutterRight: number;
+  }
+): Promise<string> {
+  // Import DiagramRenderService (lazy load to avoid circular deps)
+  const { renderDiagramToCanvas } = await import('./DiagramRenderService');
+  
+  // Load the base image
+  const baseImg = await loadImage(imageDataUrl);
+  
+  // Use actual image dimensions
+  const actualImageWidth = baseImg.naturalWidth;
+  const actualImageHeight = baseImg.naturalHeight;
+  
+  // Calculate diagram panel dimensions based on ACTUAL image size
+  const panelWidth = Math.round(actualImageWidth * (diagramStyle.widthPercentage / 100));
+  const panelHeight = Math.round(actualImageHeight * (diagramStyle.heightPercentage / 100));
+  
+  // Render the diagram to canvas
+  const diagramCanvas = await renderDiagramToCanvas(
+    diagramPanel as any,
+    diagramStyle as any
+  );
+  
+  // Scale the diagram canvas to fit the panel dimensions
+  const scaledCanvas = document.createElement('canvas');
+  scaledCanvas.width = panelWidth;
+  scaledCanvas.height = panelHeight;
+  const ctx = scaledCanvas.getContext('2d')!;
+  ctx.drawImage(diagramCanvas, 0, 0, panelWidth, panelHeight);
+  
+  // Convert to ImageBitmap for efficient compositing
+  const panel = await createImageBitmap(scaledCanvas);
+  
+  // Get gutter values
+  const gutterTop = diagramStyle.gutterTop;
+  const gutterBottom = diagramStyle.gutterBottom;
+  const gutterLeft = diagramStyle.gutterLeft;
+  const gutterRight = diagramStyle.gutterRight;
+  
+  // Calculate position based on config using ACTUAL image dimensions
+  let x = 0;
+  let y = 0;
+  
+  // Horizontal positioning
+  if (diagramStyle.position.includes('left')) {
+    x = gutterLeft;
+  } else if (diagramStyle.position.includes('right')) {
+    x = actualImageWidth - panelWidth - gutterRight;
+  } else if (diagramStyle.position.includes('center')) {
+    x = gutterLeft + (actualImageWidth - panelWidth - gutterLeft - gutterRight) / 2;
+  }
+  
+  // Vertical positioning
+  if (diagramStyle.position.includes('top')) {
+    y = gutterTop;
+  } else if (diagramStyle.position.includes('bottom')) {
+    y = actualImageHeight - panelHeight - gutterBottom;
+  } else if (diagramStyle.position.includes('middle')) {
+    y = gutterTop + (actualImageHeight - panelHeight - gutterTop - gutterBottom) / 2;
+  }
+  
+  const compositeOptions: CompositeOptions = { x, y };
+  
+  // Composite and return new image URL
+  return await composeImageWithPanel(baseImg, panel, compositeOptions);
+}
+
+/**
+ * Apply all overlays (text and/or diagram) to an image
+ * This is the main entry point for applying overlays during image generation
+ */
+export async function applyAllOverlays(
+  imageDataUrl: string,
+  options: {
+    textPanel?: {
+      text: string;
+      config?: {
+        fontFamily?: string;
+        fontSize?: number;
+        textAlign?: 'left' | 'center' | 'right';
+        widthPercentage?: number;
+        heightPercentage?: number;
+        autoHeight?: boolean;
+        position?: string;
+        backgroundColor?: string;
+        fontColor?: string;
+        borderColor?: string;
+        borderWidth?: number;
+        borderRadius?: number;
+        padding?: number;
+        gutterTop?: number;
+        gutterBottom?: number;
+        gutterLeft?: number;
+        gutterRight?: number;
+      };
+    };
+    diagramPanel?: {
+      panel: { type: string; content: string; language?: string };
+      style: {
+        boardStyle: string;
+        backgroundColor: string;
+        foregroundColor: string;
+        position: string;
+        widthPercentage: number;
+        heightPercentage: number;
+        borderColor: string;
+        borderWidth: number;
+        padding: number;
+        fontSize: number;
+        gutterTop: number;
+        gutterBottom: number;
+        gutterLeft: number;
+        gutterRight: number;
+      };
+    };
+    imageWidth: number;
+    imageHeight: number;
+  }
+): Promise<string> {
+  let currentImageUrl = imageDataUrl;
+  
+  // Apply text overlay first (if exists)
+  if (options.textPanel) {
+    currentImageUrl = await overlayTextOnImage(
+      currentImageUrl,
+      options.textPanel.text,
+      options.imageWidth,
+      options.imageHeight,
+      options.textPanel.config
+    );
+  }
+  
+  // Apply diagram overlay second (if exists)
+  if (options.diagramPanel) {
+    currentImageUrl = await overlayDiagramOnImage(
+      currentImageUrl,
+      options.diagramPanel.panel,
+      options.diagramPanel.style
+    );
+  }
+  
+  return currentImageUrl;
+}
+
 export type { PanelOptions, CompositeOptions };
 

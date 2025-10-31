@@ -179,19 +179,26 @@ export class StorageService {
     
     // Properly instantiate Story objects with all their data
     if (bookData.stories) {
-      book.stories = (bookData.stories as any[]).map((storyData: any) => 
-        new StoryClass({
+      // Import Scene class to properly instantiate scenes
+      const { Scene: SceneClass } = await import('../models/Scene.js');
+      
+      book.stories = (bookData.stories as any[]).map((storyData: any) => {
+        // Convert plain scene objects to Scene instances
+        const sceneInstances = (storyData.scenes || []).map((sceneData: any) => new SceneClass(sceneData));
+        
+        return new StoryClass({
           id: storyData.id,
           title: storyData.title,
           description: storyData.description,
           backgroundSetup: storyData.backgroundSetup,
+          diagramStyle: storyData.diagramStyle, // Include diagram style
           characters: storyData.characters || [],
           elements: storyData.elements || [],
-          scenes: storyData.scenes || [],
+          scenes: sceneInstances, // Use Scene instances
           createdAt: storyData.createdAt,
           updatedAt: storyData.updatedAt
-        })
-      );
+        });
+      });
     }
     
     return book;

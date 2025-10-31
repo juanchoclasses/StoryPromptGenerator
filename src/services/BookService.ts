@@ -203,6 +203,19 @@ export class BookService {
     // Import Scene class for proper reconstruction
     const { Scene: SceneClass } = await import('../models/Scene.js');
     
+    console.log('📥 BookService.saveBookData received data with', data.stories.length, 'stories');
+    data.stories.forEach((story, idx) => {
+      console.log(`📖 Story ${idx}:`, story.title, 'with', story.scenes?.length || 0, 'scenes');
+      story.scenes?.forEach((scene, sceneIdx) => {
+        console.log(`  📄 Scene ${sceneIdx}:`, {
+          id: scene.id,
+          title: scene.title,
+          hasDiagramPanel: !!scene.diagramPanel,
+          diagramPanel: scene.diagramPanel
+        });
+      });
+    });
+    
     const book = await StorageService.getBook(bookId);
     if (!book) {
       throw new Error(`Book with ID ${bookId} not found`);
@@ -211,11 +224,28 @@ export class BookService {
     // Update stories from data with properly reconstructed scenes
     book.stories = data.stories.map(storyData => {
       // Convert plain scene objects to Scene instances
-      const sceneInstances = (storyData.scenes || []).map(sceneData => {
+      const sceneInstances = (storyData.scenes || []).map((sceneData, idx) => {
+        console.log(`🔧 Processing scene ${idx}:`, {
+          id: sceneData.id,
+          title: sceneData.title,
+          hasDiagramPanel: !!sceneData.diagramPanel,
+          diagramPanel: sceneData.diagramPanel,
+          isInstance: sceneData instanceof SceneClass
+        });
+        
         if (sceneData instanceof SceneClass) {
+          console.log(`✓ Scene ${idx} is already a Scene instance`);
           return sceneData; // Already a Scene instance
         }
-        return new SceneClass(sceneData); // Convert plain object to Scene instance
+        
+        const newScene = new SceneClass(sceneData); // Convert plain object to Scene instance
+        console.log(`🆕 Created new Scene instance for ${idx}:`, {
+          id: newScene.id,
+          title: newScene.title,
+          hasDiagramPanel: !!newScene.diagramPanel,
+          diagramPanel: newScene.diagramPanel
+        });
+        return newScene;
       });
       
       return new Story({
@@ -223,6 +253,7 @@ export class BookService {
         title: storyData.title,
         description: storyData.description,
         backgroundSetup: storyData.backgroundSetup,
+        diagramStyle: storyData.diagramStyle, // Include diagram style
         characters: storyData.characters || [],
         elements: storyData.elements || [],
         scenes: sceneInstances,

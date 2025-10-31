@@ -159,6 +159,13 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
               setSelectedCharacters(freshScene.characters || freshScene.characterIds || []);
               setSelectedElements(freshScene.elements || freshScene.elementIds || []);
               setSceneTitle(freshScene.title);
+              console.log('📖 Loading scene data:', {
+                sceneId: freshScene.id,
+                sceneTitle: freshScene.title,
+                hasDiagramPanel: !!freshScene.diagramPanel,
+                diagramPanel: freshScene.diagramPanel
+              });
+              
               setSceneDescription(freshScene.description || '');
               setTextPanel(freshScene.textPanel || '');
               setDiagramType(freshScene.diagramPanel?.type as any || 'mermaid');
@@ -179,6 +186,13 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         setSelectedCharacters(selectedScene.characters || selectedScene.characterIds || []);
         setSelectedElements(selectedScene.elements || selectedScene.elementIds || []);
         setSceneTitle(selectedScene.title);
+        console.log('📖 Loading scene data (no refresh needed):', {
+          sceneId: selectedScene.id,
+          sceneTitle: selectedScene.title,
+          hasDiagramPanel: !!selectedScene.diagramPanel,
+          diagramPanel: selectedScene.diagramPanel
+        });
+        
         setSceneDescription(selectedScene.description || '');
         setTextPanel(selectedScene.textPanel || '');
         setDiagramType(selectedScene.diagramPanel?.type as any || 'mermaid');
@@ -298,6 +312,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   };
 
   const handleDiagramPanelChange = async (content: string, type: string, language?: string) => {
+    console.log('📝 handleDiagramPanelChange called:', { content: content.substring(0, 50) + '...', type, language });
+    
     setDiagramContent(content);
     setDiagramType(type as any);
     if (language) setDiagramLanguage(language);
@@ -313,21 +329,36 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         language: type === 'code' ? language : undefined
       } : undefined;
       
+      console.log('💾 Saving diagram panel:', diagramPanel);
+      console.log('Current scene ID:', currentScene.id);
+      console.log('Current story ID:', story.id);
+      
       const updatedStories = activeBookData.stories.map(s => {
         if (s.id === story.id) {
           const updatedScenes = s.scenes.map(scene => {
             if (scene.id === currentScene.id) {
-              return { ...scene, diagramPanel, updatedAt: new Date() };
+              const updatedScene = { ...scene, diagramPanel, updatedAt: new Date() };
+              console.log('📝 Updated scene:', { id: updatedScene.id, title: updatedScene.title, hasDiagramPanel: !!updatedScene.diagramPanel, diagramPanel: updatedScene.diagramPanel });
+              return updatedScene;
             }
             return scene;
           });
+          console.log('📚 Updated story scenes count:', updatedScenes.length);
           return { ...s, scenes: updatedScenes, updatedAt: new Date() };
         }
         return s;
       });
       
       const updatedData = { ...activeBookData, stories: updatedStories };
+      console.log('📦 Saving to BookService...');
       await BookService.saveActiveBookData(updatedData);
+      console.log('✅ Diagram panel saved successfully');
+      
+      // Verify the save by reading it back
+      const verifyData = await BookService.getActiveBookData();
+      const verifyStory = verifyData?.stories.find(s => s.id === story.id);
+      const verifyScene = verifyStory?.scenes.find(sc => sc.id === currentScene.id);
+      console.log('🔍 VERIFICATION - Scene after save:', { id: verifyScene?.id, title: verifyScene?.title, hasDiagramPanel: !!verifyScene?.diagramPanel, diagramPanel: verifyScene?.diagramPanel });
       // Don't call onStoryUpdate() here - it causes the scene to reload and clears the input
     }
   };
@@ -811,11 +842,24 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             }
             
             // Add diagram panel if present
+            console.log('Checking diagram panel:', {
+              hasDiagramPanel,
+              hasStory: !!story,
+              hasDiagramStyle: !!story?.diagramStyle,
+              diagramPanel: currentScene?.diagramPanel,
+              diagramStyle: story?.diagramStyle
+            });
+            
             if (hasDiagramPanel && story?.diagramStyle) {
               overlayOptions.diagramPanel = {
                 panel: currentScene.diagramPanel,
                 style: story.diagramStyle
               };
+              console.log('✓ Adding diagram overlay with options:', overlayOptions.diagramPanel);
+            } else {
+              if (hasDiagramPanel && !story?.diagramStyle) {
+                console.warn('⚠️ Scene has diagram panel but story has no diagram style configured');
+              }
             }
             
             // Apply all overlays

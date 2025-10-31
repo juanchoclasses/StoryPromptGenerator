@@ -342,6 +342,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       return;
     }
 
+    // Use the current state values (what's in the TextField) for preview
+    // This ensures we preview what the user is currently seeing/editing
     if (!diagramContent.trim()) {
       setSnackbarMessage('Please enter diagram content first');
       setSnackbarSeverity('warning');
@@ -364,12 +366,14 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       }
       const blankImage = canvas.toDataURL('image/png');
       
-      // Overlay the diagram
+      // Overlay the diagram using current TextField state
       const diagramPanel = {
         type: diagramType,
         content: diagramContent,
         language: diagramType === 'code' ? diagramLanguage : undefined
       };
+      
+      console.log('Preview using current state:', diagramPanel);
       
       const resultUrl = await overlayDiagramOnImage(
         blankImage,

@@ -3,518 +3,286 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Diagram Renderer Test Harness</title>
-  
-  <!-- Mermaid -->
+  <title>Diagram Test - Final</title>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-  
-  <!-- KaTeX -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-  
-  <!-- Highlight.js -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
-  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
-  
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f5f5f5;
+      font-family: Arial, sans-serif;
       padding: 20px;
+      background: #f5f5f5;
     }
-
     .container {
-      max-width: 1400px;
+      max-width: 1200px;
       margin: 0 auto;
       background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       padding: 30px;
+      border-radius: 8px;
     }
-
-    h1 {
-      color: #333;
-      margin-bottom: 10px;
-    }
-
-    .subtitle {
-      color: #666;
-      margin-bottom: 30px;
-    }
-
-    .test-section {
-      margin-bottom: 40px;
-      padding: 20px;
-      background: #fafafa;
-      border-radius: 6px;
-      border: 1px solid #e0e0e0;
-    }
-
-    .test-section h2 {
-      color: #444;
-      margin-bottom: 15px;
-      font-size: 20px;
-    }
-
-    .controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-
-    .control-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    label {
-      font-weight: 600;
-      color: #555;
-      font-size: 14px;
-    }
-
-    textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-family: 'Monaco', 'Consolas', monospace;
-      font-size: 13px;
-      resize: vertical;
-      min-height: 120px;
-    }
-
-    select, input[type="number"], input[type="text"] {
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-
-    input[type="color"] {
-      height: 38px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
     button {
-      padding: 12px 24px;
+      padding: 15px 30px;
+      font-size: 16px;
       background: #007bff;
       color: white;
       border: none;
       border-radius: 4px;
-      font-size: 14px;
-      font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
+      margin: 10px 5px;
     }
-
     button:hover {
       background: #0056b3;
     }
-
-    button:disabled {
-      background: #ccc;
-      cursor: not-allowed;
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 13px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin: 10px 0;
     }
-
-    .output {
+    #output {
       margin-top: 20px;
       padding: 20px;
-      background: white;
-      border-radius: 4px;
+      background: #f9f9f9;
       border: 1px solid #ddd;
+      border-radius: 4px;
+      min-height: 100px;
     }
-
-    .output canvas {
-      max-width: 100%;
+    canvas {
       border: 2px solid #ddd;
-      border-radius: 4px;
-      display: block;
-    }
-
-    .output img {
       max-width: 100%;
-      border: 2px solid #ddd;
-      border-radius: 4px;
-      display: block;
     }
-
-    .error {
-      color: #d32f2f;
-      background: #ffebee;
-      padding: 12px;
+    .status {
+      padding: 10px;
+      margin: 10px 0;
       border-radius: 4px;
-      border: 1px solid #ef5350;
-      margin-top: 10px;
-    }
-
-    .success {
-      color: #388e3c;
-      background: #e8f5e9;
-      padding: 12px;
-      border-radius: 4px;
-      border: 1px solid #66bb6a;
-      margin-top: 10px;
-    }
-
-    .info {
       background: #e3f2fd;
-      padding: 12px;
-      border-radius: 4px;
       border: 1px solid #90caf9;
-      margin-top: 10px;
-      font-size: 13px;
-      color: #1976d2;
     }
-
-    .stats {
+    .success {
+      background: #e8f5e9;
+      border: 1px solid #66bb6a;
+      color: #2e7d32;
+    }
+    .error {
+      background: #ffebee;
+      border: 1px solid #ef5350;
+      color: #d32f2f;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin: 15px 0 5px 0;
+    }
+    .controls {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-top: 10px;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin: 15px 0;
     }
-
-    .stat {
+    input, select {
       padding: 8px;
-      background: #f5f5f5;
+      border: 1px solid #ddd;
       border-radius: 4px;
-      text-align: center;
-    }
-
-    .stat-label {
-      font-size: 11px;
-      color: #666;
-      text-transform: uppercase;
-    }
-
-    .stat-value {
-      font-size: 16px;
-      font-weight: 700;
-      color: #333;
-      margin-top: 4px;
-    }
-
-    pre {
-      background: #f5f5f5;
-      padding: 12px;
-      border-radius: 4px;
-      overflow-x: auto;
-      font-size: 12px;
-      margin-top: 10px;
-    }
-
-    .button-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .button-secondary {
-      background: #6c757d;
-    }
-
-    .button-secondary:hover {
-      background: #545b62;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🖼️ Diagram Renderer Test Harness</h1>
-    <p class="subtitle">Standalone testing for diagram rendering before React integration</p>
+    <h1>🖼️ Diagram Renderer Test</h1>
+    
+    <div id="status" class="status">Ready</div>
 
-    <!-- Test 1: Mermaid Diagrams -->
-    <div class="test-section">
-      <h2>1. Mermaid Diagrams</h2>
-      
-      <div class="controls">
-        <div class="control-group">
-          <label>Mermaid Content:</label>
-          <textarea id="mermaid-content">graph TD
-    A[Start] --> B{Is it working?}
-    B -->|Yes| C[Great!]
-    B -->|No| D[Debug]
-    D --> A</textarea>
-        </div>
+    <h2>Test 1: Simple Blackboard</h2>
+    <button onclick="testBlackboard()">Render Blackboard</button>
+    <div id="output1"></div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <div class="control-group">
-            <label>Width (px):</label>
-            <input type="number" id="mermaid-width" value="800" min="200" max="2000">
-          </div>
-          <div class="control-group">
-            <label>Height (px):</label>
-            <input type="number" id="mermaid-height" value="600" min="200" max="2000">
-          </div>
-          <div class="control-group">
-            <label>Board Style:</label>
-            <select id="mermaid-board">
-              <option value="blackboard">Blackboard</option>
-              <option value="whiteboard">Whiteboard</option>
-              <option value="transparent">Transparent</option>
-            </select>
-          </div>
-          <div class="control-group">
-            <label>Border Style:</label>
-            <select id="mermaid-border">
-              <option value="frame">Frame</option>
-              <option value="shadow">Shadow</option>
-              <option value="none">None</option>
-            </select>
-          </div>
-        </div>
+    <h2>Test 2: Mermaid Diagram</h2>
+    <label>Diagram Code:</label>
+    <textarea id="mermaid-input">graph TD
+    A[Start] --> B{Question?}
+    B -->|Yes| C[Good]
+    B -->|No| D[Try Again]</textarea>
+    
+    <div class="controls">
+      <div>
+        <label>Width:</label>
+        <input type="number" id="width" value="800">
       </div>
-
-      <div class="button-group">
-        <button id="render-mermaid">Render Mermaid</button>
-        <button class="button-secondary" onclick="loadMermaidExample('flowchart')">Flowchart Example</button>
-        <button class="button-secondary" onclick="loadMermaidExample('sequence')">Sequence Example</button>
-        <button class="button-secondary" onclick="loadMermaidExample('class')">Class Example</button>
+      <div>
+        <label>Height:</label>
+        <input type="number" id="height" value="600">
       </div>
-
-      <div class="output" id="mermaid-output"></div>
+      <div>
+        <label>Board Style:</label>
+        <select id="board-style">
+          <option value="blackboard">Blackboard</option>
+          <option value="whiteboard">Whiteboard</option>
+        </select>
+      </div>
+      <div>
+        <label>Border:</label>
+        <select id="border-style">
+          <option value="frame">Frame</option>
+          <option value="none">None</option>
+        </select>
+      </div>
     </div>
-
-    <!-- Test 2: Math Equations -->
-    <div class="test-section">
-      <h2>2. Math Equations (LaTeX/KaTeX)</h2>
-      
-      <div class="controls">
-        <div class="control-group">
-          <label>LaTeX Content:</label>
-          <textarea id="math-content">E = mc^2
-
-\sum_{i=1}^{n} x_i = x_1 + x_2 + \cdots + x_n
-
-\int_{a}^{b} f(x) dx = F(b) - F(a)</textarea>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <div class="control-group">
-            <label>Width (px):</label>
-            <input type="number" id="math-width" value="800" min="200" max="2000">
-          </div>
-          <div class="control-group">
-            <label>Height (px):</label>
-            <input type="number" id="math-height" value="400" min="200" max="2000">
-          </div>
-          <div class="control-group">
-            <label>Font Size:</label>
-            <input type="number" id="math-fontsize" value="24" min="12" max="72">
-          </div>
-          <div class="control-group">
-            <label>Board Style:</label>
-            <select id="math-board">
-              <option value="blackboard">Blackboard</option>
-              <option value="whiteboard">Whiteboard</option>
-              <option value="transparent">Transparent</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="button-group">
-        <button id="render-math">Render Math</button>
-        <button class="button-secondary" onclick="loadMathExample('quadratic')">Quadratic Formula</button>
-        <button class="button-secondary" onclick="loadMathExample('matrix')">Matrix Example</button>
-      </div>
-
-      <div class="output" id="math-output"></div>
-    </div>
-
-    <!-- Test 3: Code Blocks -->
-    <div class="test-section">
-      <h2>3. Code Syntax Highlighting</h2>
-      
-      <div class="controls">
-        <div class="control-group">
-          <label>Code Content:</label>
-          <textarea id="code-content">function quickSort(arr) {
-  if (arr.length <= 1) return arr;
-  
-  const pivot = arr[Math.floor(arr.length / 2)];
-  const left = arr.filter(x => x < pivot);
-  const middle = arr.filter(x => x === pivot);
-  const right = arr.filter(x => x > pivot);
-  
-  return [...quickSort(left), ...middle, ...quickSort(right)];
-}</textarea>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <div class="control-group">
-            <label>Language:</label>
-            <select id="code-language">
-              <option value="javascript">JavaScript</option>
-              <option value="python">Python</option>
-              <option value="java">Java</option>
-              <option value="cpp">C++</option>
-              <option value="typescript">TypeScript</option>
-            </select>
-          </div>
-          <div class="control-group">
-            <label>Font Size:</label>
-            <input type="number" id="code-fontsize" value="14" min="10" max="24">
-          </div>
-          <div class="control-group">
-            <label>Width (px):</label>
-            <input type="number" id="code-width" value="800" min="200" max="2000">
-          </div>
-          <div class="control-group">
-            <label>Height (px):</label>
-            <input type="number" id="code-height" value="400" min="200" max="2000">
-          </div>
-        </div>
-      </div>
-
-      <div class="button-group">
-        <button id="render-code">Render Code</button>
-        <button class="button-secondary" onclick="loadCodeExample('js')">JS Example</button>
-        <button class="button-secondary" onclick="loadCodeExample('python')">Python Example</button>
-      </div>
-
-      <div class="output" id="code-output"></div>
-    </div>
-
-    <!-- Test 4: Custom Text -->
-    <div class="test-section">
-      <h2>4. Custom Text/Drawing</h2>
-      
-      <div class="controls">
-        <div class="control-group">
-          <label>Custom Content:</label>
-          <textarea id="custom-content">Computer Science 101
-
-Today's Topic: Algorithms and Data Structures
-
-1. Introduction to Sorting
-2. Big O Notation
-3. Practical Applications</textarea>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <div class="control-group">
-            <label>Width (px):</label>
-            <input type="number" id="custom-width" value="800" min="200" max="2000">
-          </div>
-          <div class="control-group">
-            <label>Height (px):</label>
-            <input type="number" id="custom-height" value="400" min="200" max="2000">
-          </div>
-        </div>
-      </div>
-
-      <button id="render-custom">Render Custom</button>
-
-      <div class="output" id="custom-output"></div>
-    </div>
+    
+    <button onclick="testMermaid()">Render Mermaid Diagram</button>
+    <div id="output2"></div>
   </div>
 
-  <!-- The DiagramRenderer class would be loaded as a module in production -->
-  <script type="module">
-    // For testing, we'll inline a simplified version or load from the compiled file
-    // In production, you would: import DiagramRenderer from './dist/DiagramRenderer.js';
-    
-    // Load the TypeScript file (requires compilation first)
-    // For now, include the compiled JavaScript here or serve it separately
-    
-    console.log('Test harness loaded. Mermaid:', typeof mermaid !== 'undefined');
-    console.log('KaTeX available:', typeof katex !== 'undefined');
-    console.log('Highlight.js available:', typeof hljs !== 'undefined');
-
-    // You'll need to compile DiagramRenderer.ts first:
-    // npx tsc src/services/DiagramRenderer.ts --outDir dist --target ES2020 --module ESNext
-    
-    const info = document.createElement('div');
-    info.className = 'info';
-    info.innerHTML = `
-      <strong>⚠️ Setup Required:</strong><br>
-      1. Compile DiagramRenderer.ts: <code>npx tsc src/services/DiagramRenderer.ts --outDir dist --target ES2020 --module ESNext</code><br>
-      2. Import the class: <code>import DiagramRenderer from './dist/DiagramRenderer.js';</code><br>
-      3. Or copy the transpiled code below the script tag<br>
-      <br>
-      <strong>Libraries Loaded:</strong><br>
-      Mermaid: ${typeof mermaid !== 'undefined' ? '✅' : '❌'}<br>
-      KaTeX: ${typeof katex !== 'undefined' ? '✅' : '❌'}<br>
-      Highlight.js: ${typeof hljs !== 'undefined' ? '✅' : '❌'}
-    `;
-    document.querySelector('.container').insertBefore(info, document.querySelector('.test-section'));
-  </script>
-
   <script>
-    // Example loaders
-    function loadMermaidExample(type) {
-      const examples = {
-        flowchart: `graph TD
-    A[Start] --> B{Is it working?}
-    B -->|Yes| C[Great!]
-    B -->|No| D[Debug]
-    D --> A`,
-        sequence: `sequenceDiagram
-    Alice->>John: Hello John, how are you?
-    John-->>Alice: Great!
-    Alice-)John: See you later!`,
-        class: `classDiagram
-    Animal <|-- Duck
-    Animal <|-- Fish
-    Animal : +int age
-    Animal : +String gender
-    Animal: +isMammal()
-    class Duck{
-      +String beakColor
-      +swim()
-      +quack()
-    }`
-      };
-      document.getElementById('mermaid-content').value = examples[type] || examples.flowchart;
+    console.log('=== Script Loaded ===');
+    
+    function log(msg, type = 'info') {
+      console.log(msg);
+      const status = document.getElementById('status');
+      status.textContent = msg;
+      status.className = 'status ' + type;
     }
 
-    function loadMathExample(type) {
-      const examples = {
-        quadratic: `x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}`,
-        matrix: `\\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix} \\begin{bmatrix} x \\\\ y \\end{bmatrix} = \\begin{bmatrix} ax + by \\\\ cx + dy \\end{bmatrix}`
-      };
-      document.getElementById('math-content').value = examples[type] || examples.quadratic;
-    }
+    window.addEventListener('load', () => {
+      console.log('Window loaded');
+      if (typeof mermaid !== 'undefined') {
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'dark',
+          securityLevel: 'loose'
+        });
+        log('✅ Ready - Mermaid loaded', 'success');
+      } else {
+        log('❌ Mermaid not loaded', 'error');
+      }
+    });
 
-    function loadCodeExample(type) {
-      const examples = {
-        js: `function quickSort(arr) {
-  if (arr.length <= 1) return arr;
-  
-  const pivot = arr[Math.floor(arr.length / 2)];
-  const left = arr.filter(x => x < pivot);
-  const middle = arr.filter(x => x === pivot);
-  const right = arr.filter(x => x > pivot);
-  
-  return [...quickSort(left), ...middle, ...quickSort(right)];
-}`,
-        python: `def quick_sort(arr):
-    if len(arr) <= 1:
-        return arr
-    
-    pivot = arr[len(arr) // 2]
-    left = [x for x in arr if x < pivot]
-    middle = [x for x in arr if x == pivot]
-    right = [x for x in arr if x > pivot]
-    
-    return quick_sort(left) + middle + quick_sort(right)`
-      };
-      document.getElementById('code-content').value = examples[type] || examples.js;
-      if (type === 'python') {
-        document.getElementById('code-language').value = 'python';
+    function testBlackboard() {
+      console.log('testBlackboard called');
+      log('Rendering blackboard...');
+      
+      const output = document.getElementById('output1');
+      output.innerHTML = '';
+
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 600;
+        const ctx = canvas.getContext('2d');
+
+        // Blackboard background
+        ctx.fillStyle = '#2d3748';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Frame
+        ctx.strokeStyle = '#8b7355';
+        ctx.lineWidth = 12;
+        ctx.strokeRect(6, 6, 788, 588);
+
+        // Some text
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 40px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Test Blackboard', 400, 300);
+
+        output.appendChild(canvas);
+        log('✅ Blackboard rendered', 'success');
+      } catch (error) {
+        log('❌ Error: ' + error.message, 'error');
+        console.error(error);
       }
     }
+
+    async function testMermaid() {
+      console.log('testMermaid called');
+      log('Rendering Mermaid diagram...');
+      
+      const output = document.getElementById('output2');
+      output.innerHTML = '<p>Working...</p>';
+
+      try {
+        if (typeof mermaid === 'undefined') {
+          throw new Error('Mermaid not loaded');
+        }
+
+        const diagramText = document.getElementById('mermaid-input').value;
+        const width = parseInt(document.getElementById('width').value);
+        const height = parseInt(document.getElementById('height').value);
+        const boardStyle = document.getElementById('board-style').value;
+        const borderStyle = document.getElementById('border-style').value;
+
+        console.log('Rendering:', diagramText.substring(0, 50));
+        
+        // Render mermaid
+        const { svg } = await mermaid.render('diagram-' + Date.now(), diagramText);
+        console.log('SVG generated');
+
+        // Create canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        // Background
+        if (boardStyle === 'blackboard') {
+          ctx.fillStyle = '#2d3748';
+        } else {
+          ctx.fillStyle = '#ffffff';
+        }
+        ctx.fillRect(0, 0, width, height);
+
+        // Border
+        if (borderStyle === 'frame') {
+          ctx.strokeStyle = '#8b7355';
+          ctx.lineWidth = 12;
+          ctx.strokeRect(6, 6, width - 12, height - 12);
+        }
+
+        // Convert SVG to image
+        console.log('Converting SVG...');
+        const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+
+        img.onload = () => {
+          console.log('Image loaded:', img.width, 'x', img.height);
+          
+          // Scale to fit
+          const padding = 40;
+          const scale = Math.min(
+            (width - padding * 2) / img.width,
+            (height - padding * 2) / img.height
+          );
+          const scaledW = img.width * scale;
+          const scaledH = img.height * scale;
+          const x = (width - scaledW) / 2;
+          const y = (height - scaledH) / 2;
+
+          ctx.drawImage(img, x, y, scaledW, scaledH);
+          URL.revokeObjectURL(url);
+
+          output.innerHTML = '';
+          output.appendChild(canvas);
+          log('✅ Diagram rendered!', 'success');
+          console.log('Complete!');
+        };
+
+        img.onerror = (err) => {
+          console.error('Image load error:', err);
+          log('❌ Failed to load SVG', 'error');
+        };
+
+        img.src = url;
+
+      } catch (error) {
+        console.error('Error:', error);
+        output.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+        log('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    console.log('=== All functions defined ===');
   </script>
 </body>
 </html>

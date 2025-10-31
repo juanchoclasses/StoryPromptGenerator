@@ -289,6 +289,77 @@ export class BookExportWithImagesService {
       // Import the book (this creates a new book with a new ID)
       const newBook = await Book.fromJSON(bookData);
       
+      // AUTO-MIGRATION: Promote characters that are used across multiple stories to book level
+      console.log('\n=== Auto-migration: Analyzing character usage ===');
+      const characterUsage = new Map<string, Set<string>>(); // character name -> set of story titles
+      
+      // Analyze which characters appear in which stories
+      for (const story of newBook.stories) {
+        for (const scene of story.scenes) {
+          for (const charName of scene.characters || []) {
+            if (!characterUsage.has(charName)) {
+              characterUsage.set(charName, new Set());
+            }
+            characterUsage.get(charName)!.add(story.title);
+          }
+        }
+      }
+      
+      // Find characters used across multiple stories
+      const charactersToPromote: string[] = [];
+      for (const [charName, storyTitles] of characterUsage.entries()) {
+        if (storyTitles.size > 1) {
+          charactersToPromote.push(charName);
+          console.log(`  Character "${charName}" used in ${storyTitles.size} stories:`, Array.from(storyTitles));
+        }
+      }
+      
+      // Promote these characters to book level
+      if (charactersToPromote.length > 0) {
+        console.log(`\nPromoting ${charactersToPromote.length} characters to book level...`);
+        
+        for (const charName of charactersToPromote) {
+          // Find the character in any story (prefer first story)
+          let foundCharacter = null;
+          let sourceStory = null;
+          
+          for (const story of newBook.stories) {
+            const char = story.characters.find(c => c.name.toLowerCase() === charName.toLowerCase());
+            if (char) {
+              foundCharacter = char;
+              sourceStory = story;
+              break;
+            }
+          }
+          
+          if (foundCharacter && sourceStory) {
+            console.log(`  Promoting "${foundCharacter.name}" from story "${sourceStory.title}"...`);
+            
+            // Add to book level (if not already there)
+            if (!newBook.characters.find(c => c.name.toLowerCase() === foundCharacter.name.toLowerCase())) {
+              newBook.characters.push(foundCharacter);
+              console.log(`    ✓ Added to book.characters`);
+            } else {
+              console.log(`    ℹ Already exists at book level`);
+            }
+            
+            // Remove from all stories
+            for (const story of newBook.stories) {
+              const index = story.characters.findIndex(c => c.name.toLowerCase() === foundCharacter.name.toLowerCase());
+              if (index >= 0) {
+                story.characters.splice(index, 1);
+                console.log(`    ✓ Removed from story "${story.title}"`);
+              }
+            }
+          } else {
+            console.warn(`  ✗ Character "${charName}" referenced in scenes but not found in any story characters`);
+          }
+        }
+      } else {
+        console.log('  No characters need promotion (none used across multiple stories)');
+      }
+      console.log('=== Auto-migration complete ===\n');
+      
       // Create mapping from old story IDs to new story IDs
       // We'll match by title since IDs change on import
       const storyIdMapping = new Map<string, string>();
@@ -438,41 +509,69 @@ export class BookExportWithImagesService {
               
               console.log(`  Mapped to NEW story ID: ${newStoryId}`);
               
-              // Find the story and character using the NEW ID
-              const story = newBook.stories.find(s => s.id === newStoryId);
-              if (story) {
-                console.log(`  ✓ Found story: ${story.title}`);
-                const character = story.characters.find(c => c.name === characterName);
-                if (character) {
-                  console.log(`  ✓ Found character: ${character.name}`);
-                  console.log(`    Character has ${character.imageGallery?.length || 0} images in gallery`);
-                  if (character.imageGallery?.some(img => img.id === imageId)) {
-                    console.log(`  ✓ Image ${imageId} found in character gallery`);
-                    // Store image in IndexedDB with the NEW story ID
-                    const blobUrl = URL.createObjectURL(blob);
-                    console.log(`  Storing in IndexedDB with key: ${story.id}:${character.name}:${imageId}`);
-                    await ImageStorageService.storeCharacterImage(
-                      story.id, // Use new story ID
-                      character.name,
-                      imageId,
-                      blobUrl,
-                      character.imageGallery.find(img => img.id === imageId)?.model || 'unknown'
-                    );
-                    URL.revokeObjectURL(blobUrl);
-                    characterImageCount++;
-                    console.log(`  ✓ Imported character image: ${characterName}/${imageId}`);
-                  } else {
-                    const galleryIds = character.imageGallery?.map(img => img.id).join(', ') || 'none';
-                    console.warn(`  ✗ Image ${imageId} not found in gallery. Gallery IDs: ${galleryIds}`);
-                    warnings.push(`Character image ${characterName}/${imageId} found in ZIP but not referenced in book data`);
-                  }
+              // Check if character was promoted to book level during auto-migration
+              const bookLevelCharacter = newBook.characters?.find(c => c.name.toLowerCase() === characterName.toLowerCase());
+              
+              if (bookLevelCharacter) {
+                // Character is at book level now - store image there
+                console.log(`  ✓ Found character at BOOK level: ${bookLevelCharacter.name}`);
+                console.log(`    Character has ${bookLevelCharacter.imageGallery?.length || 0} images in gallery`);
+                if (bookLevelCharacter.imageGallery?.some(img => img.id === imageId)) {
+                  console.log(`  ✓ Image ${imageId} found in character gallery`);
+                  const blobUrl = URL.createObjectURL(blob);
+                  console.log(`  Storing in IndexedDB with BOOK key: book:${newBook.id}:${bookLevelCharacter.name}:${imageId}`);
+                  await ImageStorageService.storeBookCharacterImage(
+                    newBook.id,
+                    bookLevelCharacter.name,
+                    imageId,
+                    blobUrl,
+                    bookLevelCharacter.imageGallery.find(img => img.id === imageId)?.model || 'unknown'
+                  );
+                  URL.revokeObjectURL(blobUrl);
+                  characterImageCount++;
+                  console.log(`  ✓ Imported character image at book level: ${characterName}/${imageId}`);
                 } else {
-                  console.warn(`  ✗ Character ${characterName} not found in story. Available: ${story.characters.map(c => c.name).join(', ')}`);
-                  warnings.push(`Character ${characterName} not found in story ${story.title}`);
+                  const galleryIds = bookLevelCharacter.imageGallery?.map(img => img.id).join(', ') || 'none';
+                  console.warn(`  ✗ Image ${imageId} not found in gallery. Gallery IDs: ${galleryIds}`);
+                  warnings.push(`Character image ${characterName}/${imageId} found in ZIP but not referenced in book data`);
                 }
               } else {
-                console.warn(`  ✗ Story with NEW ID ${newStoryId} not found. This should not happen!`);
-                warnings.push(`Story ${newStoryId} not found for character image ${characterName}/${imageId}`);
+                // Character is still at story level
+                const story = newBook.stories.find(s => s.id === newStoryId);
+                if (story) {
+                  console.log(`  ✓ Found story: ${story.title}`);
+                  const character = story.characters.find(c => c.name === characterName);
+                  if (character) {
+                    console.log(`  ✓ Found character at story level: ${character.name}`);
+                    console.log(`    Character has ${character.imageGallery?.length || 0} images in gallery`);
+                    if (character.imageGallery?.some(img => img.id === imageId)) {
+                      console.log(`  ✓ Image ${imageId} found in character gallery`);
+                      // Store image in IndexedDB with the NEW story ID
+                      const blobUrl = URL.createObjectURL(blob);
+                      console.log(`  Storing in IndexedDB with key: ${story.id}:${character.name}:${imageId}`);
+                      await ImageStorageService.storeCharacterImage(
+                        story.id, // Use new story ID
+                        character.name,
+                        imageId,
+                        blobUrl,
+                        character.imageGallery.find(img => img.id === imageId)?.model || 'unknown'
+                      );
+                      URL.revokeObjectURL(blobUrl);
+                      characterImageCount++;
+                      console.log(`  ✓ Imported character image: ${characterName}/${imageId}`);
+                    } else {
+                      const galleryIds = character.imageGallery?.map(img => img.id).join(', ') || 'none';
+                      console.warn(`  ✗ Image ${imageId} not found in gallery. Gallery IDs: ${galleryIds}`);
+                      warnings.push(`Character image ${characterName}/${imageId} found in ZIP but not referenced in book data`);
+                    }
+                  } else {
+                    console.warn(`  ✗ Character ${characterName} not found in story. Available: ${story.characters.map(c => c.name).join(', ')}`);
+                    warnings.push(`Character ${characterName} not found in story ${story.title}`);
+                  }
+                } else {
+                  console.warn(`  ✗ Story with NEW ID ${newStoryId} not found. This should not happen!`);
+                  warnings.push(`Story ${newStoryId} not found for character image ${characterName}/${imageId}`);
+                }
               }
             }
           }

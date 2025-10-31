@@ -97,13 +97,11 @@ function getSyntaxHighlightingCSS(boardStyle: BoardStyle): string {
  */
 async function renderMermaid(
   content: string,
-  style: DiagramStyle
+  style: DiagramStyle,
+  width: number,
+  height: number
 ): Promise<HTMLCanvasElement> {
   initializeLibraries();
-
-  // Calculate dimensions
-  const width = 800; // Will be scaled based on widthPercentage when compositing
-  const height = 600; // Will be scaled based on heightPercentage when compositing
 
   // Render Mermaid to SVG
   // Generate a valid CSS ID (no dots allowed)
@@ -147,10 +145,10 @@ async function renderMermaid(
  */
 async function renderMath(
   content: string,
-  style: DiagramStyle
+  style: DiagramStyle,
+  width: number,
+  height: number
 ): Promise<HTMLCanvasElement> {
-  const width = 800;
-  const height = 600;
 
   // Create temporary container
   const tempContainer = document.createElement('div');
@@ -209,10 +207,10 @@ async function renderMath(
 async function renderCode(
   content: string,
   language: string,
-  style: DiagramStyle
+  style: DiagramStyle,
+  width: number,
+  height: number
 ): Promise<HTMLCanvasElement> {
-  const width = 800;
-  const height = 600;
 
   // Create style element for syntax highlighting
   const styleElement = document.createElement('style');
@@ -273,10 +271,10 @@ async function renderCode(
  */
 async function renderMarkdown(
   content: string,
-  style: DiagramStyle
+  style: DiagramStyle,
+  width: number,
+  height: number
 ): Promise<HTMLCanvasElement> {
-  const width = 800;
-  const height = 600;
 
   // Create temporary container
   const tempContainer = document.createElement('div');
@@ -356,25 +354,29 @@ async function renderMarkdown(
  */
 export async function renderDiagramToCanvas(
   diagramPanel: DiagramPanel,
-  diagramStyle: DiagramStyle
+  diagramStyle: DiagramStyle,
+  targetWidth: number = 800,
+  targetHeight: number = 600
 ): Promise<HTMLCanvasElement> {
   try {
     switch (diagramPanel.type) {
       case 'mermaid':
-        return await renderMermaid(diagramPanel.content, diagramStyle);
+        return await renderMermaid(diagramPanel.content, diagramStyle, targetWidth, targetHeight);
       
       case 'math':
-        return await renderMath(diagramPanel.content, diagramStyle);
+        return await renderMath(diagramPanel.content, diagramStyle, targetWidth, targetHeight);
       
       case 'code':
         return await renderCode(
           diagramPanel.content,
           diagramPanel.language || 'javascript',
-          diagramStyle
+          diagramStyle,
+          targetWidth,
+          targetHeight
         );
       
       case 'markdown':
-        return await renderMarkdown(diagramPanel.content, diagramStyle);
+        return await renderMarkdown(diagramPanel.content, diagramStyle, targetWidth, targetHeight);
       
       default:
         throw new Error(`Unknown diagram type: ${diagramPanel.type}`);

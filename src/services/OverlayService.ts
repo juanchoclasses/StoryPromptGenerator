@@ -349,21 +349,18 @@ export async function overlayDiagramOnImage(
   const panelWidth = Math.round(actualImageWidth * (diagramStyle.widthPercentage / 100));
   const panelHeight = Math.round(actualImageHeight * (diagramStyle.heightPercentage / 100));
   
-  // Render the diagram to canvas
+  // Render the diagram to canvas AT THE TARGET DIMENSIONS
+  // This prevents aspect ratio distortion!
   const diagramCanvas = await renderDiagramToCanvas(
     diagramPanel as any,
-    diagramStyle as any
+    diagramStyle as any,
+    panelWidth,
+    panelHeight
   );
   
-  // Scale the diagram canvas to fit the panel dimensions
-  const scaledCanvas = document.createElement('canvas');
-  scaledCanvas.width = panelWidth;
-  scaledCanvas.height = panelHeight;
-  const ctx = scaledCanvas.getContext('2d')!;
-  ctx.drawImage(diagramCanvas, 0, 0, panelWidth, panelHeight);
-  
-  // Convert to ImageBitmap for efficient compositing
-  const panel = await createImageBitmap(scaledCanvas);
+  // No scaling needed - diagram is already rendered at correct size!
+  // Convert directly to ImageBitmap for efficient compositing
+  const panel = await createImageBitmap(diagramCanvas);
   
   // Get gutter values
   const gutterTop = diagramStyle.gutterTop;

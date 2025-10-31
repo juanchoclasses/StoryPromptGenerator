@@ -40,7 +40,7 @@ import { ImageGenerationService } from '../services/ImageGenerationService';
 import { FileSystemService } from '../services/FileSystemService';
 import { SettingsService } from '../services/SettingsService';
 import { ImageStorageService } from '../services/ImageStorageService';
-import { overlayTextOnImage } from '../services/OverlayService';
+import { applyAllOverlays } from '../services/OverlayService';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 import type { PanelConfig } from '../types/Book';
 import { formatBookStyleForPrompt } from '../types/BookStyle';
@@ -62,6 +62,9 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const [sceneTitle, setSceneTitle] = useState('');
   const [sceneDescription, setSceneDescription] = useState('');
   const [textPanel, setTextPanel] = useState('');
+  const [diagramType, setDiagramType] = useState<'mermaid' | 'math' | 'code' | 'markdown'>('mermaid');
+  const [diagramContent, setDiagramContent] = useState('');
+  const [diagramLanguage, setDiagramLanguage] = useState('javascript');
   const [activeBook, setActiveBook] = useState<any>(null); // Book instance for book-level characters
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -158,6 +161,9 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
               setSceneTitle(freshScene.title);
               setSceneDescription(freshScene.description || '');
               setTextPanel(freshScene.textPanel || '');
+              setDiagramType(freshScene.diagramPanel?.type as any || 'mermaid');
+              setDiagramContent(freshScene.diagramPanel?.content || '');
+              setDiagramLanguage(freshScene.diagramPanel?.language || 'javascript');
               // Load image with IndexedDB fallback
               loadImageWithFallback(freshScene).then(imageUrl => {
                 setGeneratedImageUrl(imageUrl);
@@ -175,6 +181,9 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         setSceneTitle(selectedScene.title);
         setSceneDescription(selectedScene.description || '');
         setTextPanel(selectedScene.textPanel || '');
+        setDiagramType(selectedScene.diagramPanel?.type as any || 'mermaid');
+        setDiagramContent(selectedScene.diagramPanel?.content || '');
+        setDiagramLanguage(selectedScene.diagramPanel?.language || 'javascript');
         // Load image with IndexedDB fallback
         loadImageWithFallback(selectedScene).then(imageUrl => {
           setGeneratedImageUrl(imageUrl);
@@ -274,6 +283,41 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           const updatedScenes = s.scenes.map(scene => {
             if (scene.id === currentScene.id) {
               return { ...scene, textPanel: newTextPanel, updatedAt: new Date() };
+            }
+            return scene;
+          });
+          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+        }
+        return s;
+      });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      await BookService.saveActiveBookData(updatedData);
+      onStoryUpdate();
+    }
+  };
+
+  const handleDiagramPanelChange = async (content: string, type: string, language?: string) => {
+    setDiagramContent(content);
+    setDiagramType(type as any);
+    if (language) setDiagramLanguage(language);
+    
+    // Auto-save the diagram panel
+    if (story && currentScene) {
+      const activeBookData = await BookService.getActiveBookData();
+      if (!activeBookData) return;
+      
+      const diagramPanel = content.trim() ? {
+        type: type as any,
+        content: content,
+        language: type === 'code' ? language : undefined
+      } : undefined;
+      
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === story.id) {
+          const updatedScenes = s.scenes.map(scene => {
+            if (scene.id === currentScene.id) {
+              return { ...scene, diagramPanel, updatedAt: new Date() };
             }
             return scene;
           });
@@ -733,35 +777,56 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       if (result.success && result.imageUrl) {
         let finalImageUrl = result.imageUrl;
         
-        // Apply text overlay if textPanel has content
-        if (textPanel && textPanel.trim()) {
+        // Calculate image dimensions based on aspect ratio
+        const imageDimensions = getImageDimensionsFromAspectRatio(aspectRatio);
+        
+        // Apply overlays (text and/or diagram) if present
+        const hasTextPanel = textPanel && textPanel.trim();
+        const hasDiagramPanel = currentScene?.diagramPanel;
+        
+        if (hasTextPanel || hasDiagramPanel) {
           try {
-            // Define macros for text panel replacement
-            const macros = {
-              'SceneDescription': currentScene?.description || ''
+            const overlayOptions: any = {
+              imageWidth: imageDimensions.width,
+              imageHeight: imageDimensions.height
             };
             
-            // Replace macros in the text panel
-            const panelText = replaceMacros(textPanel, macros);
+            // Add text panel if present
+            if (hasTextPanel) {
+              // Define macros for text panel replacement
+              const macros = {
+                'SceneDescription': currentScene?.description || ''
+              };
+              
+              // Replace macros in the text panel
+              const panelText = replaceMacros(textPanel, macros);
+              
+              // Get panel config from book or use defaults
+              const panelConfig = activeBook?.style?.panelConfig || DEFAULT_PANEL_CONFIG;
+              
+              overlayOptions.textPanel = {
+                text: panelText,
+                config: panelConfig
+              };
+            }
             
-            // Calculate image dimensions based on aspect ratio
-            const imageDimensions = getImageDimensionsFromAspectRatio(aspectRatio);
+            // Add diagram panel if present
+            if (hasDiagramPanel && story?.diagramStyle) {
+              overlayOptions.diagramPanel = {
+                panel: currentScene.diagramPanel,
+                style: story.diagramStyle
+              };
+            }
             
-            // Get panel config from book or use defaults
-            const panelConfig = activeBook?.style?.panelConfig || DEFAULT_PANEL_CONFIG;
-            
-            // Overlay text onto image with book's panel configuration
-            finalImageUrl = await overlayTextOnImage(
+            // Apply all overlays
+            finalImageUrl = await applyAllOverlays(
               result.imageUrl,
-              panelText,
-              imageDimensions.width,
-              imageDimensions.height,
-              panelConfig
+              overlayOptions
             );
           } catch (overlayError) {
-            console.error('Error overlaying text:', overlayError);
+            console.error('Error applying overlays:', overlayError);
             // Continue with original image if overlay fails
-            setSnackbarMessage('Warning: Text overlay failed, showing original image');
+            setSnackbarMessage('Warning: Overlay failed, showing original image');
             setSnackbarSeverity('error');
             setSnackbarOpen(true);
           }
@@ -1057,6 +1122,82 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             }
           }}
         />
+      </Box>
+
+      {/* Diagram Panel Section */}
+      <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', bgcolor: 'grey.100' }}>
+        <Box display="flex" alignItems="center" gap={1} mb={1}>
+          <ImageIcon color="secondary" />
+          <Typography variant="h6">
+            Diagram Panel (optional blackboard/whiteboard overlay)
+          </Typography>
+        </Box>
+        
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+          Add a diagram, code block, math equation, or markdown text overlay on your image.
+        </Typography>
+
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>Diagram Type</InputLabel>
+          <Select
+            value={diagramType}
+            label="Diagram Type"
+            onChange={(e) => handleDiagramPanelChange(diagramContent, e.target.value, diagramLanguage)}
+          >
+            <MenuItem value="mermaid">Mermaid Diagram</MenuItem>
+            <MenuItem value="math">Math Equation (LaTeX)</MenuItem>
+            <MenuItem value="code">Code Block</MenuItem>
+            <MenuItem value="markdown">Markdown Text</MenuItem>
+          </Select>
+        </FormControl>
+
+        {diagramType === 'code' && (
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Programming Language</InputLabel>
+            <Select
+              value={diagramLanguage}
+              label="Programming Language"
+              onChange={(e) => handleDiagramPanelChange(diagramContent, diagramType, e.target.value)}
+            >
+              <MenuItem value="javascript">JavaScript</MenuItem>
+              <MenuItem value="python">Python</MenuItem>
+              <MenuItem value="java">Java</MenuItem>
+              <MenuItem value="typescript">TypeScript</MenuItem>
+              <MenuItem value="cpp">C++</MenuItem>
+              <MenuItem value="csharp">C#</MenuItem>
+            </Select>
+          </FormControl>
+        )}
+
+        <TextField
+          fullWidth
+          multiline
+          rows={6}
+          variant="outlined"
+          label={`${diagramType.charAt(0).toUpperCase() + diagramType.slice(1)} Content`}
+          placeholder={
+            diagramType === 'mermaid' ? 'graph TD\n    A[Start] --> B[Process]\n    B --> C[End]' :
+            diagramType === 'math' ? 'x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}' :
+            diagramType === 'code' ? 'function factorial(n) {\n  return n <= 1 ? 1 : n * factorial(n - 1);\n}' :
+            '# Title\n\n- **Bold** text\n- *Italic* text'
+          }
+          value={diagramContent}
+          onChange={(e) => handleDiagramPanelChange(e.target.value, diagramType, diagramLanguage)}
+          sx={{ 
+            bgcolor: 'white',
+            '& .MuiInputBase-root': {
+              fontFamily: 'monospace',
+              fontSize: '0.85rem'
+            }
+          }}
+        />
+        
+        {!story?.diagramStyle && (
+          <Alert severity="info" sx={{ mt: 2 }}>
+            Note: Diagram style (colors, position, board type) needs to be configured at the story level. 
+            The diagram will use default blackboard style.
+          </Alert>
+        )}
       </Box>
 
       {/* Scrollable Content */}

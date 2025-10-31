@@ -21,7 +21,8 @@ import {
   Download as DownloadIcon,
   Upload as UploadIcon,
   AutoAwesome as GenerateAllIcon,
-  Description as DocxIcon
+  Description as DocxIcon,
+  Settings as SettingsIcon
 } from '@mui/icons-material';
 import { BookService } from '../services/BookService';
 import { ImportStoryDialog } from './ImportStoryDialog';
@@ -33,6 +34,8 @@ import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 import { DocxExportService } from '../services/DocxExportService';
 import { StoryExportService } from '../services/StoryExportService';
 import type { Story, StoryData } from '../types/Story';
+import { DEFAULT_DIAGRAM_STYLE, WHITEBOARD_DIAGRAM_STYLE } from '../types/Story';
+import type { DiagramStyle } from '../types/Story';
 
 interface StoriesPanelProps {
   selectedStory: Story | null;
@@ -65,6 +68,9 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
     warnings: string[];
   }>({ story: null, errors: [], warnings: [] });
   const [isExporting, setIsExporting] = useState(false);
+  const [diagramStyleDialogOpen, setDiagramStyleDialogOpen] = useState(false);
+  const [editingDiagramStyleStory, setEditingDiagramStyleStory] = useState<Story | null>(null);
+  const [tempDiagramStyle, setTempDiagramStyle] = useState<DiagramStyle>(DEFAULT_DIAGRAM_STYLE);
 
   useEffect(() => {
     loadStories();
@@ -94,6 +100,36 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
     if (onNavigateToEditor) {
       onNavigateToEditor();
     }
+  };
+
+  const handleConfigureDiagramStyle = (story: Story, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingDiagramStyleStory(story);
+    setTempDiagramStyle(story.diagramStyle || DEFAULT_DIAGRAM_STYLE);
+    setDiagramStyleDialogOpen(true);
+  };
+
+  const handleSaveDiagramStyle = async () => {
+    if (!editingDiagramStyleStory) return;
+
+    const activeBookData = await BookService.getActiveBookData();
+    if (!activeBookData) return;
+
+    const updatedStories = activeBookData.stories.map(s => {
+      if (s.id === editingDiagramStyleStory.id) {
+        return { ...s, diagramStyle: tempDiagramStyle, updatedAt: new Date() };
+      }
+      return s;
+    });
+
+    const updatedData = { ...activeBookData, stories: updatedStories };
+    await BookService.saveActiveBookData(updatedData);
+    
+    setDiagramStyleDialogOpen(false);
+    setEditingDiagramStyleStory(null);
+    onStoryUpdate();
+    
+    showSnackbar('Diagram style saved successfully!', 'success');
   };
 
   const handleDeleteStory = async (storyId: string) => {
@@ -580,6 +616,15 @@ TECHNICAL REQUIREMENTS:
                         <DocxIcon />
                       </IconButton>
                     </Tooltip>
+                    <Tooltip title="Configure diagram style (blackboard/whiteboard)">
+                      <IconButton
+                        size="small"
+                        color={story.diagramStyle ? "secondary" : "default"}
+                        onClick={(e) => handleConfigureDiagramStyle(story, e)}
+                      >
+                        <SettingsIcon />
+                      </IconButton>
+                    </Tooltip>
                     <IconButton
                       size="small"
                       onClick={(e) => {
@@ -731,6 +776,96 @@ TECHNICAL REQUIREMENTS:
               {isExporting ? 'Exporting...' : 'Export Anyway'}
             </Button>
           )}
+        </DialogActions>
+      </Dialog>
+
+      {/* Diagram Style Configuration Dialog */}
+      <Dialog 
+        open={diagramStyleDialogOpen} 
+        onClose={() => setDiagramStyleDialogOpen(false)} 
+        maxWidth="sm" 
+        fullWidth
+      >
+        <DialogTitle>
+          Configure Diagram Style for "{editingDiagramStyleStory?.title}"
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <Alert severity="info">
+              This configures the appearance and position of diagram overlays (blackboards/whiteboards) for all scenes in this story.
+            </Alert>
+            
+            <TextField
+              select
+              label="Board Style"
+              value={tempDiagramStyle.boardStyle}
+              onChange={(e) => setTempDiagramStyle({
+                ...tempDiagramStyle,
+                boardStyle: e.target.value as any,
+                backgroundColor: e.target.value === 'blackboard' ? '#2d3748' : '#ffffff',
+                foregroundColor: e.target.value === 'blackboard' ? '#ffffff' : '#24292e'
+              })}
+              fullWidth
+            >
+              <option value="blackboard">Blackboard (dark gray with white chalk)</option>
+              <option value="whiteboard">Whiteboard (white with dark markers)</option>
+            </TextField>
+
+            <TextField
+              select
+              label="Position"
+              value={tempDiagramStyle.position}
+              onChange={(e) => setTempDiagramStyle({ ...tempDiagramStyle, position: e.target.value as any })}
+              fullWidth
+            >
+              <option value="top-left">Top Left</option>
+              <option value="top-center">Top Center</option>
+              <option value="top-right">Top Right</option>
+              <option value="middle-left">Middle Left</option>
+              <option value="middle-right">Middle Right</option>
+              <option value="bottom-left">Bottom Left</option>
+              <option value="bottom-center">Bottom Center</option>
+              <option value="bottom-right">Bottom Right</option>
+            </TextField>
+
+            <TextField
+              type="number"
+              label="Width (%)"
+              value={tempDiagramStyle.widthPercentage}
+              onChange={(e) => setTempDiagramStyle({ ...tempDiagramStyle, widthPercentage: parseInt(e.target.value) || 35 })}
+              InputProps={{ inputProps: { min: 10, max: 100 } }}
+              fullWidth
+              helperText="Percentage of image width (10-100%)"
+            />
+
+            <TextField
+              type="number"
+              label="Height (%)"
+              value={tempDiagramStyle.heightPercentage}
+              onChange={(e) => setTempDiagramStyle({ ...tempDiagramStyle, heightPercentage: parseInt(e.target.value) || 30 })}
+              InputProps={{ inputProps: { min: 10, max: 100 } }}
+              fullWidth
+              helperText="Percentage of image height (10-100%)"
+            />
+
+            <TextField
+              type="number"
+              label="Font Size"
+              value={tempDiagramStyle.fontSize}
+              onChange={(e) => setTempDiagramStyle({ ...tempDiagramStyle, fontSize: parseInt(e.target.value) || 18 })}
+              InputProps={{ inputProps: { min: 8, max: 48 } }}
+              fullWidth
+              helperText="Base font size in pixels"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDiagramStyleDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSaveDiagramStyle} variant="contained" color="primary">
+            Save
+          </Button>
         </DialogActions>
       </Dialog>
 

@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Scene } from './Scene';
 import type { ValidationResult } from './Book';
+import type { DiagramStyle } from '../types/Story';
 
 /**
  * Character image metadata
@@ -44,6 +45,7 @@ export interface StoryExchangeFormat {
     title: string;
     backgroundSetup: string;
     description?: string;
+    diagramStyle?: DiagramStyle;
   };
   characters: Character[];
   elements: StoryElement[];
@@ -60,6 +62,7 @@ export class Story {
   title: string;
   description?: string;
   backgroundSetup: string;
+  diagramStyle?: DiagramStyle;
   characters: Character[];
   elements: StoryElement[];
   scenes: Scene[];
@@ -71,6 +74,7 @@ export class Story {
     this.title = data.title;
     this.description = data.description;
     this.backgroundSetup = data.backgroundSetup;
+    this.diagramStyle = data.diagramStyle;
     this.characters = data.characters || [];
     this.elements = data.elements || [];
     this.scenes = data.scenes || [];
@@ -300,7 +304,8 @@ export class Story {
       story: {
         title: this.title,
         backgroundSetup: this.backgroundSetup,
-        description: this.description
+        description: this.description,
+        diagramStyle: this.diagramStyle
       },
       characters: this.characters.map(c => ({ ...c })),
       elements: this.elements.map(e => ({ ...e })),
@@ -317,6 +322,7 @@ export class Story {
       title: this.title,
       description: this.description,
       backgroundSetup: this.backgroundSetup,
+      diagramStyle: this.diagramStyle,
       characters: this.characters,
       elements: this.elements,
       scenes: this.scenes,
@@ -336,6 +342,7 @@ export class Story {
       title: data.story.title,
       backgroundSetup: data.story.backgroundSetup,
       description: data.story.description,
+      diagramStyle: data.story.diagramStyle,
       characters: data.characters || [],
       elements: data.elements || []
     });

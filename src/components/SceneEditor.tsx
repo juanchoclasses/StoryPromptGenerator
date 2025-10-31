@@ -302,7 +302,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     setDiagramType(type as any);
     if (language) setDiagramLanguage(language);
     
-    // Auto-save the diagram panel
+    // Auto-save the diagram panel (but don't trigger full refresh)
     if (story && currentScene) {
       const activeBookData = await BookService.getActiveBookData();
       if (!activeBookData) return;
@@ -328,7 +328,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       
       const updatedData = { ...activeBookData, stories: updatedStories };
       await BookService.saveActiveBookData(updatedData);
-      onStoryUpdate();
+      // Don't call onStoryUpdate() here - it causes the scene to reload and clears the input
     }
   };
 

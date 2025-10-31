@@ -118,8 +118,8 @@ export class BookExportWithImagesService {
         }
       }
 
-      // Collect all character audition images
-      console.log('Collecting character images...');
+      // Collect all character audition images (story-level)
+      console.log('Collecting story-level character images...');
       for (const story of book.stories) {
         for (const character of story.characters) {
           if (character.imageGallery && character.imageGallery.length > 0) {
@@ -143,12 +143,48 @@ export class BookExportWithImagesService {
                   imageIdToFilename.set(`${story.id}:${character.name}:${img.id}`, filename);
                   characterImageCount++;
                   
-                  console.log(`Added character image: ${character.name}/${img.id}`);
+                  console.log(`Added story character image: ${character.name}/${img.id}`);
                 } else {
                   console.warn(`Character image not found in storage: ${character.name}/${img.id}`);
                 }
               } catch (error) {
                 console.error(`Error processing character image ${character.name}/${img.id}:`, error);
+              }
+            }
+          }
+        }
+      }
+
+      // Collect book-level character images
+      console.log('Collecting book-level character images...');
+      if (book.characters && book.characters.length > 0) {
+        for (const character of book.characters) {
+          if (character.imageGallery && character.imageGallery.length > 0) {
+            for (const img of character.imageGallery) {
+              try {
+                // Get image from IndexedDB (book-level uses 'book:' prefix)
+                const blobUrl = await ImageStorageService.getBookCharacterImage(
+                  book.id,
+                  character.name,
+                  img.id
+                );
+                if (blobUrl) {
+                  // Fetch the blob from the blob URL
+                  const response = await fetch(blobUrl);
+                  const blob = await response.blob();
+                  
+                  // Add to ZIP with organized path (use 'book' as the directory name)
+                  const filename = `${this.CHARACTER_IMAGES_DIR}book/${character.name}/${img.id}.png`;
+                  zip.file(filename, blob);
+                  imageIdToFilename.set(`book:${book.id}:${character.name}:${img.id}`, filename);
+                  characterImageCount++;
+                  
+                  console.log(`Added book character image: ${character.name}/${img.id}`);
+                } else {
+                  console.warn(`Book character image not found in storage: ${character.name}/${img.id}`);
+                }
+              } catch (error) {
+                console.error(`Error processing book character image ${character.name}/${img.id}:`, error);
               }
             }
           }
@@ -443,6 +479,62 @@ export class BookExportWithImagesService {
         } catch (error) {
           console.error(`Error importing character image from ${filename}:`, error);
           warnings.push(`Failed to import character image from ${filename}`);
+        }
+      }
+
+      // Import book-level character images
+      console.log('\nImporting book-level character images...');
+      const bookCharacterImageFiles = characterImageFiles.filter(f => f.includes('/book/'));
+      console.log(`Found ${bookCharacterImageFiles.length} book-level character images`);
+      
+      for (const filename of bookCharacterImageFiles) {
+        try {
+          const file = zip.file(filename);
+          if (file) {
+            const blob = await file.async('blob');
+            console.log(`Processing ${filename} (${blob.size} bytes)`);
+            
+            // Parse filename: character-images/book/characterName/imageId.png
+            const pathParts = filename.replace(this.CHARACTER_IMAGES_DIR, '').split('/');
+            if (pathParts.length === 3 && pathParts[0] === 'book') {
+              const [_, characterName, imageFile] = pathParts;
+              const imageId = imageFile.replace('.png', '');
+              console.log(`  Looking for book character ${characterName}, image ${imageId}`);
+              
+              // Find the character at book level
+              const character = newBook.characters?.find(c => c.name === characterName);
+              if (character) {
+                console.log(`  ✓ Found book character: ${character.name}`);
+                console.log(`    Character has ${character.imageGallery?.length || 0} images in gallery`);
+                if (character.imageGallery?.some(img => img.id === imageId)) {
+                  console.log(`  ✓ Image ${imageId} found in character gallery`);
+                  // Store image in IndexedDB with book-level key
+                  const blobUrl = URL.createObjectURL(blob);
+                  console.log(`  Storing in IndexedDB with key: book:${newBook.id}:${character.name}:${imageId}`);
+                  await ImageStorageService.storeBookCharacterImage(
+                    newBook.id,
+                    character.name,
+                    imageId,
+                    blobUrl,
+                    character.imageGallery.find(img => img.id === imageId)?.model || 'unknown'
+                  );
+                  URL.revokeObjectURL(blobUrl);
+                  characterImageCount++;
+                  console.log(`  ✓ Imported book character image: ${characterName}/${imageId}`);
+                } else {
+                  const galleryIds = character.imageGallery?.map(img => img.id).join(', ') || 'none';
+                  console.warn(`  ✗ Image ${imageId} not found in gallery. Gallery IDs: ${galleryIds}`);
+                  warnings.push(`Book character image ${characterName}/${imageId} found in ZIP but not referenced in book data`);
+                }
+              } else {
+                console.warn(`  ✗ Book character ${characterName} not found. Available: ${newBook.characters?.map(c => c.name).join(', ') || 'none'}`);
+                warnings.push(`Book character ${characterName} not found`);
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Error importing book character image from ${filename}:`, error);
+          warnings.push(`Failed to import book character image from ${filename}`);
         }
       }
 

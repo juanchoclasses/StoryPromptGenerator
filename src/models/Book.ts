@@ -82,9 +82,9 @@ export class Book {
       warnings.push('Book has no stories');
     }
 
-    // Validate all stories
+    // Validate all stories (pass book-level characters for scene validation)
     this.stories.forEach((story, index) => {
-      const storyValidation = story.validate();
+      const storyValidation = story.validate(this.characters);
       if (!storyValidation.isValid) {
         errors.push(`Story ${index + 1} (${story.title}): ${storyValidation.errors.join(', ')}`);
       }

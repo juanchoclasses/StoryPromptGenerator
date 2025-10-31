@@ -80,8 +80,9 @@ export class Story {
 
   /**
    * Validate the story data
+   * Can optionally accept book-level characters for scene validation
    */
-  validate(): ValidationResult {
+  validate(bookCharacters?: Array<{ name: string }>): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -115,9 +116,9 @@ export class Story {
       warnings.push('Story has no scenes');
     }
 
-    // Validate all scenes
+    // Validate all scenes (bookCharacters passed for validation)
     this.scenes.forEach((scene, index) => {
-      const sceneValidation = scene.validate(this);
+      const sceneValidation = scene.validate(this, bookCharacters);
       if (!sceneValidation.isValid) {
         errors.push(`Scene ${index + 1} (${scene.title}): ${sceneValidation.errors.join(', ')}`);
       }

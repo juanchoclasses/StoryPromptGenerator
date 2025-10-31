@@ -55,8 +55,9 @@ export class Scene {
   /**
    * Validate the scene data
    * Requires a reference to the parent story to validate character/element references
+   * Can optionally accept book-level characters to allow validation of book-level character references
    */
-  validate(story: Story): ValidationResult {
+  validate(story: Story, bookCharacters?: Array<{ name: string }>): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -72,10 +73,13 @@ export class Scene {
       warnings.push('Scene has no characters or elements');
     }
 
-    // Validate character references
+    // Validate character references (check both story-level and book-level)
     this.characters.forEach(charName => {
-      if (!story.findCharacterByName(charName)) {
-        errors.push(`Character "${charName}" not found in story`);
+      const inStory = story.findCharacterByName(charName);
+      const inBook = bookCharacters?.find(c => c.name.toLowerCase() === charName.toLowerCase());
+      
+      if (!inStory && !inBook) {
+        errors.push(`Character "${charName}" not found in story or book`);
       }
     });
 

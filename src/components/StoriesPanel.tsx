@@ -13,7 +13,9 @@ import {
   IconButton,
   Tooltip,
   Snackbar,
-  Alert
+  Alert,
+  FormControlLabel,
+  Switch
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -847,23 +849,38 @@ TECHNICAL REQUIREMENTS:
               helperText="Percentage of image width (10-100%)"
             />
 
-            <TextField
-              type="number"
-              label="Height (%)"
-              value={tempDiagramStyle.heightPercentage}
-              onChange={(e) => setTempDiagramStyle({ ...tempDiagramStyle, heightPercentage: parseInt(e.target.value) || 0 })}
-              onBlur={(e) => {
-                const val = parseInt(e.target.value);
-                if (isNaN(val) || val < 10) {
-                  setTempDiagramStyle({ ...tempDiagramStyle, heightPercentage: 10 });
-                } else if (val > 100) {
-                  setTempDiagramStyle({ ...tempDiagramStyle, heightPercentage: 100 });
-                }
-              }}
-              InputProps={{ inputProps: { min: 10, max: 100 } }}
-              fullWidth
-              helperText="Percentage of image height (10-100%)"
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={tempDiagramStyle.autoScale || false}
+                  onChange={(e) => setTempDiagramStyle({
+                    ...tempDiagramStyle,
+                    autoScale: e.target.checked
+                  })}
+                />
+              }
+              label="Auto-scale height to fit content"
             />
+
+            {!tempDiagramStyle.autoScale && (
+              <TextField
+                type="number"
+                label="Height (%)"
+                value={tempDiagramStyle.heightPercentage}
+                onChange={(e) => setTempDiagramStyle({ ...tempDiagramStyle, heightPercentage: parseInt(e.target.value) || 0 })}
+                onBlur={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (isNaN(val) || val < 10) {
+                    setTempDiagramStyle({ ...tempDiagramStyle, heightPercentage: 10 });
+                  } else if (val > 100) {
+                    setTempDiagramStyle({ ...tempDiagramStyle, heightPercentage: 100 });
+                  }
+                }}
+                InputProps={{ inputProps: { min: 10, max: 100 } }}
+                fullWidth
+                helperText="Percentage of image height (10-100%)"
+              />
+            )}
 
             <TextField
               type="number"

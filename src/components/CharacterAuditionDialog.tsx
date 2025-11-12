@@ -412,10 +412,12 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
             <Typography variant="subtitle2">
               Character Gallery ({character.imageGallery?.length || 0} images)
             </Typography>
-            <Tooltip title="Refresh gallery">
-              <IconButton onClick={loadGallery} size="small" disabled={loadingGallery}>
-                <RefreshIcon />
-              </IconButton>
+            <Tooltip title={loadingGallery ? "" : "Refresh gallery"}>
+              <span>
+                <IconButton onClick={loadGallery} size="small" disabled={loadingGallery}>
+                  <RefreshIcon />
+                </IconButton>
+              </span>
             </Tooltip>
           </Box>
 
@@ -472,28 +474,44 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
                           }}
                         />
                       )}
-                      <CardMedia
-                        component="img"
-                        height="200"
-                        image={imageUrl || '/placeholder.png'}
-                        alt={`${character.name} - ${img.model}`}
-                        sx={{
-                          objectFit: 'contain',
-                          backgroundColor: '#f5f5f5',
-                          cursor: 'pointer'
-                        }}
-                        onClick={() => window.open(imageUrl, '_blank')}
-                      />
+                      {imageUrl ? (
+                        <CardMedia
+                          component="img"
+                          height="200"
+                          image={imageUrl}
+                          alt={`${character.name} - ${img.model}`}
+                          sx={{
+                            objectFit: 'contain',
+                            backgroundColor: '#f5f5f5',
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => window.open(imageUrl, '_blank')}
+                        />
+                      ) : (
+                        <Box 
+                          height="200px" 
+                          display="flex" 
+                          alignItems="center" 
+                          justifyContent="center"
+                          sx={{ backgroundColor: '#f5f5f5' }}
+                        >
+                          <Typography variant="caption" color="text.secondary">
+                            Image not available
+                          </Typography>
+                        </Box>
+                      )}
                       <CardActions sx={{ justifyContent: 'space-between', px: 1 }}>
-                        <Tooltip title={selected ? 'Currently selected' : 'Select this image'}>
-                          <Button
-                            size="small"
-                            variant={selected ? 'contained' : 'outlined'}
-                            onClick={() => handleSelectImage(img.id)}
-                            disabled={selected}
-                          >
-                            {selected ? 'Selected' : 'Select'}
-                          </Button>
+                        <Tooltip title={selected ? '' : 'Select this image'}>
+                          <span>
+                            <Button
+                              size="small"
+                              variant={selected ? 'contained' : 'outlined'}
+                              onClick={() => handleSelectImage(img.id)}
+                              disabled={selected}
+                            >
+                              {selected ? 'Selected' : 'Select'}
+                            </Button>
+                          </span>
                         </Tooltip>
                         <Tooltip title="Delete image">
                           <IconButton

@@ -108,12 +108,22 @@ async function renderMermaid(
   const id = `mermaid-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   const { svg } = await mermaid.render(id, content);
 
+  // DEBUG: Log SVG for inspection
+  console.log('=== MERMAID SVG OUTPUT ===');
+  console.log(svg);
+  console.log('=== RENDER DIMENSIONS ===');
+  console.log('Panel dimensions:', width, 'x', height);
+
   // Create temporary container
   const tempContainer = document.createElement('div');
   tempContainer.style.position = 'absolute';
   tempContainer.style.left = '-9999px';
   tempContainer.style.width = width + 'px';
   tempContainer.style.height = height + 'px';
+  tempContainer.style.minWidth = width + 'px';
+  tempContainer.style.maxWidth = width + 'px';
+  tempContainer.style.minHeight = height + 'px';
+  tempContainer.style.maxHeight = height + 'px';
   tempContainer.style.backgroundColor = style.backgroundColor;
   tempContainer.style.padding = style.padding + 'px';
   tempContainer.style.boxSizing = 'border-box';
@@ -121,9 +131,66 @@ async function renderMermaid(
   tempContainer.style.display = 'flex';
   tempContainer.style.alignItems = 'center';
   tempContainer.style.justifyContent = 'center';
+  tempContainer.style.overflow = 'hidden';
   tempContainer.innerHTML = svg;
 
   document.body.appendChild(tempContainer);
+
+  // Add CSS to constrain SVG to fit within container (prevents overflow)
+  const svgElement = tempContainer.querySelector('svg');
+  if (svgElement) {
+    // Calculate max dimensions (accounting for padding and border)
+    const maxWidth = width - (style.padding * 2) - (style.borderWidth * 2);
+    const maxHeight = height - (style.padding * 2) - (style.borderWidth * 2);
+    
+    // Get the SVG's natural dimensions from viewBox or width/height attributes
+    const viewBox = svgElement.getAttribute('viewBox');
+    let svgNaturalWidth: number;
+    let svgNaturalHeight: number;
+    
+    if (viewBox) {
+      const [, , vbWidth, vbHeight] = viewBox.split(/\s+/).map(Number);
+      svgNaturalWidth = vbWidth;
+      svgNaturalHeight = vbHeight;
+    } else {
+      // Fallback: try to get from attributes before we remove them
+      const widthAttr = svgElement.getAttribute('width');
+      const heightAttr = svgElement.getAttribute('height');
+      svgNaturalWidth = widthAttr && widthAttr !== '100%' ? parseFloat(widthAttr) : 800;
+      svgNaturalHeight = heightAttr && heightAttr !== '100%' ? parseFloat(heightAttr) : 600;
+    }
+    
+    // Calculate scale to fit within available space while maintaining aspect ratio
+    const scaleX = maxWidth / svgNaturalWidth;
+    const scaleY = maxHeight / svgNaturalHeight;
+    const scale = Math.min(scaleX, scaleY);
+    
+    // Calculate final dimensions
+    const finalWidth = Math.floor(svgNaturalWidth * scale);
+    const finalHeight = Math.floor(svgNaturalHeight * scale);
+    
+    console.log('SVG natural size:', svgNaturalWidth, 'x', svgNaturalHeight);
+    console.log('Available space:', maxWidth, 'x', maxHeight);
+    console.log('Scale factor:', scale);
+    console.log('Final SVG size:', finalWidth, 'x', finalHeight);
+    
+    // Remove ALL size-related attributes and inline styles to prevent interference
+    svgElement.removeAttribute('width');
+    svgElement.removeAttribute('height');
+    svgElement.removeAttribute('style');
+    
+    // Set explicit size via CSS - this overrides everything
+    svgElement.style.width = finalWidth + 'px';
+    svgElement.style.height = finalHeight + 'px';
+    svgElement.style.maxWidth = 'none';
+    svgElement.style.maxHeight = 'none';
+    svgElement.style.display = 'block';
+    svgElement.style.margin = '0 auto';
+    
+    // Force layout update and check actual size
+    const rect = svgElement.getBoundingClientRect();
+    console.log('SVG actual rendered size:', rect.width, 'x', rect.height);
+  }
 
   try {
     // Convert to canvas using html2canvas
@@ -133,6 +200,9 @@ async function renderMermaid(
       backgroundColor: null,
       scale: 2
     });
+
+    console.log('html2canvas output:', canvas.width, 'x', canvas.height);
+    console.log('Expected (with scale 2):', width * 2, 'x', height * 2);
 
     return canvas;
   } finally {
@@ -180,7 +250,7 @@ async function renderMath(
             throwOnError: false,
             output: 'html'
           });
-        } catch (err) {
+        } catch {
           mathDiv.textContent = line;
         }
         tempContainer.appendChild(mathDiv);
@@ -399,5 +469,156 @@ export function canvasToDataURL(canvas: HTMLCanvasElement): string {
  */
 export async function canvasToImageBitmap(canvas: HTMLCanvasElement): Promise<ImageBitmap> {
   return await createImageBitmap(canvas);
+}
+
+/**
+ * Measure the natural size of diagram content before scaling
+ * Returns the natural dimensions needed to fit the content
+ */
+export async function measureDiagramNaturalSize(
+  diagramPanel: DiagramPanel,
+  diagramStyle: DiagramStyle,
+  maxWidth: number
+): Promise<{ width: number; height: number }> {
+  initializeLibraries();
+  
+  try {
+    // Create a temporary container to render the diagram content
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.visibility = 'hidden';
+    tempContainer.style.maxWidth = maxWidth + 'px';
+    tempContainer.style.padding = diagramStyle.padding + 'px';
+    tempContainer.style.boxSizing = 'border-box';
+    tempContainer.style.border = `${diagramStyle.borderWidth}px solid transparent`;
+    
+    document.body.appendChild(tempContainer);
+    
+    try {
+      switch (diagramPanel.type) {
+        case 'mermaid': {
+          // Render Mermaid to get natural SVG size
+          const id = `measure-mermaid-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+          const { svg } = await mermaid.render(id, diagramPanel.content);
+          tempContainer.innerHTML = svg;
+          
+          const svgElement = tempContainer.querySelector('svg');
+          if (svgElement) {
+            // Get natural dimensions from viewBox or attributes
+            const viewBox = svgElement.getAttribute('viewBox');
+            let naturalWidth: number;
+            let naturalHeight: number;
+            
+            if (viewBox) {
+              const [, , vbWidth, vbHeight] = viewBox.split(/\s+/).map(Number);
+              naturalWidth = vbWidth;
+              naturalHeight = vbHeight;
+            } else {
+              const widthAttr = svgElement.getAttribute('width');
+              const heightAttr = svgElement.getAttribute('height');
+              naturalWidth = widthAttr && widthAttr !== '100%' ? parseFloat(widthAttr) : 800;
+              naturalHeight = heightAttr && heightAttr !== '100%' ? parseFloat(heightAttr) : 600;
+            }
+            
+            // Account for padding and border
+            const totalPadding = (diagramStyle.padding * 2) + (diagramStyle.borderWidth * 2);
+            
+            // Scale to fit within maxWidth if necessary
+            const finalWidth = Math.min(naturalWidth + totalPadding, maxWidth);
+            let finalHeight = naturalHeight + totalPadding;
+            
+            if (naturalWidth + totalPadding > maxWidth) {
+              const scale = (maxWidth - totalPadding) / naturalWidth;
+              finalHeight = (naturalHeight * scale) + totalPadding;
+            }
+            
+            return { width: Math.ceil(finalWidth), height: Math.ceil(finalHeight) };
+          }
+          break;
+        }
+        
+        case 'math': {
+          // Render math equations to measure
+          tempContainer.style.fontSize = diagramStyle.fontSize + 'px';
+          tempContainer.style.width = maxWidth + 'px';
+          
+          const lines = diagramPanel.content.split('\n');
+          lines.forEach(line => {
+            if (line.trim()) {
+              const mathDiv = document.createElement('div');
+              mathDiv.style.margin = '20px 0';
+              mathDiv.style.textAlign = 'center';
+              try {
+                katex.render(line, mathDiv, {
+                  displayMode: true,
+                  throwOnError: false,
+                  output: 'html'
+                });
+              } catch {
+                mathDiv.textContent = line;
+              }
+              tempContainer.appendChild(mathDiv);
+            }
+          });
+          
+          // Measure the rendered content
+          const rect = tempContainer.getBoundingClientRect();
+          return { 
+            width: Math.ceil(Math.min(rect.width, maxWidth)), 
+            height: Math.ceil(rect.height) 
+          };
+        }
+        
+        case 'code': {
+          // Create code block to measure
+          tempContainer.style.fontSize = diagramStyle.fontSize + 'px';
+          tempContainer.style.width = maxWidth + 'px';
+          tempContainer.style.whiteSpace = 'pre';
+          tempContainer.style.fontFamily = '"Monaco", "Consolas", "Courier New", monospace';
+          tempContainer.style.lineHeight = '1.4';
+          
+          const pre = document.createElement('pre');
+          pre.style.margin = '0';
+          pre.style.padding = '0';
+          const code = document.createElement('code');
+          code.textContent = diagramPanel.content;
+          pre.appendChild(code);
+          tempContainer.appendChild(pre);
+          
+          const rect = tempContainer.getBoundingClientRect();
+          return { 
+            width: Math.ceil(Math.min(rect.width, maxWidth)), 
+            height: Math.ceil(rect.height) 
+          };
+        }
+        
+        case 'markdown': {
+          // Render markdown to measure
+          tempContainer.style.fontSize = diagramStyle.fontSize + 'px';
+          tempContainer.style.width = maxWidth + 'px';
+          tempContainer.style.lineHeight = '1.6';
+          tempContainer.style.fontFamily = 'Arial, sans-serif';
+          
+          tempContainer.innerHTML = marked.parse(diagramPanel.content) as string;
+          
+          const rect = tempContainer.getBoundingClientRect();
+          return { 
+            width: Math.ceil(Math.min(rect.width, maxWidth)), 
+            height: Math.ceil(rect.height) 
+          };
+        }
+      }
+      
+      // Default fallback
+      return { width: maxWidth, height: 600 };
+    } finally {
+      document.body.removeChild(tempContainer);
+    }
+  } catch (error) {
+    console.error('Error measuring diagram size:', error);
+    // Return reasonable defaults on error
+    return { width: maxWidth, height: 600 };
+  }
 }
 

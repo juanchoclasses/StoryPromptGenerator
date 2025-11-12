@@ -1,9 +1,16 @@
 /**
- * ImageStorageService - Persistent image storage using IndexedDB
+ * ImageStorageService - Hybrid image storage system with in-memory cache
  * 
- * Stores generated images as blobs in IndexedDB for persistence across sessions.
+ * Storage Strategy:
+ * 1. IN-MEMORY CACHE: LRU cache for recently accessed images (instant access)
+ * 2. PRIMARY: Local filesystem via File System Access API (fast, persistent, no browser eviction)
+ * 3. FALLBACK: IndexedDB (for browsers without filesystem support)
+ * 
  * Images are keyed by their unique image ID from GeneratedImage.id
  */
+
+import { FileSystemService } from './FileSystemService';
+import { imageCache } from './ImageCache';
 
 const DB_NAME = 'StoryPromptImages';
 const DB_VERSION = 2; // Incremented for character-images store
@@ -100,7 +107,7 @@ class ImageStorageServiceClass {
   }
 
   /**
-   * Store an image in IndexedDB
+   * Store an image using hybrid storage (filesystem primary, IndexedDB fallback)
    * @param imageId Unique image ID
    * @param sceneId Scene ID for cleanup purposes
    * @param imageUrl URL to fetch the image from (blob:, data:, or http:)
@@ -115,6 +122,36 @@ class ImageStorageServiceClass {
   ): Promise<void> {
     await this.ensureReady();
 
+    // Try filesystem first
+    const fsConfigured = await FileSystemService.isConfigured();
+    if (fsConfigured) {
+      const fsResult = await FileSystemService.saveImageById(imageUrl, imageUrl, {
+        sceneId,
+        modelName
+      });
+      if (fsResult.success) {
+        console.log(`✓ Image stored to filesystem: ${imageId} (path: ${fsResult.path})`);
+        // Still save to IndexedDB as backup
+        await this.storeImageIndexedDB(imageId, sceneId, imageUrl, modelName);
+        return;
+      } else {
+        console.warn(`Filesystem storage failed: ${fsResult.error}, falling back to IndexedDB`);
+      }
+    }
+
+    // Fallback to IndexedDB
+    await this.storeImageIndexedDB(imageId, sceneId, imageUrl, modelName);
+  }
+
+  /**
+   * Store image in IndexedDB (internal method)
+   */
+  private async storeImageIndexedDB(
+    imageId: string,
+    sceneId: string,
+    imageUrl: string,
+    modelName: string
+  ): Promise<void> {
     try {
       // Fetch the image as a blob
       const response = await fetch(imageUrl);
@@ -147,19 +184,51 @@ class ImageStorageServiceClass {
         };
       });
     } catch (error) {
-      console.error('Error storing image:', error);
+      console.error('Error storing image in IndexedDB:', error);
       throw error;
     }
   }
 
   /**
-   * Retrieve an image from IndexedDB
+   * Retrieve an image using hybrid storage with cache
+   * (cache → filesystem → IndexedDB)
    * @param imageId Unique image ID
    * @returns Blob URL that can be used in <img> src, or null if not found
    */
   async getImage(imageId: string): Promise<string | null> {
     await this.ensureReady();
 
+    // 1. Check in-memory cache first (instant)
+    const cachedUrl = imageCache.get(imageId);
+    if (cachedUrl) {
+      return cachedUrl;
+    }
+
+    // 2. Try filesystem
+    const fsConfigured = await FileSystemService.isConfigured();
+    if (fsConfigured) {
+      const fsUrl = await FileSystemService.loadImageById(imageId);
+      if (fsUrl) {
+        console.log(`✓ Image loaded from filesystem: ${imageId}`);
+        // Cache for next time
+        imageCache.set(imageId, fsUrl);
+        return fsUrl;
+      }
+    }
+
+    // 3. Fallback to IndexedDB
+    const indexedDBUrl = await this.getImageIndexedDB(imageId);
+    if (indexedDBUrl) {
+      // Cache for next time
+      imageCache.set(imageId, indexedDBUrl);
+    }
+    return indexedDBUrl;
+  }
+
+  /**
+   * Retrieve image from IndexedDB (internal method)
+   */
+  private async getImageIndexedDB(imageId: string): Promise<string | null> {
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([STORE_NAME], 'readonly');
       const objectStore = transaction.objectStore(STORE_NAME);
@@ -186,12 +255,25 @@ class ImageStorageServiceClass {
   }
 
   /**
-   * Delete a specific image from IndexedDB
+   * Delete a specific image from cache, filesystem, and IndexedDB
    * @param imageId Unique image ID
    */
   async deleteImage(imageId: string): Promise<void> {
     await this.ensureReady();
 
+    // Remove from cache first
+    imageCache.remove(imageId);
+
+    // Try to delete from filesystem
+    const fsConfigured = await FileSystemService.isConfigured();
+    if (fsConfigured) {
+      const fsDeleted = await FileSystemService.deleteImageById(imageId);
+      if (fsDeleted) {
+        console.log(`✓ Image deleted from filesystem: ${imageId}`);
+      }
+    }
+
+    // Always try to delete from IndexedDB too
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
       const objectStore = transaction.objectStore(STORE_NAME);
@@ -302,6 +384,9 @@ class ImageStorageServiceClass {
   async clearAll(): Promise<void> {
     await this.ensureReady();
 
+    // Clear cache first
+    imageCache.clear();
+
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
       const objectStore = transaction.objectStore(STORE_NAME);
@@ -319,12 +404,33 @@ class ImageStorageServiceClass {
     });
   }
 
+  /**
+   * Get cache statistics
+   */
+  getCacheStats() {
+    return imageCache.getStats();
+  }
+
+  /**
+   * Clear in-memory cache only (keeps filesystem/IndexedDB)
+   */
+  clearCache(): void {
+    imageCache.clear();
+  }
+
+  /**
+   * Prune invalid entries from cache
+   */
+  async pruneCache(): Promise<number> {
+    return imageCache.prune();
+  }
+
   // ========================================
   // Character Image Methods (v4.1+)
   // ========================================
 
   /**
-   * Store a character image in IndexedDB
+   * Store a character image using hybrid storage (filesystem primary, IndexedDB fallback)
    * @param storyId Story ID
    * @param characterName Character name
    * @param imageId Unique image ID
@@ -339,15 +445,39 @@ class ImageStorageServiceClass {
     imageUrl: string,
     modelName: string
   ): Promise<void> {
-    console.log('>>> storeCharacterImage called for:', characterName, imageId);
-    console.log('    URL length:', imageUrl.length, 'chars');
-    
-    console.log('    Calling ensureReady()...');
     await this.ensureReady();
-    console.log('    ✓ ensureReady() complete');
-    console.log('    DB exists:', !!this.db);
-    console.log('    DB object stores:', this.db ? Array.from(this.db.objectStoreNames) : 'none');
-    
+
+    // Try filesystem first
+    const fsConfigured = await FileSystemService.isConfigured();
+    if (fsConfigured) {
+      const fsResult = await FileSystemService.saveImageById(imageId, imageUrl, {
+        characterName,
+        modelName
+      });
+      if (fsResult.success) {
+        console.log(`✓ Character image stored to filesystem: ${characterName}/${imageId} (path: ${fsResult.path})`);
+        // Still save to IndexedDB as backup
+        await this.storeCharacterImageIndexedDB(storyId, characterName, imageId, imageUrl, modelName);
+        return;
+      } else {
+        console.warn(`Filesystem storage failed for character image: ${fsResult.error}, falling back to IndexedDB`);
+      }
+    }
+
+    // Fallback to IndexedDB
+    await this.storeCharacterImageIndexedDB(storyId, characterName, imageId, imageUrl, modelName);
+  }
+
+  /**
+   * Store character image in IndexedDB (internal method)
+   */
+  private async storeCharacterImageIndexedDB(
+    storyId: string,
+    characterName: string,
+    imageId: string,
+    imageUrl: string,
+    modelName: string
+  ): Promise<void> {
     // Check if CHARACTER_STORE_NAME exists
     if (!this.db) {
       throw new Error('Database not initialized');
@@ -357,7 +487,6 @@ class ImageStorageServiceClass {
       console.error('CHARACTER_STORE_NAME not found in DB. Available stores:', Array.from(this.db.objectStoreNames));
       throw new Error(`Object store "${CHARACTER_STORE_NAME}" does not exist. Database may need to be upgraded.`);
     }
-    console.log('    ✓ CHARACTER_STORE_NAME exists');
 
     try {
       // Convert image URL to blob
@@ -365,7 +494,6 @@ class ImageStorageServiceClass {
       
       if (imageUrl.startsWith('data:')) {
         // Data URL - convert directly to blob without fetch (avoid hanging on large data URLs)
-        console.log('Converting data URL to blob (size:', imageUrl.length, 'chars)');
         const [metadata, base64Data] = imageUrl.split(',');
         const mimeMatch = metadata.match(/:(.*?);/);
         const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
@@ -378,7 +506,6 @@ class ImageStorageServiceClass {
         }
         
         blob = new Blob([bytes], { type: mimeType });
-        console.log('✓ Data URL converted to blob:', blob.size, 'bytes');
       } else if (imageUrl.startsWith('blob:')) {
         // Blob URL - fetch the blob
         const response = await fetch(imageUrl);
@@ -412,7 +539,7 @@ class ImageStorageServiceClass {
         const request = objectStore.put(storedImage);
 
         request.onsuccess = () => {
-          console.log(`✓ Character image stored: ${characterName}/${imageId} (${blob.size} bytes)`);
+          console.log(`✓ Character image stored in IndexedDB: ${characterName}/${imageId} (${blob.size} bytes)`);
           resolve();
         };
 
@@ -422,13 +549,14 @@ class ImageStorageServiceClass {
         };
       });
     } catch (error) {
-      console.error('Error storing character image:', error);
+      console.error('Error storing character image in IndexedDB:', error);
       throw error;
     }
   }
 
   /**
-   * Retrieve a character image from IndexedDB
+   * Retrieve a character image using hybrid storage with cache
+   * (cache → filesystem → IndexedDB)
    * @param storyId Story ID
    * @param characterName Character name
    * @param imageId Unique image ID
@@ -443,6 +571,43 @@ class ImageStorageServiceClass {
 
     const fullKey = `${storyId}:${characterName}:${imageId}`;
 
+    // 1. Check in-memory cache first (instant)
+    const cachedUrl = imageCache.get(fullKey);
+    if (cachedUrl) {
+      return cachedUrl;
+    }
+
+    // 2. Try filesystem
+    const fsConfigured = await FileSystemService.isConfigured();
+    if (fsConfigured) {
+      const fsUrl = await FileSystemService.loadImageById(imageId);
+      if (fsUrl) {
+        console.log(`✓ Character image loaded from filesystem: ${characterName}/${imageId}`);
+        // Cache for next time
+        imageCache.set(fullKey, fsUrl);
+        return fsUrl;
+      }
+    }
+
+    // 3. Fallback to IndexedDB
+    const indexedDBUrl = await this.getCharacterImageIndexedDB(storyId, characterName, imageId);
+    if (indexedDBUrl) {
+      // Cache for next time
+      imageCache.set(fullKey, indexedDBUrl);
+    }
+    return indexedDBUrl;
+  }
+
+  /**
+   * Retrieve character image from IndexedDB (internal method)
+   */
+  private async getCharacterImageIndexedDB(
+    storyId: string,
+    characterName: string,
+    imageId: string
+  ): Promise<string | null> {
+    const fullKey = `${storyId}:${characterName}:${imageId}`;
+
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([CHARACTER_STORE_NAME], 'readonly');
       const objectStore = transaction.objectStore(CHARACTER_STORE_NAME);
@@ -452,10 +617,10 @@ class ImageStorageServiceClass {
         const storedImage = request.result as StoredCharacterImage | undefined;
         if (storedImage && storedImage.blob) {
           const blobUrl = URL.createObjectURL(storedImage.blob);
-          console.log(`✓ Character image retrieved: ${characterName}/${imageId}`);
+          console.log(`✓ Character image retrieved from IndexedDB: ${characterName}/${imageId}`);
           resolve(blobUrl);
         } else {
-          console.log(`Character image not found: ${characterName}/${imageId}`);
+          console.log(`Character image not found in IndexedDB: ${characterName}/${imageId}`);
           resolve(null);
         }
       };
@@ -468,7 +633,7 @@ class ImageStorageServiceClass {
   }
 
   /**
-   * Delete a specific character image from IndexedDB
+   * Delete a specific character image from cache, filesystem, and IndexedDB
    * @param storyId Story ID
    * @param characterName Character name
    * @param imageId Unique image ID
@@ -482,13 +647,26 @@ class ImageStorageServiceClass {
 
     const fullKey = `${storyId}:${characterName}:${imageId}`;
 
+    // Remove from cache first
+    imageCache.remove(fullKey);
+
+    // Try to delete from filesystem
+    const fsConfigured = await FileSystemService.isConfigured();
+    if (fsConfigured) {
+      const fsDeleted = await FileSystemService.deleteImageById(imageId);
+      if (fsDeleted) {
+        console.log(`✓ Character image deleted from filesystem: ${characterName}/${imageId}`);
+      }
+    }
+
+    // Always try to delete from IndexedDB too
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([CHARACTER_STORE_NAME], 'readwrite');
       const objectStore = transaction.objectStore(CHARACTER_STORE_NAME);
       const request = objectStore.delete(fullKey);
 
       request.onsuccess = () => {
-        console.log(`✓ Character image deleted: ${characterName}/${imageId}`);
+        console.log(`✓ Character image deleted from IndexedDB: ${characterName}/${imageId}`);
         resolve();
       };
 
@@ -501,6 +679,7 @@ class ImageStorageServiceClass {
 
   /**
    * Get all character images for a specific character
+   * Uses hybrid storage: checks filesystem first, then IndexedDB
    * @param storyId Story ID
    * @param characterName Character name
    * @returns Map of imageId -> blobUrl
@@ -511,7 +690,21 @@ class ImageStorageServiceClass {
   ): Promise<Map<string, string>> {
     await this.ensureReady();
 
-    // Check if character-images store exists
+    const imageMap = new Map<string, string>();
+
+    // First, try to load from filesystem for all images in the character's gallery
+    // We need to know which imageIds to look for - they come from character.imageGallery metadata
+    // But since we don't have that here, we'll check filesystem first, then IndexedDB
+    
+    // Try filesystem first
+    const fsConfigured = await FileSystemService.isConfigured();
+    if (fsConfigured) {
+      // Note: We can't enumerate filesystem easily, so we'll rely on IndexedDB metadata
+      // but check filesystem for each imageId we find
+    }
+
+    // Load from IndexedDB (which has the metadata of all images)
+    // Then check filesystem for each one
     if (!this.db!.objectStoreNames.contains(CHARACTER_STORE_NAME)) {
       console.log('Character images store not found - returning empty map');
       return new Map<string, string>();
@@ -524,20 +717,48 @@ class ImageStorageServiceClass {
         const index = objectStore.index('characterName');
         const request = index.openCursor(IDBKeyRange.only(characterName));
 
-        const imageMap = new Map<string, string>();
+        const imageIdsToLoad: string[] = [];
 
-        request.onsuccess = (event) => {
+        request.onsuccess = async (event) => {
           const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
           if (cursor) {
             const storedImage = cursor.value as StoredCharacterImage;
             // Only include images for this specific story
             if (storedImage.storyId === storyId) {
-              const blobUrl = URL.createObjectURL(storedImage.blob);
-              imageMap.set(storedImage.imageId, blobUrl);
+              imageIdsToLoad.push(storedImage.imageId);
             }
             cursor.continue();
           } else {
-            console.log(`✓ Loaded ${imageMap.size} images for character: ${characterName}`);
+            // Now load each image using hybrid storage (filesystem first, then IndexedDB)
+            for (const imageId of imageIdsToLoad) {
+              const fullKey = `${storyId}:${characterName}:${imageId}`;
+              
+              // Check cache first
+              const cachedUrl = imageCache.get(fullKey);
+              if (cachedUrl) {
+                imageMap.set(imageId, cachedUrl);
+                continue;
+              }
+
+              // Try filesystem
+              if (fsConfigured) {
+                const fsUrl = await FileSystemService.loadImageById(imageId);
+                if (fsUrl) {
+                  imageMap.set(imageId, fsUrl);
+                  imageCache.set(fullKey, fsUrl);
+                  continue;
+                }
+              }
+
+              // Fallback to IndexedDB
+              const indexedDBUrl = await this.getCharacterImageIndexedDB(storyId, characterName, imageId);
+              if (indexedDBUrl) {
+                imageMap.set(imageId, indexedDBUrl);
+                imageCache.set(fullKey, indexedDBUrl);
+              }
+            }
+            
+            console.log(`✓ Loaded ${imageMap.size} images for character: ${characterName} (${imageIdsToLoad.length} total)`);
             resolve(imageMap);
           }
         };

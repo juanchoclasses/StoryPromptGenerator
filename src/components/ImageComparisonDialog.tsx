@@ -13,13 +13,15 @@ import {
   Checkbox,
   IconButton,
   Chip,
-  CircularProgress
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import {
   Close as CloseIcon,
   Delete as DeleteIcon,
   Save as SaveIcon,
-  ContentCopy as CopyIcon
+  ContentCopy as CopyIcon,
+  CleaningServices as CleanIcon
 } from '@mui/icons-material';
 import type { GeneratedImage } from '../types/Story';
 import { ImageStorageService } from '../services/ImageStorageService';
@@ -31,6 +33,7 @@ interface ImageComparisonDialogProps {
   onDeleteImage: (imageId: string) => void;
   onSaveImage: (imageUrl: string) => void;
   onCopyImage: (imageUrl: string) => void;
+  onCleanupMissingImages?: (missingIds: string[]) => void;
 }
 
 // Type for enriched image with loaded URL
@@ -44,12 +47,14 @@ export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
   imageHistory,
   onDeleteImage,
   onSaveImage,
-  onCopyImage
+  onCopyImage,
+  onCleanupMissingImages
 }) => {
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'gallery' | 'compare'>('gallery');
   const [enrichedHistory, setEnrichedHistory] = useState<EnrichedImage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [missingImageIds, setMissingImageIds] = useState<string[]>([]);
 
   // Load URLs from IndexedDB when dialog opens
   useEffect(() => {
@@ -61,6 +66,7 @@ export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
     const loadImages = async () => {
       setLoading(true);
       const enriched: EnrichedImage[] = [];
+      const missing: string[] = [];
 
       for (const image of imageHistory) {
         // Try to load URL from IndexedDB
@@ -82,10 +88,12 @@ export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
           enriched.push({ ...image, url });
         } else {
           console.warn(`Could not load URL for image ${image.id}`);
+          missing.push(image.id);
         }
       }
 
       setEnrichedHistory(enriched);
+      setMissingImageIds(missing);
       setLoading(false);
     };
 
@@ -114,6 +122,13 @@ export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
   const handleBackToGallery = () => {
     setViewMode('gallery');
     setSelectedImages(new Set());
+  };
+
+  const handleCleanupMissing = () => {
+    if (onCleanupMissingImages && missingImageIds.length > 0) {
+      onCleanupMissingImages(missingImageIds);
+      setMissingImageIds([]);
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -152,6 +167,29 @@ export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
           </Typography>
         )}
       </DialogTitle>
+
+      {missingImageIds.length > 0 && (
+        <Box sx={{ px: 3, pt: 2 }}>
+          <Alert 
+            severity="warning" 
+            action={
+              onCleanupMissingImages && (
+                <Button 
+                  color="inherit" 
+                  size="small" 
+                  startIcon={<CleanIcon />}
+                  onClick={handleCleanupMissing}
+                >
+                  Clean Up
+                </Button>
+              )
+            }
+          >
+            {missingImageIds.length} image{missingImageIds.length !== 1 ? 's' : ''} could not be loaded from storage (likely deleted). 
+            Click "Clean Up" to remove these broken references.
+          </Alert>
+        </Box>
+      )}
 
       <DialogContent dividers>
         {loading ? (

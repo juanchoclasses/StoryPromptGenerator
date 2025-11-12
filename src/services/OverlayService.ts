@@ -1,4 +1,6 @@
 // overlay.ts
+import type { DiagramPanel, DiagramStyle } from '../types/Story';
+
 type PanelOptions = {
   width: number;            // panel width in pixels
   height: number;           // panel height in pixels
@@ -160,14 +162,32 @@ export async function composeImageWithPanel(
   panel: ImageBitmap,
   at: CompositeOptions,
   outputType: "image/png" | "image/jpeg" = "image/png",
-  quality?: number
+  quality?: number,
+  targetWidth?: number,
+  targetHeight?: number
 ): Promise<string> {
+  console.log('=== COMPOSITING TO FINAL IMAGE ===');
+  console.log('Base image size:', baseImg.naturalWidth, 'x', baseImg.naturalHeight);
+  console.log('Panel (ImageBitmap) size:', panel.width, 'x', panel.height);
+  console.log('Panel position:', at.x, ',', at.y);
+  
   const canvas = document.createElement("canvas");
   canvas.width = baseImg.naturalWidth;
   canvas.height = baseImg.naturalHeight;
   const ctx = canvas.getContext("2d")!;
   ctx.drawImage(baseImg, 0, 0);
-  ctx.drawImage(panel, at.x, at.y);
+  
+  // If target dimensions are provided, scale the panel to fit them
+  // This handles the case where html2canvas renders at 2x scale for quality
+  if (targetWidth && targetHeight) {
+    console.log('Scaling panel from', panel.width, 'x', panel.height, 'to', targetWidth, 'x', targetHeight);
+    ctx.drawImage(panel, at.x, at.y, targetWidth, targetHeight);
+  } else {
+    // Draw at natural size
+    ctx.drawImage(panel, at.x, at.y);
+  }
+  
+  console.log('Final canvas size:', canvas.width, 'x', canvas.height);
 
   const blob = await new Promise<Blob | null>((res) =>
     canvas.toBlob(res, outputType, quality)
@@ -180,8 +200,8 @@ export async function composeImageWithPanel(
 export async function overlayTextOnImage(
   imageDataUrl: string,
   text: string,
-  imageWidth: number,
-  imageHeight: number,
+  _imageWidth: number,
+  _imageHeight: number,
   config?: {
     fontFamily?: string;
     fontSize?: number;
@@ -317,26 +337,11 @@ export async function overlayTextOnImage(
  */
 export async function overlayDiagramOnImage(
   imageDataUrl: string,
-  diagramPanel: { type: string; content: string; language?: string },
-  diagramStyle: {
-    boardStyle: string;
-    backgroundColor: string;
-    foregroundColor: string;
-    position: string;
-    widthPercentage: number;
-    heightPercentage: number;
-    borderColor: string;
-    borderWidth: number;
-    padding: number;
-    fontSize: number;
-    gutterTop: number;
-    gutterBottom: number;
-    gutterLeft: number;
-    gutterRight: number;
-  }
+  diagramPanel: DiagramPanel,
+  diagramStyle: DiagramStyle
 ): Promise<string> {
   // Import DiagramRenderService (lazy load to avoid circular deps)
-  const { renderDiagramToCanvas } = await import('./DiagramRenderService');
+  const { renderDiagramToCanvas, measureDiagramNaturalSize } = await import('./DiagramRenderService');
   
   // Load the base image
   const baseImg = await loadImage(imageDataUrl);
@@ -346,21 +351,53 @@ export async function overlayDiagramOnImage(
   const actualImageHeight = baseImg.naturalHeight;
   
   // Calculate diagram panel dimensions based on ACTUAL image size
-  const panelWidth = Math.round(actualImageWidth * (diagramStyle.widthPercentage / 100));
-  const panelHeight = Math.round(actualImageHeight * (diagramStyle.heightPercentage / 100));
+  let panelWidth = Math.round(actualImageWidth * (diagramStyle.widthPercentage / 100));
+  let panelHeight = Math.round(actualImageHeight * (diagramStyle.heightPercentage / 100));
+  
+  // If autoScale is enabled, calculate optimal dimensions to fit content
+  if (diagramStyle.autoScale) {
+    console.log('=== AUTO-SCALING DIAGRAM ===');
+    const naturalSize = await measureDiagramNaturalSize(
+      diagramPanel,
+      diagramStyle,
+      panelWidth
+    );
+    console.log('Natural diagram size:', naturalSize.width, 'x', naturalSize.height);
+    
+    // Use the natural height (width is already constrained)
+    panelWidth = naturalSize.width;
+    panelHeight = naturalSize.height;
+    
+    // Ensure we don't exceed image bounds
+    const maxHeight = actualImageHeight - diagramStyle.gutterTop - diagramStyle.gutterBottom;
+    if (panelHeight > maxHeight) {
+      console.log('Diagram exceeds max height, capping at', maxHeight);
+      panelHeight = maxHeight;
+    }
+    
+    console.log('Final auto-scaled panel size:', panelWidth, 'x', panelHeight);
+  }
   
   // Render the diagram to canvas AT THE TARGET DIMENSIONS
   // This prevents aspect ratio distortion!
   const diagramCanvas = await renderDiagramToCanvas(
-    diagramPanel as any,
-    diagramStyle as any,
+    diagramPanel,
+    diagramStyle,
     panelWidth,
     panelHeight
   );
   
-  // No scaling needed - diagram is already rendered at correct size!
-  // Convert directly to ImageBitmap for efficient compositing
+  // Note: html2canvas renders at 2x scale for quality, so we need to scale back down
+  console.log('=== OVERLAY COMPOSITING ===');
+  console.log('Diagram canvas size:', diagramCanvas.width, 'x', diagramCanvas.height);
+  console.log('Expected panel size:', panelWidth, 'x', panelHeight);
+  
   const panel = await createImageBitmap(diagramCanvas);
+  console.log('ImageBitmap size:', panel.width, 'x', panel.height);
+  
+  // The canvas is 2x the intended size due to html2canvas scale parameter
+  const scale = diagramCanvas.width / panelWidth;
+  console.log('Detected scale factor:', scale);
   
   // Get gutter values
   const gutterTop = diagramStyle.gutterTop;
@@ -393,7 +430,8 @@ export async function overlayDiagramOnImage(
   const compositeOptions: CompositeOptions = { x, y };
   
   // Composite and return new image URL
-  return await composeImageWithPanel(baseImg, panel, compositeOptions);
+  // Pass the intended dimensions to scale the high-res panel down
+  return await composeImageWithPanel(baseImg, panel, compositeOptions, "image/png", undefined, panelWidth, panelHeight);
 }
 
 /**
@@ -426,23 +464,8 @@ export async function applyAllOverlays(
       };
     };
     diagramPanel?: {
-      panel: { type: string; content: string; language?: string };
-      style: {
-        boardStyle: string;
-        backgroundColor: string;
-        foregroundColor: string;
-        position: string;
-        widthPercentage: number;
-        heightPercentage: number;
-        borderColor: string;
-        borderWidth: number;
-        padding: number;
-        fontSize: number;
-        gutterTop: number;
-        gutterBottom: number;
-        gutterLeft: number;
-        gutterRight: number;
-      };
+      panel: DiagramPanel;
+      style: DiagramStyle;
     };
     imageWidth: number;
     imageHeight: number;

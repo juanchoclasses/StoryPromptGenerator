@@ -36,6 +36,7 @@ export interface DiagramStyle {
   position: 'top-left' | 'top-center' | 'top-right' | 'middle-left' | 'middle-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
   widthPercentage: number; // 0-100, percentage of image width
   heightPercentage: number; // 0-100, percentage of image height
+  autoScale?: boolean; // If true, automatically scale panel to fit diagram content (ignores heightPercentage)
   borderColor: string; // Frame/border color (e.g., '#8b7355' for wooden frame)
   borderWidth: number; // Border thickness in pixels
   padding: number; // Inner padding in pixels

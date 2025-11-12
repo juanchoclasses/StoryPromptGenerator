@@ -36,7 +36,7 @@ export class FileSystemService {
   }
 
   // Save directory handle to IndexedDB
-  private static async saveDirectoryHandle(handle: FileSystemDirectoryHandle): Promise<void> {
+  static async saveDirectoryHandle(handle: FileSystemDirectoryHandle): Promise<void> {
     const db = await this.initDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([STORE_NAME], 'readwrite');
@@ -67,7 +67,13 @@ export class FileSystemService {
   }
 
   // Request directory selection from user
-  static async selectDirectory(): Promise<{ success: boolean; path?: string; error?: string }> {
+  static async selectDirectory(): Promise<{ 
+    success: boolean; 
+    path?: string; 
+    error?: string;
+    hasExistingData?: boolean;
+    oldPath?: string;
+  }> {
     if (!this.isSupported()) {
       return {
         success: false,
@@ -76,16 +82,33 @@ export class FileSystemService {
     }
 
     try {
+      // Check if there's an existing directory before selecting new one
+      const oldHandle = await this.getDirectoryHandle();
+      const oldPath = oldHandle ? oldHandle.name : null;
+      const hasExistingData = oldHandle ? await this.hasDataInDirectory(oldHandle) : false;
+
       const handle = await window.showDirectoryPicker({
         mode: 'readwrite'
       });
+
+      // Check if user selected the same directory
+      if (oldHandle && oldHandle.name === handle.name) {
+        // Same directory - no migration needed
+        return {
+          success: true,
+          path: handle.name,
+          hasExistingData: false
+        };
+      }
 
       await this.saveDirectoryHandle(handle);
       this.directoryHandle = handle;
 
       return {
         success: true,
-        path: handle.name
+        path: handle.name,
+        hasExistingData: hasExistingData,
+        oldPath: oldPath || undefined
       };
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
@@ -97,6 +120,60 @@ export class FileSystemService {
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
+  }
+
+  /**
+   * Check if a directory has .prompter-cache data
+   */
+  static async hasDataInDirectory(handle: FileSystemDirectoryHandle): Promise<boolean> {
+    try {
+      const cacheHandle = await handle.getDirectoryHandle('.prompter-cache', { create: false });
+      
+      // Check if any subdirectories exist
+      const subdirs = ['scenes', 'characters', 'books'];
+      for (const subdir of subdirs) {
+        try {
+          const subHandle = await cacheHandle.getDirectoryHandle(subdir, { create: false });
+          // Check if directory has any files
+          let hasFiles = false;
+          for await (const entry of subHandle.values()) {
+            if (entry.kind === 'file') {
+              hasFiles = true;
+              break;
+            }
+          }
+          if (hasFiles) return true;
+        } catch {
+          // Directory doesn't exist, continue
+        }
+      }
+      return false;
+    } catch {
+      // .prompter-cache doesn't exist
+      return false;
+    }
+  }
+
+  /**
+   * Get the old directory handle before migration (for copying data)
+   */
+  static async getOldDirectoryHandle(): Promise<FileSystemDirectoryHandle | null> {
+    // This will be set temporarily during migration
+    return (this as any).oldDirectoryHandle || null;
+  }
+
+  /**
+   * Set the old directory handle temporarily during migration
+   */
+  static setOldDirectoryHandle(handle: FileSystemDirectoryHandle | null): void {
+    (this as any).oldDirectoryHandle = handle;
+  }
+
+  /**
+   * Restore a directory handle (used when canceling directory change)
+   */
+  static restoreDirectoryHandle(handle: FileSystemDirectoryHandle): void {
+    this.directoryHandle = handle;
   }
 
   // Get current directory handle (load from storage if needed)
@@ -483,6 +560,147 @@ export class FileSystemService {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to save image'
       };
+    }
+  }
+
+  // ========================================
+  // Book Metadata Methods (Backup Storage)
+  // ========================================
+
+  /**
+   * Save book metadata to filesystem as backup
+   * @param bookId Book ID
+   * @param bookData Book data as JSON string
+   * @returns Success status
+   */
+  static async saveBookMetadata(
+    bookId: string,
+    bookData: string
+  ): Promise<{ success: boolean; path?: string; error?: string }> {
+    try {
+      const parentHandle = await this.getDirectoryHandle();
+      if (!parentHandle) {
+        // Not configured - silently fail (backup only)
+        return { success: false, error: 'Filesystem not configured' };
+      }
+
+      // Create .prompter-cache/books directory
+      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: true });
+      const booksHandle = await cacheHandle.getDirectoryHandle('books', { create: true });
+
+      // Save book as JSON file
+      const filename = `${bookId}.json`;
+      const fileHandle = await booksHandle.getFileHandle(filename, { create: true });
+      const writable = await fileHandle.createWritable();
+
+      // Write JSON string as blob
+      const blob = new Blob([bookData], { type: 'application/json' });
+      await writable.write(blob);
+      await writable.close();
+
+      return {
+        success: true,
+        path: `.prompter-cache/books/${filename}`
+      };
+    } catch (error) {
+      console.error('Error saving book metadata to filesystem:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save book metadata'
+      };
+    }
+  }
+
+  /**
+   * Load book metadata from filesystem
+   * @param bookId Book ID
+   * @returns Book data as JSON string, or null if not found
+   */
+  static async loadBookMetadata(bookId: string): Promise<string | null> {
+    try {
+      const parentHandle = await this.getDirectoryHandle();
+      if (!parentHandle) {
+        return null;
+      }
+
+      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: false });
+      const booksHandle = await cacheHandle.getDirectoryHandle('books', { create: false });
+      
+      const filename = `${bookId}.json`;
+      const fileHandle = await booksHandle.getFileHandle(filename, { create: false });
+      const file = await fileHandle.getFile();
+      const text = await file.text();
+      
+      return text;
+    } catch (error) {
+      // File doesn't exist or error reading - return null
+      return null;
+    }
+  }
+
+  /**
+   * Load all books metadata from filesystem
+   * @returns Map of bookId -> book JSON string
+   */
+  static async loadAllBooksMetadata(): Promise<Map<string, string>> {
+    const books = new Map<string, string>();
+    
+    try {
+      const parentHandle = await this.getDirectoryHandle();
+      if (!parentHandle) {
+        return books;
+      }
+
+      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: false });
+      const booksHandle = await cacheHandle.getDirectoryHandle('books', { create: false });
+      
+      // Iterate through all files in books directory
+      for await (const entry of booksHandle.values()) {
+        if (entry.kind === 'file' && entry.name.endsWith('.json')) {
+          try {
+            const fileHandle = await booksHandle.getFileHandle(entry.name, { create: false });
+            const file = await fileHandle.getFile();
+            const text = await file.text();
+            
+            // Extract bookId from filename (remove .json extension)
+            const bookId = entry.name.replace('.json', '');
+            books.set(bookId, text);
+          } catch (error) {
+            console.error(`Error reading book file ${entry.name}:`, error);
+            // Continue with other files
+          }
+        }
+      }
+    } catch (error) {
+      // Directory doesn't exist or error - return empty map
+      console.log('Books directory not found or error reading:', error);
+    }
+    
+    return books;
+  }
+
+  /**
+   * Delete book metadata from filesystem
+   * @param bookId Book ID
+   * @returns Success status
+   */
+  static async deleteBookMetadata(bookId: string): Promise<boolean> {
+    try {
+      const parentHandle = await this.getDirectoryHandle();
+      if (!parentHandle) {
+        return false;
+      }
+
+      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: false });
+      const booksHandle = await cacheHandle.getDirectoryHandle('books', { create: false });
+      
+      const filename = `${bookId}.json`;
+      await booksHandle.removeEntry(filename);
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting book metadata from filesystem:', error);
+      return false;
     }
   }
 }

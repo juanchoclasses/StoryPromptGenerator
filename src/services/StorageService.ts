@@ -1,4 +1,5 @@
 import { Book } from '../models/Book';
+import { FileSystemService } from './FileSystemService';
 
 /**
  * Version 4.0 storage format
@@ -22,10 +23,53 @@ const VERSION = '4.0.0';
  */
 export class StorageService {
   /**
-   * Load app data from localStorage
+   * Load app data (filesystem first, then localStorage)
    */
   static async load(): Promise<AppData> {
     try {
+      // Try filesystem first (backup/restore scenario)
+      const fsConfigured = await FileSystemService.isConfigured();
+      if (fsConfigured) {
+        const fsBooks = await FileSystemService.loadAllBooksMetadata();
+        if (fsBooks.size > 0) {
+          // Check if localStorage has data
+          const stored = localStorage.getItem(STORAGE_KEY);
+          
+          if (!stored) {
+            // localStorage empty but filesystem has books - restore from filesystem
+            console.log('Restoring books from filesystem backup...');
+            return await this.loadFromFilesystem(fsBooks);
+          }
+          
+          // Both exist - use localStorage (more recent), but verify filesystem has all books
+          const parsed = JSON.parse(stored);
+          const localStorageBookIds = new Set((parsed.books || []).map((b: any) => b.id));
+          
+          // Check if filesystem has books not in localStorage (restore scenario)
+          const missingBooks: Book[] = [];
+          for (const [bookId, bookJson] of fsBooks.entries()) {
+            if (!localStorageBookIds.has(bookId)) {
+              try {
+                const bookData = JSON.parse(bookJson);
+                const book = await this.deserializeBook(bookData);
+                missingBooks.push(book);
+              } catch (error) {
+                console.error(`Failed to parse book ${bookId} from filesystem:`, error);
+              }
+            }
+          }
+          
+          // If we found missing books, restore them
+          if (missingBooks.length > 0) {
+            console.log(`Restoring ${missingBooks.length} books from filesystem backup...`);
+            parsed.books = parsed.books || [];
+            parsed.books.push(...missingBooks.map(b => this.serializeBook(b)));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+          }
+        }
+      }
+      
+      // Load from localStorage (primary storage)
       const stored = localStorage.getItem(STORAGE_KEY);
       
       if (!stored) {
@@ -40,62 +84,141 @@ export class StorageService {
       
       // Convert books (with nested dates and reconstruct model instances)
       if (parsed.books) {
-        // Import model classes (safe here, not circular)
-        const { Story } = await import('../models/Story.js');
-        const { Scene } = await import('../models/Scene.js');
-        
-        parsed.books = parsed.books.map((bookData: any) => {
-          // Reconstruct Story model instances first
-          const reconstructedStories = bookData.stories ? bookData.stories.map((storyData: any) => {
-            // Reconstruct Scene model instances
-            const reconstructedScenes = storyData.scenes ? storyData.scenes.map((sceneData: any) => {
-              // Convert scene dates
-              sceneData.createdAt = new Date(sceneData.createdAt);
-              sceneData.updatedAt = new Date(sceneData.updatedAt);
-              
-              // Convert image history timestamps
-              if (sceneData.imageHistory) {
-                sceneData.imageHistory = sceneData.imageHistory.map((img: any) => ({
-                  ...img,
-                  timestamp: new Date(img.timestamp)
-                }));
-              }
-              
-              return new Scene(sceneData);
-            }) : [];
-            
-            // Convert story dates
-            storyData.createdAt = new Date(storyData.createdAt);
-            storyData.updatedAt = new Date(storyData.updatedAt);
-            storyData.scenes = reconstructedScenes;
-            
-            return new Story(storyData);
-          }) : [];
-          
-          // Create Book instance without stories (to avoid double-wrapping)
-          const { stories, ...bookDataWithoutStories } = bookData;
-          const book = new Book(bookDataWithoutStories);
-          
-          // Assign reconstructed stories directly
-          book.stories = reconstructedStories;
-          book.createdAt = new Date(bookData.createdAt);
-          book.updatedAt = new Date(bookData.updatedAt);
-          
-          return book;
-        });
+        parsed.books = await Promise.all(parsed.books.map((bookData: any) => this.deserializeBook(bookData)));
       }
       
       return parsed as AppData;
     } catch (error) {
-      console.error('Failed to load app data from localStorage:', error);
+      console.error('Failed to load app data:', error);
       return this.createEmptyData();
     }
   }
 
   /**
-   * Save app data to localStorage
+   * Load app data from filesystem only (restore scenario)
    */
-  static save(data: AppData): void {
+  private static async loadFromFilesystem(fsBooks: Map<string, string>): Promise<AppData> {
+    const books: Book[] = [];
+    
+    for (const [bookId, bookJson] of fsBooks.entries()) {
+      try {
+        const bookData = JSON.parse(bookJson);
+        const book = await this.deserializeBook(bookData);
+        books.push(book);
+      } catch (error) {
+        console.error(`Failed to parse book ${bookId} from filesystem:`, error);
+      }
+    }
+    
+    // Save restored books to localStorage
+    const restoredData: AppData = {
+      version: VERSION,
+      books,
+      activeBookId: books.length > 0 ? books[0].id : null,
+      lastUpdated: new Date()
+    };
+    
+    // Serialize and save to localStorage
+    const serialized = JSON.stringify({
+      ...restoredData,
+      books: books.map(b => this.serializeBook(b))
+    });
+    localStorage.setItem(STORAGE_KEY, serialized);
+    
+    return restoredData;
+  }
+
+  /**
+   * Deserialize a book from JSON data (internal helper)
+   */
+  private static async deserializeBook(bookData: any): Promise<Book> {
+    // Import model classes (safe here, not circular)
+    const { Story } = await import('../models/Story.js');
+    const { Scene } = await import('../models/Scene.js');
+    
+    // Reconstruct Story model instances first
+    const reconstructedStories = bookData.stories ? bookData.stories.map((storyData: any) => {
+      // Reconstruct Scene model instances
+      const reconstructedScenes = storyData.scenes ? storyData.scenes.map((sceneData: any) => {
+        // Convert scene dates
+        sceneData.createdAt = new Date(sceneData.createdAt);
+        sceneData.updatedAt = new Date(sceneData.updatedAt);
+        
+        // Convert image history timestamps
+        if (sceneData.imageHistory) {
+          sceneData.imageHistory = sceneData.imageHistory.map((img: any) => ({
+            ...img,
+            timestamp: new Date(img.timestamp)
+          }));
+        }
+        
+        return new Scene(sceneData);
+      }) : [];
+      
+      // Convert story dates
+      storyData.createdAt = new Date(storyData.createdAt);
+      storyData.updatedAt = new Date(storyData.updatedAt);
+      storyData.scenes = reconstructedScenes;
+      
+      return new Story(storyData);
+    }) : [];
+    
+    // Create Book instance without stories (to avoid double-wrapping)
+    const { stories, ...bookDataWithoutStories } = bookData;
+    const book = new Book(bookDataWithoutStories);
+    
+    // Assign reconstructed stories directly
+    book.stories = reconstructedStories;
+    book.createdAt = new Date(bookData.createdAt);
+    book.updatedAt = new Date(bookData.updatedAt);
+    
+    return book;
+  }
+
+  /**
+   * Serialize a book to JSON format (internal helper)
+   */
+  private static serializeBook(book: Book): any {
+    return {
+      id: book.id,
+      title: book.title,
+      description: book.description,
+      backgroundSetup: book.backgroundSetup,
+      aspectRatio: book.aspectRatio,
+      style: book.style,
+      characters: book.characters,
+      stories: book.stories.map(story => ({
+        id: story.id,
+        title: story.title,
+        description: story.description,
+        backgroundSetup: story.backgroundSetup,
+        diagramStyle: story.diagramStyle,
+        characters: story.characters,
+        elements: story.elements,
+        scenes: story.scenes.map(scene => ({
+          id: scene.id,
+          title: scene.title,
+          description: scene.description,
+          textPanel: scene.textPanel,
+          diagramPanel: scene.diagramPanel,
+          characters: scene.characters,
+          elements: scene.elements,
+          imageHistory: scene.imageHistory,
+          createdAt: scene.createdAt,
+          updatedAt: scene.updatedAt
+        })),
+        createdAt: story.createdAt,
+        updatedAt: story.updatedAt
+      })),
+      createdAt: book.createdAt,
+      updatedAt: book.updatedAt
+    };
+  }
+
+  /**
+   * Save app data to localStorage and auto-export books to filesystem as backup
+   */
+  static async save(data: AppData): Promise<void> {
     try {
       data.lastUpdated = new Date();
       data.version = VERSION;
@@ -141,9 +264,72 @@ export class StorageService {
       
       const serialized = JSON.stringify(toSerialize);
       localStorage.setItem(STORAGE_KEY, serialized);
+      
+      // Auto-export all books to filesystem as backup (non-blocking)
+      this.exportBooksToFilesystem(data.books).catch(error => {
+        console.warn('Failed to export books to filesystem (backup only):', error);
+        // Don't throw - filesystem backup is optional
+      });
     } catch (error) {
       console.error('Failed to save app data to localStorage:', error);
       throw new Error('Failed to save data. Storage quota may be exceeded.');
+    }
+  }
+
+  /**
+   * Export all books to filesystem as backup (internal helper)
+   */
+  private static async exportBooksToFilesystem(books: Book[]): Promise<void> {
+    const fsConfigured = await FileSystemService.isConfigured();
+    if (!fsConfigured) {
+      return; // Silently skip if filesystem not configured
+    }
+
+    // Export each book individually
+    for (const book of books) {
+      try {
+        // Serialize book data
+        const bookData = {
+          id: book.id,
+          title: book.title,
+          description: book.description,
+          backgroundSetup: book.backgroundSetup,
+          aspectRatio: book.aspectRatio,
+          style: book.style,
+          characters: book.characters,
+          stories: book.stories.map(story => ({
+            id: story.id,
+            title: story.title,
+            description: story.description,
+            backgroundSetup: story.backgroundSetup,
+            diagramStyle: story.diagramStyle,
+            characters: story.characters,
+            elements: story.elements,
+            scenes: story.scenes.map(scene => ({
+              id: scene.id,
+              title: scene.title,
+              description: scene.description,
+              textPanel: scene.textPanel,
+              diagramPanel: scene.diagramPanel,
+              characters: scene.characters,
+              elements: scene.elements,
+              imageHistory: scene.imageHistory,
+              createdAt: scene.createdAt,
+              updatedAt: scene.updatedAt
+            })),
+            createdAt: story.createdAt,
+            updatedAt: story.updatedAt
+          })),
+          createdAt: book.createdAt,
+          updatedAt: book.updatedAt
+        };
+        
+        const bookJson = JSON.stringify(bookData, null, 2);
+        await FileSystemService.saveBookMetadata(book.id, bookJson);
+      } catch (error) {
+        console.error(`Failed to export book ${book.id} to filesystem:`, error);
+        // Continue with other books
+      }
     }
   }
 
@@ -206,7 +392,7 @@ export class StorageService {
   }
 
   /**
-   * Save a book (create or update)
+   * Save a book (create or update) - auto-exports to filesystem as backup
    */
   static async saveBook(book: Book): Promise<void> {
     const data = await this.load();
@@ -222,11 +408,35 @@ export class StorageService {
       data.books.push(book);
     }
     
-    this.save(data);
+    await this.save(data);
+    
+    // Also export this specific book to filesystem immediately (non-blocking)
+    this.exportBookToFilesystem(book).catch(error => {
+      console.warn(`Failed to export book ${book.id} to filesystem (backup only):`, error);
+    });
   }
 
   /**
-   * Delete a book by ID
+   * Export a single book to filesystem (internal helper)
+   */
+  private static async exportBookToFilesystem(book: Book): Promise<void> {
+    const fsConfigured = await FileSystemService.isConfigured();
+    if (!fsConfigured) {
+      return; // Silently skip if filesystem not configured
+    }
+
+    try {
+      const bookData = this.serializeBook(book);
+      const bookJson = JSON.stringify(bookData, null, 2);
+      await FileSystemService.saveBookMetadata(book.id, bookJson);
+    } catch (error) {
+      console.error(`Failed to export book ${book.id} to filesystem:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a book by ID - also deletes from filesystem backup
    */
   static async deleteBook(bookId: string): Promise<boolean> {
     const data = await this.load();
@@ -240,7 +450,13 @@ export class StorageService {
         data.activeBookId = null;
       }
       
-      this.save(data);
+      await this.save(data);
+      
+      // Also delete from filesystem backup (non-blocking)
+      FileSystemService.deleteBookMetadata(bookId).catch(error => {
+        console.warn(`Failed to delete book ${bookId} from filesystem backup:`, error);
+      });
+      
       return true;
     }
     
@@ -271,7 +487,7 @@ export class StorageService {
     }
     
     data.activeBookId = bookId;
-    this.save(data);
+    await this.save(data);
   }
 
   /**

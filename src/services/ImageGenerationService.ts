@@ -18,7 +18,7 @@ export class ImageGenerationService {
 
   static async generateImage(options: ImageGenerationOptions): Promise<ImageGenerationResult> {
     try {
-      const apiKey = SettingsService.getApiKey();
+      const apiKey = await SettingsService.getApiKey();
       
       if (!apiKey) {
         return {
@@ -27,7 +27,7 @@ export class ImageGenerationService {
         };
       }
 
-      const model = options.model || SettingsService.getImageGenerationModel();
+      const model = options.model || await SettingsService.getImageGenerationModel();
 
       console.log('Generating image with model:', model);
       if (options.referenceImages && options.referenceImages.length > 0) {

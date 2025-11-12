@@ -82,7 +82,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
   const lastSavedCountRef = useRef<number | null>(null);
 
   const loadGallery = useCallback(async () => {
-    // If character has no image gallery metadata, don't try to load from IndexedDB
+    // If character has no image gallery metadata, don't try to load from filesystem
     if (!character.imageGallery || character.imageGallery.length === 0) {
       setGalleryImages(new Map());
       setLoadingGallery(false);
@@ -196,7 +196,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     }
 
     try {
-      // Delete from IndexedDB
+      // Delete from filesystem
       await CharacterImageService.deleteCharacterImage(storyId, character.name, imageId);
 
       // Remove from character's gallery
@@ -266,7 +266,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
         timestamp: new Date(),
       };
 
-      // Store in IndexedDB using ImageStorageService
+      // Store to filesystem using ImageStorageService
       const { ImageStorageService } = await import('../services/ImageStorageService');
       await ImageStorageService.storeCharacterImage(
         storyId,

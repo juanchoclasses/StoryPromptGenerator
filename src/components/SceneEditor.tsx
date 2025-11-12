@@ -93,8 +93,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const lastSelectedModel = useRef<string | null>(null);
 
   /**
-   * Load image from IndexedDB
-   * URLs are no longer stored in localStorage to avoid quota issues
+   * Load image from filesystem
+   * Images are stored on local disk for persistence
    */
   const loadImageWithFallback = async (scene: Scene): Promise<string | null> => {
     // Try most recent image from history first
@@ -109,15 +109,15 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     
     const { id, url } = mostRecentImage;
     
-    // ALWAYS try to load from IndexedDB first (URLs no longer reliably stored in localStorage)
+    // Load from filesystem
     try {
       const imageUrl = await ImageStorageService.getImage(id);
       if (imageUrl) {
-        console.log(`✓ Image loaded from IndexedDB: ${id}`);
+        console.log(`✓ Image loaded from filesystem: ${id}`);
         return imageUrl;
       }
     } catch (error) {
-      console.error('Failed to load image from IndexedDB:', error);
+      console.error('Failed to load image from filesystem:', error);
     }
     
     // Fallback: If URL exists and looks valid (legacy data or data URL)
@@ -166,7 +166,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
               setDiagramType(freshScene.diagramPanel?.type as any || 'mermaid');
               setDiagramContent(freshScene.diagramPanel?.content || '');
               setDiagramLanguage(freshScene.diagramPanel?.language || 'javascript');
-              // Load image with IndexedDB fallback
+              // Load image from filesystem
               loadImageWithFallback(freshScene).then(imageUrl => {
                 setGeneratedImageUrl(imageUrl);
               });
@@ -186,7 +186,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         setDiagramType(selectedScene.diagramPanel?.type as any || 'mermaid');
         setDiagramContent(selectedScene.diagramPanel?.content || '');
         setDiagramLanguage(selectedScene.diagramPanel?.language || 'javascript');
-        // Load image with IndexedDB fallback
+        // Load image from filesystem
         loadImageWithFallback(selectedScene).then(imageUrl => {
           setGeneratedImageUrl(imageUrl);
         });
@@ -571,7 +571,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   };
 
   /**
-   * Load character reference images from IndexedDB for characters with selected images
+   * Load character reference images from filesystem for characters with selected images
    * Converts blob URLs to base64 data URLs for API compatibility
    */
   const loadCharacterImages = async (): Promise<string[]> => {
@@ -589,7 +589,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       const charWithImages = character as unknown as Character;
       if (charWithImages.selectedImageId) {
         try {
-          // Load image from IndexedDB (returns blob URL)
+          // Load image from filesystem (returns blob URL)
           const blobUrl = await ImageStorageService.getCharacterImage(
             story.id,
             character.name,
@@ -904,7 +904,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           if (activeBookData) {
             // Create new GeneratedImage entry with the model that was used
             // NOTE: We do NOT store the URL in localStorage to avoid quota issues
-            // The URL is only stored in IndexedDB and loaded on demand
+            // The image is stored on filesystem and loaded on demand
             const imageId = crypto.randomUUID();
             const newGeneratedImage = {
               id: imageId,
@@ -913,15 +913,15 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
               timestamp: new Date()
             };
             
-            // Store image in IndexedDB for persistence
+            // Store image to filesystem for persistence
             ImageStorageService.storeImage(
               imageId,
               currentScene.id,
               finalImageUrl,
               modelName
             ).catch(error => {
-              console.error('Failed to store image in IndexedDB:', error);
-              // This is critical - without IndexedDB storage, image will be lost on refresh
+              console.error('Failed to store image to filesystem:', error);
+              // This is critical - without filesystem storage, image will be lost on refresh
             });
             
             const updatedStories = activeBookData.stories.map(s => {

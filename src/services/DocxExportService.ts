@@ -70,7 +70,7 @@ export class DocxExportService {
       
       if (mostRecentImage) {
         try {
-          // Load image from IndexedDB
+          // Load image from filesystem
           let imageUrl = mostRecentImage.url;
           if (!imageUrl || imageUrl.startsWith('blob:')) {
             imageUrl = await ImageStorageService.getImage(mostRecentImage.id);

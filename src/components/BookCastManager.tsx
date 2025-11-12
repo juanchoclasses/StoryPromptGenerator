@@ -94,7 +94,7 @@ export const BookCastManager: React.FC<BookCastManagerProps> = ({ book, onBookUp
     console.log('Book:', book?.title);
     
     // Simply call the onBookUpdate callback
-    // The character images are already saved to IndexedDB by CharacterAuditionDialog
+    // The character images are already saved to filesystem by CharacterAuditionDialog
     // We just need to trigger a refresh in the parent component
     onBookUpdate();
     

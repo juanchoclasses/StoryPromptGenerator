@@ -122,10 +122,10 @@ function App() {
     const updatedData = { ...activeBookData, stories: updatedStories };
     await BookService.saveActiveBookData(updatedData);
     
-    // Delete from IndexedDB
+    // Delete from filesystem
     ImageStorageService.deleteImage(imageId).catch(error => {
-      console.error('Failed to delete image from IndexedDB:', error);
-      // Continue anyway - image is already removed from localStorage
+      console.error('Failed to delete image from filesystem:', error);
+      // Continue anyway - image is already removed from metadata
     });
     
     // Update the imageHistory state immediately to refresh the UI
@@ -139,7 +139,7 @@ function App() {
     if (isDeletingCurrentImage || newHistory.length === 0) {
       // Either we deleted the current image, or we deleted the last image
       if (newHistory.length > 0) {
-        // Load the most recent remaining image from IndexedDB
+        // Load the most recent remaining image from filesystem
         const mostRecentImage = newHistory[newHistory.length - 1];
         ImageStorageService.getImage(mostRecentImage.id)
           .then(url => {

@@ -449,14 +449,14 @@ TECHNICAL REQUIREMENTS:
         timestamp: new Date()
       };
       
-      // Store in IndexedDB
+      // Store to filesystem
       ImageStorageService.storeImage(
         imageId,
         sceneId,
         finalImageUrl,
         modelName
       ).catch(error => {
-        console.error('Failed to store image in IndexedDB during batch generation:', error);
+        console.error('Failed to store image to filesystem during batch generation:', error);
       });
       
       const updatedStories = activeBookData.stories.map(s => {

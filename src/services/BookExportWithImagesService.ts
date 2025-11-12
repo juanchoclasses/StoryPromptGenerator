@@ -93,7 +93,7 @@ export class BookExportWithImagesService {
           if (scene.imageHistory && scene.imageHistory.length > 0) {
             for (const img of scene.imageHistory) {
               try {
-                // Get image from IndexedDB
+                // Get image from filesystem
                 const blobUrl = await ImageStorageService.getImage(img.id);
                 if (blobUrl) {
                   // Fetch the blob from the blob URL
@@ -125,7 +125,7 @@ export class BookExportWithImagesService {
           if (character.imageGallery && character.imageGallery.length > 0) {
             for (const img of character.imageGallery) {
               try {
-                // Get image from IndexedDB
+                // Get image from filesystem
                 const blobUrl = await ImageStorageService.getCharacterImage(
                   story.id,
                   character.name,
@@ -162,7 +162,7 @@ export class BookExportWithImagesService {
           if (character.imageGallery && character.imageGallery.length > 0) {
             for (const img of character.imageGallery) {
               try {
-                // Get image from IndexedDB (book-level uses 'book:' prefix)
+                // Get image from filesystem (book-level uses 'book:' prefix)
                 const blobUrl = await ImageStorageService.getBookCharacterImage(
                   book.id,
                   character.name,
@@ -449,7 +449,7 @@ export class BookExportWithImagesService {
               for (const story of newBook.stories) {
                 for (const scene of story.scenes) {
                   if (scene.imageHistory?.some(img => img.id === imageId)) {
-                    // Store image in IndexedDB
+                    // Store image to filesystem
                     const blobUrl = URL.createObjectURL(blob);
                     await ImageStorageService.storeImage(
                       imageId,
@@ -519,7 +519,7 @@ export class BookExportWithImagesService {
                 if (bookLevelCharacter.imageGallery?.some(img => img.id === imageId)) {
                   console.log(`  ✓ Image ${imageId} found in character gallery`);
                   const blobUrl = URL.createObjectURL(blob);
-                  console.log(`  Storing in IndexedDB with BOOK key: book:${newBook.id}:${bookLevelCharacter.name}:${imageId}`);
+                  console.log(`  Storing to filesystem with BOOK key: book:${newBook.id}:${bookLevelCharacter.name}:${imageId}`);
                   await ImageStorageService.storeBookCharacterImage(
                     newBook.id,
                     bookLevelCharacter.name,
@@ -546,9 +546,9 @@ export class BookExportWithImagesService {
                     console.log(`    Character has ${character.imageGallery?.length || 0} images in gallery`);
                     if (character.imageGallery?.some(img => img.id === imageId)) {
                       console.log(`  ✓ Image ${imageId} found in character gallery`);
-                      // Store image in IndexedDB with the NEW story ID
+                      // Store image to filesystem with the NEW story ID
                       const blobUrl = URL.createObjectURL(blob);
-                      console.log(`  Storing in IndexedDB with key: ${story.id}:${character.name}:${imageId}`);
+                      console.log(`  Storing to filesystem with key: ${story.id}:${character.name}:${imageId}`);
                       await ImageStorageService.storeCharacterImage(
                         story.id, // Use new story ID
                         character.name,
@@ -607,9 +607,9 @@ export class BookExportWithImagesService {
                 console.log(`    Character has ${character.imageGallery?.length || 0} images in gallery`);
                 if (character.imageGallery?.some(img => img.id === imageId)) {
                   console.log(`  ✓ Image ${imageId} found in character gallery`);
-                  // Store image in IndexedDB with book-level key
+                  // Store image to filesystem with book-level key
                   const blobUrl = URL.createObjectURL(blob);
-                  console.log(`  Storing in IndexedDB with key: book:${newBook.id}:${character.name}:${imageId}`);
+                  console.log(`  Storing to filesystem with key: book:${newBook.id}:${character.name}:${imageId}`);
                   await ImageStorageService.storeBookCharacterImage(
                     newBook.id,
                     character.name,

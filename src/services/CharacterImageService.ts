@@ -2,7 +2,7 @@
  * CharacterImageService - Generate and manage character images
  * 
  * Handles character image generation with book/story context,
- * storage in IndexedDB, and retrieval for scene prompts.
+ * storage in filesystem, and retrieval for scene prompts.
  */
 
 import { v4 as uuidv4 } from 'uuid';
@@ -100,7 +100,7 @@ export class CharacterImageService {
 
     console.log('✓ Character image metadata created:', { id: imageId, model, urlPreview: result.imageUrl.substring(0, 50) });
 
-    // Store in IndexedDB
+    // Store to filesystem
     try {
       await ImageStorageService.storeCharacterImage(
         storyId,
@@ -109,9 +109,9 @@ export class CharacterImageService {
         result.imageUrl,
         model
       );
-      console.log('✓ Image stored in IndexedDB successfully');
+      console.log('✓ Image stored to filesystem successfully');
     } catch (error) {
-      console.error('✗ Failed to store image in IndexedDB:', error);
+      console.error('✗ Failed to store image to filesystem:', error);
       throw error;
     }
 

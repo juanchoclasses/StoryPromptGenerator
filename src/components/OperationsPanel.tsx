@@ -95,6 +95,7 @@ export const OperationsPanel: React.FC = () => {
   const [rebuildingGalleries, setRebuildingGalleries] = useState(false);
   const [recoveringImages, setRecoveringImages] = useState(false);
   const [recoveryProgress, setRecoveryProgress] = useState<{ current: number; total: number; currentFile: string } | null>(null);
+  const [clearingIndexedDB, setClearingIndexedDB] = useState(false);
   
   // Test panel state
   const [runningTests, setRunningTests] = useState(false);
@@ -152,7 +153,8 @@ export const OperationsPanel: React.FC = () => {
         }
       }
       
-      // 2. Check IndexedDB
+      // 2. Check IndexedDB (deprecated - images now in filesystem)
+      // Keeping this check for one-time recovery/migration purposes
       const characterImages = await getAllCharacterImagesFromDB();
       
       // 3. Find mismatches
@@ -172,7 +174,7 @@ export const OperationsPanel: React.FC = () => {
             severity: 'error',
             characterName: char.name,
             location: `Book: ${char.bookTitle}`,
-            message: `Character has ${imagesInDB.length} images in IndexedDB but 0 in metadata`,
+            message: `Character has ${imagesInDB.length} images in IndexedDB (deprecated) but 0 in metadata`,
             metadataCount: 0,
             dbCount: imagesInDB.length,
             details: {
@@ -187,7 +189,7 @@ export const OperationsPanel: React.FC = () => {
             severity: 'warning',
             characterName: char.name,
             location: `Book: ${char.bookTitle}`,
-            message: `Character has ${char.imageGalleryLength} images in metadata but 0 in IndexedDB`,
+            message: `Character has ${char.imageGalleryLength} images in metadata but 0 in IndexedDB (deprecated - check filesystem)`,
             metadataCount: char.imageGalleryLength,
             dbCount: 0,
             details: { bookId: char.bookId, isBookLevel: true }
@@ -198,7 +200,7 @@ export const OperationsPanel: React.FC = () => {
             severity: 'warning',
             characterName: char.name,
             location: `Book: ${char.bookTitle}`,
-            message: `Count mismatch: ${char.imageGalleryLength} in metadata, ${imagesInDB.length} in IndexedDB`,
+            message: `Count mismatch: ${char.imageGalleryLength} in metadata, ${imagesInDB.length} in IndexedDB (deprecated - check filesystem)`,
             metadataCount: char.imageGalleryLength,
             dbCount: imagesInDB.length,
             details: { bookId: char.bookId, isBookLevel: true }
@@ -219,7 +221,7 @@ export const OperationsPanel: React.FC = () => {
             severity: 'error',
             characterName: char.name,
             location: `Story: ${char.storyTitle}`,
-            message: `Character has ${imagesInDB.length} images in IndexedDB but 0 in metadata`,
+            message: `Character has ${imagesInDB.length} images in IndexedDB (deprecated) but 0 in metadata`,
             metadataCount: 0,
             dbCount: imagesInDB.length,
             details: {
@@ -531,6 +533,53 @@ export const OperationsPanel: React.FC = () => {
     }
   };
 
+  const clearOldIndexedDB = async () => {
+    if (!confirm('This will delete the old IndexedDB database (StoryPromptImages).\n\nAll images should already be recovered to filesystem.\n\nContinue?')) {
+      return;
+    }
+    
+    setClearingIndexedDB(true);
+    setError(null);
+    setFixResult(null);
+    
+    try {
+      console.log('=== Clearing Old IndexedDB Database ===');
+      
+      const DB_NAME = 'StoryPromptImages';
+      return new Promise<void>((resolve, reject) => {
+        const request = indexedDB.deleteDatabase(DB_NAME);
+        
+        request.onsuccess = () => {
+          console.log('✓ IndexedDB database deleted successfully');
+          setFixResult('✅ Old IndexedDB database cleared successfully');
+          setClearingIndexedDB(false);
+          resolve();
+          // Re-run diagnostic
+          setTimeout(() => runDiagnostic(), 1000);
+        };
+        
+        request.onerror = () => {
+          const error = request.error || new Error('Failed to delete database');
+          console.error('✗ Failed to delete IndexedDB:', error);
+          setError(`Failed to clear IndexedDB: ${error.message}`);
+          setClearingIndexedDB(false);
+          reject(error);
+        };
+        
+        request.onblocked = () => {
+          console.warn('IndexedDB delete blocked - database may be in use');
+          setError('IndexedDB delete blocked. Please close other tabs and try again.');
+          setClearingIndexedDB(false);
+          reject(new Error('Database delete blocked'));
+        };
+      });
+    } catch (err) {
+      console.error('Clear IndexedDB failed:', err);
+      setError(err instanceof Error ? err.message : 'Clear failed');
+      setClearingIndexedDB(false);
+    }
+  };
+
   const remapImageKeys = async () => {
     if (!diagnosticResult) return;
     
@@ -833,7 +882,7 @@ export const OperationsPanel: React.FC = () => {
           <BuildIcon /> Storage Operations
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Diagnostic and maintenance tools for storage systems (localStorage and IndexedDB)
+          Diagnostic and maintenance tools for filesystem storage
         </Typography>
 
         <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
@@ -863,10 +912,21 @@ export const OperationsPanel: React.FC = () => {
             color="info"
             startIcon={recoveringImages ? <CircularProgress size={20} /> : <CloudDownloadIcon />}
             onClick={recoverImagesFromIndexedDB}
-            disabled={running || fixing || remapping || rebuildingGalleries || recoveringImages}
+            disabled={running || fixing || remapping || rebuildingGalleries || recoveringImages || clearingIndexedDB}
             sx={{ mb: 1 }}
           >
             {recoveringImages ? 'Recovering Images...' : 'Recover Images from IndexedDB'}
+          </Button>
+          
+          <Button
+            variant="outlined"
+            color="warning"
+            startIcon={clearingIndexedDB ? <CircularProgress size={20} /> : <ErrorIcon />}
+            onClick={clearOldIndexedDB}
+            disabled={running || fixing || remapping || rebuildingGalleries || recoveringImages || clearingIndexedDB}
+            sx={{ mb: 1 }}
+          >
+            {clearingIndexedDB ? 'Clearing...' : 'Clear Old IndexedDB Database'}
           </Button>
           
           {recoveryProgress && (

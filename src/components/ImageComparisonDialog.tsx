@@ -56,7 +56,7 @@ export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [missingImageIds, setMissingImageIds] = useState<string[]>([]);
 
-  // Load URLs from IndexedDB when dialog opens
+  // Load URLs from filesystem when dialog opens
   useEffect(() => {
     if (!open || imageHistory.length === 0) {
       setEnrichedHistory([]);
@@ -69,18 +69,18 @@ export const ImageComparisonDialog: React.FC<ImageComparisonDialogProps> = ({
       const missing: string[] = [];
 
       for (const image of imageHistory) {
-        // Try to load URL from IndexedDB
+        // Try to load URL from filesystem
         let url = image.url; // Might be undefined or legacy value
 
         if (!url || url.startsWith('blob:')) {
-          // Need to load from IndexedDB
+          // Need to load from filesystem
           try {
             const loadedUrl = await ImageStorageService.getImage(image.id);
             if (loadedUrl) {
               url = loadedUrl;
             }
           } catch (error) {
-            console.error(`Failed to load image ${image.id} from IndexedDB:`, error);
+            console.error(`Failed to load image ${image.id} from filesystem:`, error);
           }
         }
 

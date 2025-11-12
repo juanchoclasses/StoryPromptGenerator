@@ -9,7 +9,7 @@ import type { DiagramStyle } from '../types/Story';
  */
 export interface CharacterImage {
   id: string; // UUID
-  url?: string; // Blob URL (loaded from IndexedDB on demand)
+  url?: string; // Blob URL (loaded from filesystem on demand)
   model: string; // Model used for generation
   prompt: string; // Full prompt used for generation
   timestamp: Date; // When the image was generated

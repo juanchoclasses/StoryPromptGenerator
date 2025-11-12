@@ -177,7 +177,40 @@ export class FileSystemService {
   }
 
   // Get current directory handle (load from storage if needed)
+  // Checks test mode first - if in test mode, returns test directory
   static async getDirectoryHandle(): Promise<FileSystemDirectoryHandle | null> {
+    // Check if we're in test mode - if so, use test directory
+    const testModeFlag = localStorage.getItem('prompter-test-mode');
+    if (testModeFlag === 'true') {
+      // In test mode - get test directory handle
+      try {
+        const { TestDirectoryService } = await import('./TestDirectoryService');
+        const testHandle = TestDirectoryService.getTestDirectoryHandleSync();
+        if (testHandle) {
+          // Verify permission
+          const permission = await testHandle.queryPermission({ mode: 'readwrite' });
+          if (permission === 'granted') {
+            return testHandle;
+          }
+          // Request permission if needed
+          const newPermission = await testHandle.requestPermission({ mode: 'readwrite' });
+          if (newPermission === 'granted') {
+            return testHandle;
+          }
+        } else {
+          // Test mode is on but handle not available - this shouldn't happen
+          // but if it does, we should not fall back to production
+          console.warn('Test mode is active but test directory handle not available');
+          return null; // Don't fall back to production in test mode!
+        }
+      } catch (error) {
+        console.warn('Failed to get test directory handle:', error);
+        // Don't fall back to production in test mode - return null instead
+        return null;
+      }
+    }
+
+    // Not in test mode or test directory unavailable - use production directory
     if (this.directoryHandle) {
       // Verify we still have permission
       const permission = await this.directoryHandle.queryPermission({ mode: 'readwrite' });
@@ -701,6 +734,69 @@ export class FileSystemService {
     } catch (error) {
       console.error('Error deleting book metadata from filesystem:', error);
       return false;
+    }
+  }
+
+  // ========================================
+  // App Metadata Methods
+  // ========================================
+
+  /**
+   * Save app metadata (activeBookId, etc.) to filesystem
+   * @param metadata App metadata object
+   * @returns Success status
+   */
+  static async saveAppMetadata(metadata: { activeBookId?: string | null }): Promise<{ success: boolean; error?: string }> {
+    try {
+      const parentHandle = await this.getDirectoryHandle();
+      if (!parentHandle) {
+        return { success: false, error: 'Filesystem not configured' };
+      }
+
+      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: true });
+      const metadataHandle = await cacheHandle.getFileHandle('app-metadata.json', { create: true });
+      const writable = await metadataHandle.createWritable();
+
+      const metadataJson = JSON.stringify({
+        ...metadata,
+        lastUpdated: new Date().toISOString()
+      }, null, 2);
+      
+      const blob = new Blob([metadataJson], { type: 'application/json' });
+      await writable.write(blob);
+      await writable.close();
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error saving app metadata:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save app metadata'
+      };
+    }
+  }
+
+  /**
+   * Load app metadata from filesystem
+   * @returns App metadata or null if not found
+   */
+  static async loadAppMetadata(): Promise<{ activeBookId?: string | null } | null> {
+    try {
+      const parentHandle = await this.getDirectoryHandle();
+      if (!parentHandle) {
+        return null;
+      }
+
+      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: false });
+      const metadataHandle = await cacheHandle.getFileHandle('app-metadata.json', { create: false });
+      const file = await metadataHandle.getFile();
+      const text = await file.text();
+      const metadata = JSON.parse(text);
+      
+      return metadata;
+    } catch (error) {
+      // File doesn't exist or error reading - return null
+      return null;
     }
   }
 }

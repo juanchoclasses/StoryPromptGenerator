@@ -55,11 +55,14 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
 
   useEffect(() => {
     if (open) {
-      const settings = SettingsService.getAllSettings();
-      setApiKey(settings.openRouterApiKey || '');
-      setModel(settings.imageGenerationModel || 'google/gemini-2.5-flash-image');
-      setAutoSaveEnabled(settings.autoSaveImages ?? false);
-      setSaved(false);
+      const loadSettings = async () => {
+        const settings = await SettingsService.getAllSettings();
+        setApiKey(settings.openRouterApiKey || '');
+        setModel(settings.imageGenerationModel || 'google/gemini-2.5-flash-image');
+        setAutoSaveEnabled(settings.autoSaveImages ?? false);
+        setSaved(false);
+      };
+      loadSettings();
       
       // Load current directory
       FileSystemService.getDirectoryPath().then(path => {
@@ -68,8 +71,8 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
     }
   }, [open]);
 
-  const handleSave = () => {
-    SettingsService.updateSettings({
+  const handleSave = async () => {
+    await SettingsService.updateSettings({
       openRouterApiKey: apiKey.trim() || undefined,
       imageGenerationModel: model,
       autoSaveImages: autoSaveEnabled
@@ -80,8 +83,8 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
     }, 1000);
   };
 
-  const handleClear = () => {
-    SettingsService.clearApiKey();
+  const handleClear = async () => {
+    await SettingsService.clearApiKey();
     setApiKey('');
     setSaved(true);
   };
@@ -319,7 +322,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Select a directory for storing all generated images. This directory is used for:
-            <br />• <strong>Persistent storage</strong> - Images are cached to disk (in .prompter-cache folder)
+            <br />• <strong>Persistent storage</strong> - Images are cached to disk (in prompter-cache folder)
             <br />• <strong>Manual exports</strong> - Images you save manually go to book subdirectories
           </Typography>
 
@@ -365,7 +368,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
                       {saveDirectory}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                      • Cache: {saveDirectory}/.prompter-cache/
+                      • Cache: {saveDirectory}/prompter-cache/
                       <br />
                       • Manual saves: {saveDirectory}/[BookTitle]/[scene-name]_[timestamp].png
                     </Typography>
@@ -486,7 +489,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
             <Typography variant="body2" color="text.secondary">
               Would you like to delete the old directory ({migrationData?.oldPath})?
               <br />
-              This will remove the .prompter-cache folder from the old location.
+              This will remove the prompter-cache folder from the old location.
             </Typography>
           </Box>
         )}

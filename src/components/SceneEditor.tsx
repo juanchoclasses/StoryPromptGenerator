@@ -955,7 +955,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         }
         
         // Auto-save to file system if enabled and directory is configured
-        const autoSaveEnabled = SettingsService.isAutoSaveEnabled();
+        const autoSaveEnabled = await SettingsService.isAutoSaveEnabled();
         
         if (autoSaveEnabled && story && currentScene) {
           const activeBookId = await BookService.getActiveBookId();
@@ -1697,10 +1697,10 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             Adjust Settings
           </Button>
           <Button
-            onClick={() => {
+            onClick={async () => {
               setTextFitDialogOpen(false);
               // Force generation with clipped text using last selected model or default
-              const modelToUse = lastSelectedModel.current || SettingsService.getImageGenerationModel();
+              const modelToUse = lastSelectedModel.current || await SettingsService.getImageGenerationModel();
               performImageGeneration(modelToUse);
             }}
             variant="contained"

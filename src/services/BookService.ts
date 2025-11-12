@@ -462,7 +462,9 @@ export class BookService {
 
       // Move character images from story to book level
       // Get all character images for this story character
-      const characterImages = await ImageStorageService.getAllCharacterImages(storyId, characterName);
+      // Extract imageIds from character.imageGallery if available
+      const imageIds = (character as any).imageGallery?.map((img: any) => img.id);
+      const characterImages = await ImageStorageService.getAllCharacterImages(storyId, characterName, imageIds);
       
       console.log(`Promoting character "${characterName}" from story "${story.title}" to book "${book.title}"`);
       console.log(`Found ${characterImages.size} character images to move`);

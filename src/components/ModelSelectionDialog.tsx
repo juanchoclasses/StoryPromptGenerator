@@ -33,18 +33,21 @@ export const ModelSelectionDialog: React.FC<ModelSelectionDialogProps> = ({
   useEffect(() => {
     if (open) {
       // Load the last used model or default
-      const lastModel = SettingsService.getImageGenerationModel();
-      setSelectedModel(lastModel);
-      setRememberChoice(false);
+      const loadModel = async () => {
+        const lastModel = await SettingsService.getImageGenerationModel();
+        setSelectedModel(lastModel);
+        setRememberChoice(false);
+      };
+      loadModel();
     }
   }, [open]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedModel) return;
     
     // Optionally save as default
     if (rememberChoice) {
-      SettingsService.updateSettings({
+      await SettingsService.updateSettings({
         imageGenerationModel: selectedModel
       });
     }

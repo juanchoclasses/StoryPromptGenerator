@@ -65,7 +65,7 @@ export class ImageMigrationService {
       stats.totalImages += sceneImages.length;
       
       for (const img of sceneImages) {
-        const path = `.prompter-cache/scenes/${img.id}.png`;
+        const path = `prompter-cache/scenes/${img.id}.png`;
         const exists = await FileSystemService.fileExists(path);
         if (exists) {
           stats.alreadyOnDisk++;
@@ -80,7 +80,7 @@ export class ImageMigrationService {
       stats.totalImages += characterImages.length;
 
       for (const img of characterImages) {
-        const path = `.prompter-cache/characters/${img.imageId}.png`;
+        const path = `prompter-cache/characters/${img.imageId}.png`;
         const exists = await FileSystemService.fileExists(path);
         if (exists) {
           stats.alreadyOnDisk++;
@@ -140,7 +140,7 @@ export class ImageMigrationService {
       stats.totalImages += sceneImages.length;
 
       for (const img of sceneImages) {
-        const path = `.prompter-cache/scenes/${img.id}.png`;
+        const path = `prompter-cache/scenes/${img.id}.png`;
         const exists = await FileSystemService.fileExists(path);
         
         if (exists) {
@@ -162,7 +162,7 @@ export class ImageMigrationService {
       stats.totalImages += characterImages.length;
 
       for (const img of characterImages) {
-        const path = `.prompter-cache/characters/${img.imageId}.png`;
+        const path = `prompter-cache/characters/${img.imageId}.png`;
         const exists = await FileSystemService.fileExists(path);
         
         if (exists) {

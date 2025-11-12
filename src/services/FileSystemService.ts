@@ -3,6 +3,7 @@ const DB_NAME = 'StoryPrompterFS';
 const DB_VERSION = 1;
 const STORE_NAME = 'fileHandles';
 const DIRECTORY_KEY = 'saveDirectory';
+const CACHE_DIR_NAME = 'prompter-cache'; // Visible folder name (not hidden with dot)
 
 export class FileSystemService {
   private static db: IDBDatabase | null = null;
@@ -123,11 +124,11 @@ export class FileSystemService {
   }
 
   /**
-   * Check if a directory has .prompter-cache data
+   * Check if a directory has prompter-cache data
    */
   static async hasDataInDirectory(handle: FileSystemDirectoryHandle): Promise<boolean> {
     try {
-      const cacheHandle = await handle.getDirectoryHandle('.prompter-cache', { create: false });
+      const cacheHandle = await handle.getDirectoryHandle(CACHE_DIR_NAME, { create: false });
       
       // Check if any subdirectories exist
       const subdirs = ['scenes', 'characters', 'books'];
@@ -149,7 +150,7 @@ export class FileSystemService {
       }
       return false;
     } catch {
-      // .prompter-cache doesn't exist
+      // prompter-cache doesn't exist
       return false;
     }
   }
@@ -323,7 +324,7 @@ export class FileSystemService {
   }
 
   /**
-   * Save image with specific ID to .prompter-cache directory
+   * Save image with specific ID to prompter-cache directory
    * Used for automatic image storage (scene images, character images)
    */
   static async saveImageById(
@@ -340,8 +341,8 @@ export class FileSystemService {
         };
       }
 
-      // Create .prompter-cache subdirectory
-      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: true });
+      // Create prompter-cache subdirectory
+      const cacheHandle = await parentHandle.getDirectoryHandle(CACHE_DIR_NAME, { create: true });
       
       // Organize by type
       let typeHandle: FileSystemDirectoryHandle;
@@ -378,7 +379,7 @@ export class FileSystemService {
 
       return {
         success: true,
-        path: `.prompter-cache/${metadata?.sceneId ? 'scenes' : metadata?.characterName ? 'characters' : ''}/${filename}`
+        path: `${CACHE_DIR_NAME}/${metadata?.sceneId ? 'scenes' : metadata?.characterName ? 'characters' : ''}/${filename}`
       };
     } catch (error) {
       console.error('Error saving image by ID:', error);
@@ -390,7 +391,7 @@ export class FileSystemService {
   }
 
   /**
-   * Load image by ID from .prompter-cache directory
+   * Load image by ID from prompter-cache directory
    */
   static async loadImageById(imageId: string): Promise<string | null> {
     try {
@@ -399,8 +400,8 @@ export class FileSystemService {
         return null;
       }
 
-      // Try .prompter-cache subdirectory
-      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: false });
+      // Try prompter-cache subdirectory
+      const cacheHandle = await parentHandle.getDirectoryHandle(CACHE_DIR_NAME, { create: false });
       
       // Try both scenes and characters directories
       const directories = ['scenes', 'characters', '.'];
@@ -427,7 +428,7 @@ export class FileSystemService {
   }
 
   /**
-   * Delete image by ID from .prompter-cache directory
+   * Delete image by ID from prompter-cache directory
    */
   static async deleteImageById(imageId: string): Promise<boolean> {
     try {
@@ -436,7 +437,7 @@ export class FileSystemService {
         return false;
       }
 
-      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: false });
+      const cacheHandle = await parentHandle.getDirectoryHandle(CACHE_DIR_NAME, { create: false });
       
       // Try both scenes and characters directories
       const directories = ['scenes', 'characters', '.'];
@@ -470,7 +471,7 @@ export class FileSystemService {
 
   /**
    * Check if a file exists at the specified path
-   * @param path Path relative to root directory (e.g., ".prompter-cache/scenes/abc123.png")
+   * @param path Path relative to root directory (e.g., "prompter-cache/scenes/abc123.png")
    * @returns true if file exists, false otherwise
    */
   static async fileExists(path: string): Promise<boolean> {
@@ -617,8 +618,8 @@ export class FileSystemService {
         return { success: false, error: 'Filesystem not configured' };
       }
 
-      // Create .prompter-cache/books directory
-      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: true });
+      // Create prompter-cache/books directory
+      const cacheHandle = await parentHandle.getDirectoryHandle(CACHE_DIR_NAME, { create: true });
       const booksHandle = await cacheHandle.getDirectoryHandle('books', { create: true });
 
       // Save book as JSON file
@@ -633,7 +634,7 @@ export class FileSystemService {
 
       return {
         success: true,
-        path: `.prompter-cache/books/${filename}`
+        path: `${CACHE_DIR_NAME}/books/${filename}`
       };
     } catch (error) {
       console.error('Error saving book metadata to filesystem:', error);
@@ -656,7 +657,7 @@ export class FileSystemService {
         return null;
       }
 
-      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: false });
+      const cacheHandle = await parentHandle.getDirectoryHandle(CACHE_DIR_NAME, { create: false });
       const booksHandle = await cacheHandle.getDirectoryHandle('books', { create: false });
       
       const filename = `${bookId}.json`;
@@ -684,7 +685,7 @@ export class FileSystemService {
         return books;
       }
 
-      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: false });
+      const cacheHandle = await parentHandle.getDirectoryHandle(CACHE_DIR_NAME, { create: false });
       const booksHandle = await cacheHandle.getDirectoryHandle('books', { create: false });
       
       // Iterate through all files in books directory
@@ -724,7 +725,7 @@ export class FileSystemService {
         return false;
       }
 
-      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: false });
+      const cacheHandle = await parentHandle.getDirectoryHandle(CACHE_DIR_NAME, { create: false });
       const booksHandle = await cacheHandle.getDirectoryHandle('books', { create: false });
       
       const filename = `${bookId}.json`;
@@ -742,22 +743,38 @@ export class FileSystemService {
   // ========================================
 
   /**
-   * Save app metadata (activeBookId, etc.) to filesystem
+   * Save app metadata (activeBookId, settings, etc.) to filesystem
    * @param metadata App metadata object
    * @returns Success status
    */
-  static async saveAppMetadata(metadata: { activeBookId?: string | null }): Promise<{ success: boolean; error?: string }> {
+  static async saveAppMetadata(metadata: { 
+    activeBookId?: string | null;
+    settings?: any;
+  }): Promise<{ success: boolean; error?: string }> {
     try {
       const parentHandle = await this.getDirectoryHandle();
       if (!parentHandle) {
         return { success: false, error: 'Filesystem not configured' };
       }
 
-      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: true });
+      const cacheHandle = await parentHandle.getDirectoryHandle(CACHE_DIR_NAME, { create: true });
+      
+      // Load existing metadata to merge
+      let existingMetadata: any = {};
+      try {
+        const existingHandle = await cacheHandle.getFileHandle('app-metadata.json', { create: false });
+        const existingFile = await existingHandle.getFile();
+        const existingText = await existingFile.text();
+        existingMetadata = JSON.parse(existingText);
+      } catch {
+        // File doesn't exist yet - start fresh
+      }
+
       const metadataHandle = await cacheHandle.getFileHandle('app-metadata.json', { create: true });
       const writable = await metadataHandle.createWritable();
 
       const metadataJson = JSON.stringify({
+        ...existingMetadata,
         ...metadata,
         lastUpdated: new Date().toISOString()
       }, null, 2);
@@ -780,14 +797,14 @@ export class FileSystemService {
    * Load app metadata from filesystem
    * @returns App metadata or null if not found
    */
-  static async loadAppMetadata(): Promise<{ activeBookId?: string | null } | null> {
+  static async loadAppMetadata(): Promise<{ activeBookId?: string | null; settings?: any } | null> {
     try {
       const parentHandle = await this.getDirectoryHandle();
       if (!parentHandle) {
         return null;
       }
 
-      const cacheHandle = await parentHandle.getDirectoryHandle('.prompter-cache', { create: false });
+      const cacheHandle = await parentHandle.getDirectoryHandle(CACHE_DIR_NAME, { create: false });
       const metadataHandle = await cacheHandle.getFileHandle('app-metadata.json', { create: false });
       const file = await metadataHandle.getFile();
       const text = await file.text();
@@ -797,6 +814,65 @@ export class FileSystemService {
     } catch (error) {
       // File doesn't exist or error reading - return null
       return null;
+    }
+  }
+
+  // ========================================
+  // Prompts Storage Methods
+  // ========================================
+
+  /**
+   * Save prompts to filesystem
+   * @param prompts Array of prompts
+   * @returns Success status
+   */
+  static async savePrompts(prompts: any[]): Promise<{ success: boolean; error?: string }> {
+    try {
+      const parentHandle = await this.getDirectoryHandle();
+      if (!parentHandle) {
+        return { success: false, error: 'Filesystem not configured' };
+      }
+
+      const cacheHandle = await parentHandle.getDirectoryHandle(CACHE_DIR_NAME, { create: true });
+      const promptsHandle = await cacheHandle.getFileHandle('prompts.json', { create: true });
+      const writable = await promptsHandle.createWritable();
+
+      const promptsJson = JSON.stringify(prompts, null, 2);
+      const blob = new Blob([promptsJson], { type: 'application/json' });
+      await writable.write(blob);
+      await writable.close();
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error saving prompts:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save prompts'
+      };
+    }
+  }
+
+  /**
+   * Load prompts from filesystem
+   * @returns Array of prompts or empty array if not found
+   */
+  static async loadPrompts(): Promise<any[]> {
+    try {
+      const parentHandle = await this.getDirectoryHandle();
+      if (!parentHandle) {
+        return [];
+      }
+
+      const cacheHandle = await parentHandle.getDirectoryHandle(CACHE_DIR_NAME, { create: false });
+      const promptsHandle = await cacheHandle.getFileHandle('prompts.json', { create: false });
+      const file = await promptsHandle.getFile();
+      const text = await file.text();
+      const prompts = JSON.parse(text);
+      
+      return Array.isArray(prompts) ? prompts : [];
+    } catch (error) {
+      // File doesn't exist or error reading - return empty array
+      return [];
     }
   }
 }

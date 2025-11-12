@@ -1,40 +1,49 @@
 import type { Prompt, CreatePromptRequest, UpdatePromptRequest } from '../types/Prompt';
-
-const STORAGE_KEY = 'story-prompts';
+import { FileSystemService } from './FileSystemService';
 
 export class PromptService {
-  private static getStoredPrompts(): Prompt[] {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return [];
-    
-    try {
-      const prompts = JSON.parse(stored);
-      return prompts.map((prompt: any) => ({
-        ...prompt,
-        createdAt: new Date(prompt.createdAt),
-        updatedAt: new Date(prompt.updatedAt)
-      }));
-    } catch (error) {
-      console.error('Error parsing stored prompts:', error);
-      return [];
+  private static promptsCache: Prompt[] | null = null;
+
+  private static async getStoredPrompts(): Promise<Prompt[]> {
+    // Return cached prompts if available
+    if (this.promptsCache !== null) {
+      return this.promptsCache;
     }
+
+    // Load from filesystem
+    const prompts = await FileSystemService.loadPrompts();
+    
+    // Parse dates
+    const parsedPrompts = prompts.map((prompt: any) => ({
+      ...prompt,
+      createdAt: new Date(prompt.createdAt),
+      updatedAt: new Date(prompt.updatedAt)
+    }));
+
+    // Cache prompts
+    this.promptsCache = parsedPrompts;
+    return parsedPrompts;
   }
 
-  private static savePrompts(prompts: Prompt[]): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(prompts));
+  private static async savePrompts(prompts: Prompt[]): Promise<void> {
+    // Update cache
+    this.promptsCache = prompts;
+
+    // Save to filesystem
+    await FileSystemService.savePrompts(prompts);
   }
 
-  static getAllPrompts(): Prompt[] {
-    return this.getStoredPrompts();
+  static async getAllPrompts(): Promise<Prompt[]> {
+    return await this.getStoredPrompts();
   }
 
-  static getPromptById(id: string): Prompt | null {
-    const prompts = this.getStoredPrompts();
+  static async getPromptById(id: string): Promise<Prompt | null> {
+    const prompts = await this.getStoredPrompts();
     return prompts.find(prompt => prompt.id === id) || null;
   }
 
-  static createPrompt(request: CreatePromptRequest): Prompt {
-    const prompts = this.getStoredPrompts();
+  static async createPrompt(request: CreatePromptRequest): Promise<Prompt> {
+    const prompts = await this.getStoredPrompts();
     const newPrompt: Prompt = {
       id: crypto.randomUUID(),
       ...request,
@@ -43,12 +52,12 @@ export class PromptService {
     };
     
     prompts.push(newPrompt);
-    this.savePrompts(prompts);
+    await this.savePrompts(prompts);
     return newPrompt;
   }
 
-  static updatePrompt(id: string, request: UpdatePromptRequest): Prompt | null {
-    const prompts = this.getStoredPrompts();
+  static async updatePrompt(id: string, request: UpdatePromptRequest): Promise<Prompt | null> {
+    const prompts = await this.getStoredPrompts();
     const index = prompts.findIndex(prompt => prompt.id === id);
     
     if (index === -1) return null;
@@ -59,24 +68,24 @@ export class PromptService {
       updatedAt: new Date()
     };
     
-    this.savePrompts(prompts);
+    await this.savePrompts(prompts);
     return prompts[index];
   }
 
-  static deletePrompt(id: string): boolean {
-    const prompts = this.getStoredPrompts();
+  static async deletePrompt(id: string): Promise<boolean> {
+    const prompts = await this.getStoredPrompts();
     const filteredPrompts = prompts.filter(prompt => prompt.id !== id);
     
     if (filteredPrompts.length === prompts.length) {
       return false; // No prompt was found to delete
     }
     
-    this.savePrompts(filteredPrompts);
+    await this.savePrompts(filteredPrompts);
     return true;
   }
 
-  static searchPrompts(query: string): Prompt[] {
-    const prompts = this.getStoredPrompts();
+  static async searchPrompts(query: string): Promise<Prompt[]> {
+    const prompts = await this.getStoredPrompts();
     const lowerQuery = query.toLowerCase();
     
     return prompts.filter(prompt => 
@@ -87,14 +96,14 @@ export class PromptService {
     );
   }
 
-  static getCategories(): string[] {
-    const prompts = this.getStoredPrompts();
+  static async getCategories(): Promise<string[]> {
+    const prompts = await this.getStoredPrompts();
     const categories = new Set(prompts.map(prompt => prompt.category));
     return Array.from(categories).sort();
   }
 
-  static getTags(): string[] {
-    const prompts = this.getStoredPrompts();
+  static async getTags(): Promise<string[]> {
+    const prompts = await this.getStoredPrompts();
     const tags = new Set(prompts.flatMap(prompt => prompt.tags));
     return Array.from(tags).sort();
   }

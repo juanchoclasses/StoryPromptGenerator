@@ -38,7 +38,7 @@ export class TestDirectoryService {
     // Also save handle to a known location in the test directory itself
     // This allows us to restore it after page reload
     try {
-      const cacheHandle = await handle.getDirectoryHandle('.prompter-cache', { create: true });
+      const cacheHandle = await handle.getDirectoryHandle('prompter-cache', { create: true });
       const metadataHandle = await cacheHandle.getFileHandle('test-directory-handle.json', { create: true });
       const writable = await metadataHandle.createWritable();
       
@@ -337,7 +337,7 @@ export class TestDirectoryService {
   }
 
   /**
-   * Clean up test directory (delete .prompter-cache from test directory)
+   * Clean up test directory (delete prompter-cache from test directory)
    * WARNING: This deletes all test data!
    */
   static async cleanupTestDirectory(): Promise<{ success: boolean; error?: string }> {
@@ -349,7 +349,7 @@ export class TestDirectoryService {
         };
       }
 
-      // Delete test directory's .prompter-cache
+      // Delete test directory's prompter-cache
       const deleted = await DirectoryMigrationService.deleteOldDirectory(this.testDirectoryHandle);
       
       if (deleted) {

@@ -20,7 +20,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Divider
+  Divider,
+  LinearProgress
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
@@ -31,7 +32,8 @@ import {
   Error as ErrorIcon,
   ContentCopy as ContentCopyIcon,
   PlayArrow as PlayArrowIcon,
-  Science as ScienceIcon
+  Science as ScienceIcon,
+  CloudDownload as CloudDownloadIcon
 } from '@mui/icons-material';
 import { BookService } from '../services/BookService';
 import { ImageStorageService } from '../services/ImageStorageService';
@@ -91,6 +93,8 @@ export const OperationsPanel: React.FC = () => {
   const [copySuccess, setCopySuccess] = useState(false);
   const [remapping, setRemapping] = useState(false);
   const [rebuildingGalleries, setRebuildingGalleries] = useState(false);
+  const [recoveringImages, setRecoveringImages] = useState(false);
+  const [recoveryProgress, setRecoveryProgress] = useState<{ current: number; total: number; currentFile: string } | null>(null);
   
   // Test panel state
   const [runningTests, setRunningTests] = useState(false);
@@ -413,7 +417,7 @@ export const OperationsPanel: React.FC = () => {
     setFixResult(null);
     
     try {
-      console.log('=== Rebuilding Galleries from IndexedDB ===');
+      console.log('=== Rebuilding Galleries from Filesystem ===');
       
       const books = await BookService.getAllBooks();
       let fixedCount = 0;
@@ -424,20 +428,23 @@ export const OperationsPanel: React.FC = () => {
         for (const character of book.characters) {
           console.log(`  Checking ${character.name}...`);
           
-          // Get actual images from IndexedDB for this character
+          // Get images from filesystem for this character
+          // Use character.imageGallery to get imageIds
+          const imageIds = character.imageGallery?.map(img => img.id);
           const imageMap = await ImageStorageService.getAllBookCharacterImages(
             book.id,
-            character.name
+            character.name,
+            imageIds
           );
           
           if (imageMap.size === 0) {
-            console.log(`    No images in IndexedDB`);
+            console.log(`    No images found`);
             continue;
           }
           
-          console.log(`    Found ${imageMap.size} images in IndexedDB`);
+          console.log(`    Found ${imageMap.size} images in filesystem`);
           
-          // Rebuild imageGallery with actual IDs from IndexedDB
+          // Rebuild imageGallery with actual IDs from filesystem
           const actualImageIds = Array.from(imageMap.keys());
           character.imageGallery = actualImageIds.map(imageId => ({
             id: imageId,
@@ -461,7 +468,7 @@ export const OperationsPanel: React.FC = () => {
         await BookService.saveBook(book);
       }
       
-      setFixResult(`✅ Rebuilt ${fixedCount} character galleries with actual image IDs from IndexedDB`);
+      setFixResult(`✅ Rebuilt ${fixedCount} character galleries with actual image IDs from filesystem`);
       console.log('=== Rebuild Complete ===');
       
       // Re-run diagnostic
@@ -472,6 +479,55 @@ export const OperationsPanel: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Rebuild failed');
     } finally {
       setRebuildingGalleries(false);
+    }
+  };
+
+  const recoverImagesFromIndexedDB = async () => {
+    setRecoveringImages(true);
+    setError(null);
+    setFixResult(null);
+    setRecoveryProgress(null);
+    
+    try {
+      console.log('=== Recovering Images from IndexedDB ===');
+      
+      const { ImageMigrationService } = await import('../services/ImageMigrationService');
+      
+      // Check if filesystem is configured
+      const { FileSystemService } = await import('../services/FileSystemService');
+      const isConfigured = await FileSystemService.isConfigured();
+      if (!isConfigured) {
+        throw new Error('Filesystem not configured. Please select a save directory in Settings first.');
+      }
+      
+      // Migrate all images with progress tracking
+      const stats = await ImageMigrationService.migrateAllImages((progress) => {
+        setRecoveryProgress({
+          current: progress.current,
+          total: progress.total,
+          currentFile: progress.currentFile
+        });
+        console.log(`Recovery progress: ${progress.current}/${progress.total} - ${progress.currentFile}`);
+      });
+      
+      console.log('=== Recovery Complete ===', stats);
+      
+      setFixResult(
+        `✅ Recovered ${stats.migrated} images from IndexedDB to filesystem. ` +
+        `${stats.alreadyOnDisk} were already on disk. ` +
+        `${stats.failed} failed. ` +
+        `Total size: ${ImageMigrationService.formatBytes(stats.totalSizeMB * 1024 * 1024)}`
+      );
+      
+      // Re-run diagnostic to verify
+      setTimeout(() => runDiagnostic(), 1000);
+      
+    } catch (err) {
+      console.error('Recovery failed:', err);
+      setError(err instanceof Error ? err.message : 'Recovery failed');
+    } finally {
+      setRecoveringImages(false);
+      setRecoveryProgress(null);
     }
   };
 
@@ -802,6 +858,33 @@ export const OperationsPanel: React.FC = () => {
             </Button>
           )}
           
+          <Button
+            variant="contained"
+            color="info"
+            startIcon={recoveringImages ? <CircularProgress size={20} /> : <CloudDownloadIcon />}
+            onClick={recoverImagesFromIndexedDB}
+            disabled={running || fixing || remapping || rebuildingGalleries || recoveringImages}
+            sx={{ mb: 1 }}
+          >
+            {recoveringImages ? 'Recovering Images...' : 'Recover Images from IndexedDB'}
+          </Button>
+          
+          {recoveryProgress && (
+            <Box sx={{ mt: 1, mb: 2, width: '100%' }}>
+              <Typography variant="body2" color="text.secondary">
+                {recoveryProgress.currentFile}
+              </Typography>
+              <LinearProgress 
+                variant="determinate" 
+                value={(recoveryProgress.current / recoveryProgress.total) * 100} 
+                sx={{ mt: 1 }}
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                {recoveryProgress.current} / {recoveryProgress.total} images
+              </Typography>
+            </Box>
+          )}
+          
           {diagnosticResult && diagnosticResult.mismatches.length > 0 && (
             <>
               <Button
@@ -809,7 +892,7 @@ export const OperationsPanel: React.FC = () => {
                 color="warning"
                 startIcon={fixing ? <CircularProgress size={20} /> : <BuildIcon />}
                 onClick={fixMissingMetadata}
-                disabled={running || fixing || remapping || rebuildingGalleries}
+                disabled={running || fixing || remapping || rebuildingGalleries || recoveringImages}
               >
                 Fix Missing Metadata
               </Button>
@@ -819,7 +902,7 @@ export const OperationsPanel: React.FC = () => {
                 color="secondary"
                 startIcon={remapping ? <CircularProgress size={20} /> : <BuildIcon />}
                 onClick={remapImageKeys}
-                disabled={running || fixing || remapping || rebuildingGalleries}
+                disabled={running || fixing || remapping || rebuildingGalleries || recoveringImages}
               >
                 Remap Image Keys
               </Button>
@@ -829,7 +912,7 @@ export const OperationsPanel: React.FC = () => {
                 color="error"
                 startIcon={rebuildingGalleries ? <CircularProgress size={20} /> : <BuildIcon />}
                 onClick={rebuildGalleriesFromDB}
-                disabled={running || fixing || remapping || rebuildingGalleries}
+                disabled={running || fixing || remapping || rebuildingGalleries || recoveringImages}
               >
                 Rebuild Galleries from DB
               </Button>

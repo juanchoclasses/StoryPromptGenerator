@@ -8,7 +8,7 @@
  * - Delete unwanted images
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -77,18 +77,32 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
   
   // File upload state
   const [uploading, setUploading] = useState(false);
+  
+  // Track last saved image count to prevent duplicate saves during React strict mode double-invocation
+  const lastSavedCountRef = useRef<number | null>(null);
 
   const loadGallery = useCallback(async () => {
     // If character has no image gallery metadata, don't try to load from IndexedDB
     if (!character.imageGallery || character.imageGallery.length === 0) {
       setGalleryImages(new Map());
       setLoadingGallery(false);
+      lastSavedCountRef.current = 0; // Track that we've seen 0 images
       return;
     }
 
     setLoadingGallery(true);
     try {
-      const images = await CharacterImageService.loadCharacterGallery(storyId, character.name);
+      const beforeCount = character.imageGallery?.length || 0;
+      const images = await CharacterImageService.loadCharacterGallery(storyId, character.name, character);
+      const afterCount = character.imageGallery?.length || 0;
+      
+      // If cleanup removed stale references, save the book (but only once per cleanup cycle)
+      if (beforeCount > afterCount && lastSavedCountRef.current !== afterCount) {
+        console.log(`Character metadata cleaned up (${beforeCount} → ${afterCount} images). Saving book...`);
+        lastSavedCountRef.current = afterCount; // Mark that we've saved for this count
+        onUpdate(); // Trigger save to persist cleanup
+      }
+      
       setGalleryImages(images);
     } catch (err) {
       console.error('Failed to load character gallery:', err);
@@ -97,14 +111,15 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     } finally {
       setLoadingGallery(false);
     }
-  }, [storyId, character.name, character.imageGallery]);
+  }, [storyId, character.name, character.imageGallery, onUpdate]);
 
-  // Load gallery images when dialog opens
+  // Reset ref when dialog opens or character changes, then load gallery
   useEffect(() => {
     if (open) {
+      lastSavedCountRef.current = null; // Reset ref when dialog opens
       loadGallery();
     }
-  }, [open, loadGallery]);
+  }, [open, character.name, loadGallery]);
 
   const handleClose = () => {
     // Save changes before closing

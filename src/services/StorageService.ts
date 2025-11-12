@@ -13,49 +13,29 @@ export interface AppData {
 }
 
 /**
- * Storage key for localStorage (migration/fallback only)
- */
-const STORAGE_KEY = 'prompter-app-data-v4';
-const VERSION = '4.0.0';
-const MIGRATION_FLAG_KEY = 'prompter-migrated-to-filesystem';
-
-/**
  * StorageService - In-memory cache backed by filesystem
  * 
- * NEW ARCHITECTURE (v4.1+):
+ * ARCHITECTURE (v5.0+):
  * - Primary: BookCache (in-memory) + Filesystem (source of truth)
- * - Fallback: localStorage (migration path only)
+ * - No localStorage dependency - filesystem-only storage
  * 
  * Benefits:
  * - Faster: No JSON serialization on every operation
  * - More reliable: Filesystem won't be evicted
  * - Better performance: In-memory cache is instant
+ * - Easier debugging: All data visible in filesystem
  */
+const VERSION = '5.0.0';
+
 export class StorageService {
   /**
    * Load app data from BookCache (which loads from filesystem)
-   * Falls back to localStorage migration if filesystem is empty
+   * Filesystem-only - no localStorage fallback
    */
   static async load(): Promise<AppData> {
     try {
       // Ensure BookCache is loaded (loads from filesystem)
       await bookCache.loadAll();
-      
-      // Check if we need to migrate from localStorage
-      const migrated = localStorage.getItem(MIGRATION_FLAG_KEY);
-      if (!migrated) {
-        // Check if localStorage has data but filesystem doesn't
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored && bookCache.getAll().length === 0) {
-          console.log('📦 Migrating books from localStorage to filesystem...');
-          await this.migrateFromLocalStorage();
-          // Reload cache after migration
-          await bookCache.loadAll();
-        } else {
-          // Mark as migrated (even if no data to migrate)
-          localStorage.setItem(MIGRATION_FLAG_KEY, 'true');
-        }
-      }
       
       // Get books from cache
       const books = bookCache.getAll();
@@ -73,50 +53,10 @@ export class StorageService {
     }
   }
 
-  /**
-   * Migrate books from localStorage to filesystem
-   */
-  private static async migrateFromLocalStorage(): Promise<void> {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (!stored) {
-        return; // Nothing to migrate
-      }
-
-      const parsed = JSON.parse(stored);
-      const books = parsed.books || [];
-      
-      console.log(`Migrating ${books.length} books from localStorage to filesystem...`);
-      
-      // Migrate each book to filesystem
-      for (const bookData of books) {
-        try {
-          const book = await this.deserializeBook(bookData);
-          // Save to cache (which saves to filesystem)
-          await bookCache.set(book);
-          console.log(`✓ Migrated book: ${book.title}`);
-        } catch (error) {
-          console.error(`Failed to migrate book ${bookData.id}:`, error);
-        }
-      }
-      
-      // Set active book ID if present
-      if (parsed.activeBookId) {
-        await bookCache.setActiveBookId(parsed.activeBookId);
-      }
-      
-      // Mark migration as complete
-      localStorage.setItem(MIGRATION_FLAG_KEY, 'true');
-      console.log('✓ Migration complete');
-    } catch (error) {
-      console.error('Migration failed:', error);
-      throw error;
-    }
-  }
-
 
   /**
    * Deserialize a book from JSON data (internal helper)
+   * Note: This is now only used internally by BookCache
    */
   private static async deserializeBook(bookData: any): Promise<Book> {
     // Import model classes (safe here, not circular)
@@ -337,10 +277,6 @@ export class StorageService {
         await FileSystemService.deleteBookMetadata(bookId);
       }
     }
-    
-    // Clear localStorage migration flag
-    localStorage.removeItem(MIGRATION_FLAG_KEY);
-    localStorage.removeItem(STORAGE_KEY);
     
     console.log('⚠️ All app data cleared');
   }

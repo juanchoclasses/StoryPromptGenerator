@@ -1,7 +1,7 @@
 /**
  * DirectoryMigrationService - Migrate data between storage directories
  * 
- * Handles copying all .prompter-cache data from one directory to another
+ * Handles copying all prompter-cache data from one directory to another
  * when user changes their storage directory.
  */
 
@@ -43,18 +43,18 @@ export class DirectoryMigrationService {
     };
 
     try {
-      // Check if old directory has .prompter-cache
+      // Check if old directory has prompter-cache
       let oldCacheHandle: FileSystemDirectoryHandle;
       try {
-        oldCacheHandle = await oldHandle.getDirectoryHandle('.prompter-cache', { create: false });
+        oldCacheHandle = await oldHandle.getDirectoryHandle('prompter-cache', { create: false });
       } catch {
         // No old cache directory - nothing to migrate
         result.success = true;
         return result;
       }
 
-      // Create new .prompter-cache directory
-      const newCacheHandle = await newHandle.getDirectoryHandle('.prompter-cache', { create: true });
+      // Create new prompter-cache directory
+      const newCacheHandle = await newHandle.getDirectoryHandle('prompter-cache', { create: true });
 
       // Collect all files to copy
       const filesToCopy: Array<{ path: string[]; file: FileSystemFileHandle }> = [];
@@ -205,14 +205,14 @@ export class DirectoryMigrationService {
   }
 
   /**
-   * Delete old directory's .prompter-cache folder
+   * Delete old directory's prompter-cache folder
    * @param oldHandle Old directory handle
    * @returns Success status
    */
   static async deleteOldDirectory(oldHandle: FileSystemDirectoryHandle): Promise<boolean> {
     try {
-      const cacheHandle = await oldHandle.getDirectoryHandle('.prompter-cache', { create: false });
-      await oldHandle.removeEntry('.prompter-cache', { recursive: true });
+      const cacheHandle = await oldHandle.getDirectoryHandle('prompter-cache', { create: false });
+      await oldHandle.removeEntry('prompter-cache', { recursive: true });
       return true;
     } catch (error) {
       console.error('Failed to delete old directory:', error);

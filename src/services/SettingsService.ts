@@ -1,4 +1,4 @@
-const SETTINGS_KEY = 'app-settings';
+import { FileSystemService } from './FileSystemService';
 
 export interface AppSettings {
   openRouterApiKey?: string;
@@ -7,72 +7,80 @@ export interface AppSettings {
 }
 
 export class SettingsService {
-  private static getSettings(): AppSettings {
-    const stored = localStorage.getItem(SETTINGS_KEY);
-    if (!stored) {
-      return {
-        imageGenerationModel: 'google/gemini-2.5-flash-image'
-      };
+  private static settingsCache: AppSettings | null = null;
+
+  private static async getSettings(): Promise<AppSettings> {
+    // Return cached settings if available
+    if (this.settingsCache !== null) {
+      return this.settingsCache;
     }
-    
-    try {
-      return JSON.parse(stored);
-    } catch (error) {
-      console.error('Error parsing settings:', error);
-      return {
-        imageGenerationModel: 'google/gemini-2.5-flash-image'
-      };
-    }
+
+    // Load from filesystem
+    const metadata = await FileSystemService.loadAppMetadata();
+    const settings = metadata?.settings || {
+      imageGenerationModel: 'google/gemini-2.5-flash-image'
+    };
+
+    // Cache settings
+    this.settingsCache = settings;
+    return settings;
   }
 
-  private static saveSettings(settings: AppSettings): void {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  private static async saveSettings(settings: AppSettings): Promise<void> {
+    // Update cache
+    this.settingsCache = settings;
+
+    // Save to filesystem
+    await FileSystemService.saveAppMetadata({ settings });
   }
 
-  static getApiKey(): string | undefined {
-    return this.getSettings().openRouterApiKey;
+  static async getApiKey(): Promise<string | undefined> {
+    const settings = await this.getSettings();
+    return settings.openRouterApiKey;
   }
 
-  static setApiKey(apiKey: string): void {
-    const settings = this.getSettings();
+  static async setApiKey(apiKey: string): Promise<void> {
+    const settings = await this.getSettings();
     settings.openRouterApiKey = apiKey;
-    this.saveSettings(settings);
+    await this.saveSettings(settings);
   }
 
-  static clearApiKey(): void {
-    const settings = this.getSettings();
+  static async clearApiKey(): Promise<void> {
+    const settings = await this.getSettings();
     delete settings.openRouterApiKey;
-    this.saveSettings(settings);
+    await this.saveSettings(settings);
   }
 
-  static getImageGenerationModel(): string {
-    return this.getSettings().imageGenerationModel || 'google/gemini-2.5-flash-image';
+  static async getImageGenerationModel(): Promise<string> {
+    const settings = await this.getSettings();
+    return settings.imageGenerationModel || 'google/gemini-2.5-flash-image';
   }
 
-  static setImageGenerationModel(model: string): void {
-    const settings = this.getSettings();
+  static async setImageGenerationModel(model: string): Promise<void> {
+    const settings = await this.getSettings();
     settings.imageGenerationModel = model;
-    this.saveSettings(settings);
+    await this.saveSettings(settings);
   }
 
-  static getAllSettings(): AppSettings {
-    return this.getSettings();
+  static async getAllSettings(): Promise<AppSettings> {
+    return await this.getSettings();
   }
 
-  static updateSettings(updates: Partial<AppSettings>): void {
-    const settings = this.getSettings();
+  static async updateSettings(updates: Partial<AppSettings>): Promise<void> {
+    const settings = await this.getSettings();
     const updated = { ...settings, ...updates };
-    this.saveSettings(updated);
+    await this.saveSettings(updated);
   }
 
-  static isAutoSaveEnabled(): boolean {
-    return this.getSettings().autoSaveImages ?? false; // Default: OFF
+  static async isAutoSaveEnabled(): Promise<boolean> {
+    const settings = await this.getSettings();
+    return settings.autoSaveImages ?? false; // Default: OFF
   }
 
-  static setAutoSaveEnabled(enabled: boolean): void {
-    const settings = this.getSettings();
+  static async setAutoSaveEnabled(enabled: boolean): Promise<void> {
+    const settings = await this.getSettings();
     settings.autoSaveImages = enabled;
-    this.saveSettings(settings);
+    await this.saveSettings(settings);
   }
 }
 

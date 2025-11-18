@@ -20,6 +20,7 @@ import type { PanelConfig } from '../types/Book';
 import { ImageGenerationService } from './ImageGenerationService';
 import { CharacterImageService } from './CharacterImageService';
 import { applyAllOverlays } from './OverlayService';
+import { composeSceneWithLayout } from './LayoutCompositionService';
 import { formatBookStyleForPrompt } from '../types/BookStyle';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 
@@ -335,6 +336,15 @@ export class SceneImageGenerationService {
     
     try {
       const imageDimensions = this.getImageDimensionsFromAspectRatio(aspectRatio);
+      
+      // CHECK IF SCENE HAS CUSTOM LAYOUT
+      if (scene.layout) {
+        console.log('🎨 Using custom layout:', scene.layout.type);
+        return await this.applyCustomLayout(baseImageUrl, scene, story, book);
+      }
+      
+      // FALL BACK TO DEFAULT OVERLAY APPROACH
+      console.log('🎨 Using default overlay approach');
       const overlayOptions: any = {
         imageWidth: imageDimensions.width,
         imageHeight: imageDimensions.height
@@ -385,6 +395,101 @@ export class SceneImageGenerationService {
       // Return base image if overlay fails
       return baseImageUrl;
     }
+  }
+
+  /**
+   * Apply custom layout to scene
+   * Renders panels separately and composes them according to layout configuration
+   */
+  private static async applyCustomLayout(
+    baseImageUrl: string,
+    scene: Scene,
+    story: Story,
+    book: Book | null
+  ): Promise<string> {
+    const { createTextPanel } = await import('./OverlayService');
+    const { renderDiagramToCanvas } = await import('./DiagramRenderService');
+    
+    const layout = scene.layout!;
+    let textPanelDataUrl: string | null = null;
+    let diagramPanelDataUrl: string | null = null;
+
+    // Render text panel if present
+    if (scene.textPanel && layout.elements.textPanel) {
+      console.log('  Rendering text panel for layout...');
+      const macros = { 'SceneDescription': scene.description };
+      const panelText = this.replaceMacros(scene.textPanel, macros);
+      const panelConfig: PanelConfig = book?.style?.panelConfig || DEFAULT_PANEL_CONFIG;
+      
+      try {
+        const textPanelBitmap = await createTextPanel(panelText, {
+          width: layout.elements.textPanel.width,
+          height: layout.elements.textPanel.height,
+          bgColor: panelConfig.backgroundColor,
+          borderColor: panelConfig.borderColor,
+          borderWidth: panelConfig.borderWidth,
+          borderRadius: panelConfig.borderRadius,
+          padding: panelConfig.padding,
+          fontFamily: panelConfig.fontFamily,
+          fontSize: panelConfig.fontSize,
+          fontColor: panelConfig.textColor,
+          textAlign: panelConfig.textAlign as CanvasTextAlign
+        });
+        
+        // Convert ImageBitmap to data URL
+        const canvas = document.createElement('canvas');
+        canvas.width = textPanelBitmap.width;
+        canvas.height = textPanelBitmap.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(textPanelBitmap, 0, 0);
+          textPanelDataUrl = canvas.toDataURL('image/png');
+          console.log('  ✓ Text panel rendered');
+        }
+      } catch (error) {
+        console.error('  ❌ Failed to render text panel:', error);
+      }
+    }
+
+    // Render diagram panel if present
+    if (scene.diagramPanel && layout.elements.diagramPanel) {
+      console.log('  Rendering diagram panel for layout...');
+      const diagramStyle = this.getDiagramStyle(scene, story);
+      
+      if (diagramStyle) {
+        const diagramPanel: DiagramPanel = {
+          type: scene.diagramPanel.type,
+          content: scene.diagramPanel.content,
+          language: scene.diagramPanel.language
+        };
+        
+        try {
+          const diagramCanvas = await renderDiagramToCanvas(
+            diagramPanel,
+            diagramStyle,
+            layout.elements.diagramPanel.width,
+            layout.elements.diagramPanel.height
+          );
+          
+          diagramPanelDataUrl = diagramCanvas.toDataURL('image/png');
+          console.log('  ✓ Diagram panel rendered');
+        } catch (error) {
+          console.error('  ❌ Failed to render diagram panel:', error);
+        }
+      }
+    }
+
+    // Compose all elements according to layout
+    console.log('  Composing scene with custom layout...');
+    const composedImageUrl = await composeSceneWithLayout(
+      baseImageUrl,
+      textPanelDataUrl,
+      diagramPanelDataUrl,
+      layout
+    );
+    console.log('  ✓ Scene composed with custom layout');
+    
+    return composedImageUrl;
   }
 }
 

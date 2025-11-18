@@ -274,3 +274,5 @@ export class Scene {
   }
 }
 
+// Explicit re-exports to ensure module resolution
+export type { GeneratedImage, LayoutElement, SceneLayout, SceneExchangeFormat };

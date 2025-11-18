@@ -53,6 +53,7 @@ export interface Scene {
   description: string;
   textPanel?: string; // Text to overlay on generated image (supports macros)
   diagramPanel?: DiagramPanel; // Optional diagram to overlay on generated image
+  layout?: any; // Optional custom layout configuration (SceneLayout from models/Scene)
   lastGeneratedImage?: string; // DEPRECATED: Kept for backward compatibility
   imageHistory?: GeneratedImage[]; // Array of all generated images for this scene
   // v4.0: Use names instead of IDs for better readability

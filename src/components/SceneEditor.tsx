@@ -937,81 +937,36 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     setGeneratedImageUrl(null);
 
     try {
-      const result = await ImageGenerationService.generateImage({ 
-        prompt,
-        aspectRatio,
-        model: modelName,  // Use the selected model
-        referenceImages: referenceImages.length > 0 ? referenceImages : undefined // Include reference images if available
+      // Use unified SceneImageGenerationService which handles layout detection
+      const { SceneImageGenerationService } = await import('../services/SceneImageGenerationService');
+      
+      // Update currentScene with current UI state before generating
+      if (currentScene && story) {
+        currentScene.textPanel = textPanel;
+        if (diagramContent && diagramContent.trim()) {
+          currentScene.diagramPanel = {
+            type: diagramType,
+            content: diagramContent,
+            language: diagramType === 'code' ? diagramLanguage : undefined
+          };
+        } else {
+          currentScene.diagramPanel = undefined;
+        }
+      }
+      
+      const finalImageUrl = await SceneImageGenerationService.generateCompleteSceneImage({
+        scene: currentScene!,
+        story: story!,
+        book: activeBook,
+        model: modelName,
+        aspectRatio
       });
       
-      if (result.success && result.imageUrl) {
-        let finalImageUrl = result.imageUrl;
-        
-        // Calculate image dimensions based on aspect ratio
-        const imageDimensions = getImageDimensionsFromAspectRatio(aspectRatio);
-        
-        // Apply overlays (text and/or diagram) if present
-        const hasTextPanel = textPanel && textPanel.trim();
-        // Use current state for diagram, not saved scene data (which may be stale)
-        const hasDiagramPanel = diagramContent && diagramContent.trim();
-        
-        if (hasTextPanel || hasDiagramPanel) {
-          try {
-            const overlayOptions: any = {
-              imageWidth: imageDimensions.width,
-              imageHeight: imageDimensions.height
-            };
-            
-            // Add text panel if present
-            if (hasTextPanel) {
-              // Define macros for text panel replacement
-              const macros = {
-                'SceneDescription': currentScene?.description || ''
-              };
-              
-              // Replace macros in the text panel
-              const panelText = replaceMacros(textPanel, macros);
-              
-              // Get panel config from book or use defaults
-              const panelConfig = activeBook?.style?.panelConfig || DEFAULT_PANEL_CONFIG;
-              
-              overlayOptions.textPanel = {
-                text: panelText,
-                config: panelConfig
-              };
-            }
-            
-            // Add diagram panel if present (use current state values)
-            if (hasDiagramPanel && story?.diagramStyle) {
-              overlayOptions.diagramPanel = {
-                panel: {
-                  type: diagramType,
-                  content: diagramContent,
-                  language: diagramType === 'code' ? diagramLanguage : undefined
-                },
-                style: story.diagramStyle
-              };
-            }
-            
-            // Apply all overlays
-            finalImageUrl = await applyAllOverlays(
-              result.imageUrl,
-              overlayOptions
-            );
-          } catch (overlayError) {
-            console.error('Error applying overlays:', overlayError);
-            // Continue with original image if overlay fails
-            setSnackbarMessage('Warning: Overlay failed, showing original image');
-            setSnackbarSeverity('error');
-            setSnackbarOpen(true);
-          }
-        }
-        
-        // Save generated image to scene in local storage
-        if (story && currentScene) {
-          const activeBookData = await BookService.getActiveBookData();
-          if (activeBookData) {
-            // Create new GeneratedImage entry with the model that was used
+      // Save generated image to scene in local storage
+      if (story && currentScene) {
+        const activeBookData = await BookService.getActiveBookData();
+        if (activeBookData) {
+          // Create new GeneratedImage entry with the model that was used
             // NOTE: We do NOT store the URL in localStorage to avoid quota issues
             // The image is stored on filesystem and loaded on demand
             const imageId = crypto.randomUUID();
@@ -1083,7 +1038,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           
           if (activeBook) {
             const saveResult = await FileSystemService.saveImage(
-              result.imageUrl,
+              finalImageUrl,
               activeBook.title,
               currentScene.title
             );
@@ -1100,13 +1055,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           setSnackbarMessage('Image generated successfully! Use Save button to save.');
         }
         
-        setSnackbarSeverity('success');
-        setSnackbarOpen(true);
-      } else {
-        // Show error in dialog instead of snackbar
-        setErrorDialogMessage(result.error || 'Failed to generate image');
-        setErrorDialogOpen(true);
-      }
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
     } catch (error) {
       console.error('Error generating image:', error);
       setErrorDialogMessage(

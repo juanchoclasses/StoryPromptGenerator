@@ -47,13 +47,41 @@ export interface DiagramStyle {
   gutterRight: number; // Right margin from image edge in pixels
 }
 
+/**
+ * Element position and size in the layout
+ */
+export interface LayoutElement {
+  x: number;        // pixels from left
+  y: number;        // pixels from top
+  width: number;    // pixels
+  height: number;   // pixels
+  zIndex: number;   // stacking order
+}
+
+/**
+ * Scene layout configuration for positioning image and panels
+ */
+export interface SceneLayout {
+  type: 'overlay' | 'comic-sidebyside' | 'comic-vertical' | 'custom';
+  canvas: {
+    width: number;       // total canvas width in pixels
+    height: number;      // total canvas height in pixels
+    aspectRatio: string; // e.g., "16:9", "3:4", "21:9"
+  };
+  elements: {
+    image: LayoutElement;
+    textPanel?: LayoutElement;
+    diagramPanel?: LayoutElement;
+  };
+}
+
 export interface Scene {
   id: string;
   title: string;
   description: string;
   textPanel?: string; // Text to overlay on generated image (supports macros)
   diagramPanel?: DiagramPanel; // Optional diagram to overlay on generated image
-  layout?: any; // Optional custom layout configuration (SceneLayout from models/Scene)
+  layout?: SceneLayout; // Optional custom layout configuration
   lastGeneratedImage?: string; // DEPRECATED: Kept for backward compatibility
   imageHistory?: GeneratedImage[]; // Array of all generated images for this scene
   // v4.0: Use names instead of IDs for better readability

@@ -1,4 +1,4 @@
-import { SceneLayout } from '../types/Story';
+import type { SceneLayout } from '../types/Story';
 import { loadImage } from './OverlayService';
 
 /**

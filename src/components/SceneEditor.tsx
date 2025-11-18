@@ -785,14 +785,33 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
 
   // Save layout configuration
   const handleSaveLayout = async (layout: SceneLayout) => {
-    if (!currentScene || !activeBook) return;
+    if (!currentScene || !activeBook || !story) return;
 
-    // Update scene with new layout
-    currentScene.layout = layout;
-    currentScene.updatedAt = new Date();
+    console.log('💾 Saving layout configuration:', layout);
+
+    // Find the actual scene in the book's story array and update it
+    const storyInBook = activeBook.stories.find(s => s.id === story.id);
+    if (!storyInBook) {
+      console.error('Story not found in book');
+      return;
+    }
+
+    const sceneInStory = storyInBook.scenes.find(s => s.id === currentScene.id);
+    if (!sceneInStory) {
+      console.error('Scene not found in story');
+      return;
+    }
+
+    // Update the scene in the book's data structure
+    sceneInStory.layout = layout;
+    sceneInStory.updatedAt = new Date();
+
+    console.log('✓ Layout assigned to scene in book');
 
     // Save book
     await BookService.saveBook(activeBook);
+    console.log('✓ Book saved to filesystem');
+    
     onStoryUpdate();
     setLayoutEditorOpen(false);
 

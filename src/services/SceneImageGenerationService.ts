@@ -338,13 +338,20 @@ export class SceneImageGenerationService {
       const imageDimensions = this.getImageDimensionsFromAspectRatio(aspectRatio);
       
       // CHECK IF SCENE HAS CUSTOM LAYOUT
+      console.log('🔍 Checking for custom layout...');
+      console.log('  scene.layout exists:', !!scene.layout);
+      if (scene.layout) {
+        console.log('  Layout type:', scene.layout.type);
+        console.log('  Canvas:', scene.layout.canvas);
+      }
+      
       if (scene.layout) {
         console.log('🎨 Using custom layout:', scene.layout.type);
         return await this.applyCustomLayout(baseImageUrl, scene, story, book);
       }
       
       // FALL BACK TO DEFAULT OVERLAY APPROACH
-      console.log('🎨 Using default overlay approach');
+      console.log('🎨 Using default overlay approach (no custom layout detected)');
       const overlayOptions: any = {
         imageWidth: imageDimensions.width,
         imageHeight: imageDimensions.height

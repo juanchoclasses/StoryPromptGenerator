@@ -1837,6 +1837,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       <SceneLayoutEditor
         open={layoutEditorOpen}
         currentLayout={currentScene?.layout}
+        bookAspectRatio={activeBook?.aspectRatio || '3:4'}
         onSave={handleSaveLayout}
         onCancel={() => setLayoutEditorOpen(false)}
       />

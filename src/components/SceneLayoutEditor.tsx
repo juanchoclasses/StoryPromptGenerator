@@ -12,11 +12,7 @@ import {
   TextField,
   Grid,
   Paper,
-  Divider,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem
+  Divider
 } from '@mui/material';
 import type { SceneLayout, LayoutElement } from '../types/Story';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
@@ -27,6 +23,7 @@ import GridOnIcon from '@mui/icons-material/GridOn';
 interface SceneLayoutEditorProps {
   open: boolean;
   currentLayout?: SceneLayout;
+  bookAspectRatio: string; // e.g., "3:4", "16:9"
   onSave: (layout: SceneLayout) => void;
   onCancel: () => void;
 }
@@ -51,6 +48,27 @@ interface ResizingState {
   startElementWidth: number;
   startElementHeight: number;
 }
+
+/**
+ * Convert aspect ratio string to canvas dimensions
+ * Returns standard dimensions based on the aspect ratio
+ */
+const getCanvasDimensionsFromAspectRatio = (aspectRatio: string): { width: number; height: number } => {
+  const [widthRatio, heightRatio] = aspectRatio.split(':').map(Number);
+  
+  // Use 1080 as the base height for portrait, width as base for landscape
+  if (widthRatio < heightRatio) {
+    // Portrait (e.g., 3:4, 9:16)
+    const width = 1080;
+    const height = Math.round((width * heightRatio) / widthRatio);
+    return { width, height };
+  } else {
+    // Landscape or square (e.g., 16:9, 21:9, 1:1)
+    const width = 1920;
+    const height = Math.round((width * heightRatio) / widthRatio);
+    return { width, height };
+  }
+};
 
 const PRESET_LAYOUTS: Record<string, SceneLayout> = {
   overlay: {
@@ -85,12 +103,69 @@ const PRESET_LAYOUTS: Record<string, SceneLayout> = {
 export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
   open,
   currentLayout,
+  bookAspectRatio,
   onSave,
   onCancel
 }) => {
-  const [layout, setLayout] = useState<SceneLayout>(
-    currentLayout || PRESET_LAYOUTS.overlay
-  );
+  // Calculate canvas dimensions from book's aspect ratio
+  const canvasDimensions = getCanvasDimensionsFromAspectRatio(bookAspectRatio);
+  
+  // Initialize layout with book's aspect ratio if no current layout exists
+  const getInitialLayout = (): SceneLayout => {
+    if (currentLayout) {
+      // If layout exists, update its canvas dimensions to match book's aspect ratio
+      return {
+        ...currentLayout,
+        canvas: {
+          ...currentLayout.canvas,
+          width: canvasDimensions.width,
+          height: canvasDimensions.height,
+          aspectRatio: bookAspectRatio
+        },
+        // Scale element positions/sizes proportionally if canvas size changed
+        elements: {
+          image: currentLayout.elements.image
+            ? {
+                ...currentLayout.elements.image,
+                width: canvasDimensions.width,
+                height: canvasDimensions.height
+              }
+            : { x: 0, y: 0, width: canvasDimensions.width, height: canvasDimensions.height, zIndex: 1 },
+          textPanel: currentLayout.elements.textPanel,
+          diagramPanel: currentLayout.elements.diagramPanel
+        }
+      };
+    } else {
+      // Create new overlay layout with book's aspect ratio
+      return {
+        type: 'overlay',
+        canvas: {
+          width: canvasDimensions.width,
+          height: canvasDimensions.height,
+          aspectRatio: bookAspectRatio
+        },
+        elements: {
+          image: { x: 0, y: 0, width: canvasDimensions.width, height: canvasDimensions.height, zIndex: 1 },
+          textPanel: { 
+            x: Math.round(canvasDimensions.width * 0.05),
+            y: Math.round(canvasDimensions.height * 0.78),
+            width: Math.round(canvasDimensions.width * 0.9),
+            height: Math.round(canvasDimensions.height * 0.17),
+            zIndex: 2
+          },
+          diagramPanel: {
+            x: Math.round(canvasDimensions.width * 0.05),
+            y: Math.round(canvasDimensions.height * 0.05),
+            width: Math.round(canvasDimensions.width * 0.6),
+            height: Math.round(canvasDimensions.height * 0.4),
+            zIndex: 3
+          }
+        }
+      };
+    }
+  };
+  
+  const [layout, setLayout] = useState<SceneLayout>(getInitialLayout());
   const [selectedElement, setSelectedElement] = useState<ElementType | null>(null);
   const [dragging, setDragging] = useState<DraggingState | null>(null);
   const [resizing, setResizing] = useState<ResizingState | null>(null);
@@ -101,16 +176,59 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
   const scale = PREVIEW_WIDTH / layout.canvas.width;
   const previewHeight = layout.canvas.height * scale;
 
+  // Update layout when currentLayout or bookAspectRatio changes
   useEffect(() => {
-    if (currentLayout) {
-      setLayout(currentLayout);
-    }
-  }, [currentLayout]);
+    setLayout(getInitialLayout());
+  }, [currentLayout, bookAspectRatio]);
 
   const applyPreset = (presetName: string) => {
     const preset = PRESET_LAYOUTS[presetName];
     if (preset) {
-      setLayout(JSON.parse(JSON.stringify(preset))); // Deep copy
+      // Deep copy preset and adapt to book's aspect ratio
+      const adaptedPreset = JSON.parse(JSON.stringify(preset)) as SceneLayout;
+      adaptedPreset.canvas = {
+        width: canvasDimensions.width,
+        height: canvasDimensions.height,
+        aspectRatio: bookAspectRatio
+      };
+      
+      // Scale all element positions and sizes proportionally
+      const scaleX = canvasDimensions.width / preset.canvas.width;
+      const scaleY = canvasDimensions.height / preset.canvas.height;
+      
+      if (adaptedPreset.elements.image) {
+        adaptedPreset.elements.image = {
+          x: 0,
+          y: 0,
+          width: canvasDimensions.width,
+          height: canvasDimensions.height,
+          zIndex: 1
+        };
+      }
+      
+      if (adaptedPreset.elements.textPanel) {
+        const tp = preset.elements.textPanel!;
+        adaptedPreset.elements.textPanel = {
+          x: Math.round(tp.x * scaleX),
+          y: Math.round(tp.y * scaleY),
+          width: Math.round(tp.width * scaleX),
+          height: Math.round(tp.height * scaleY),
+          zIndex: tp.zIndex
+        };
+      }
+      
+      if (adaptedPreset.elements.diagramPanel) {
+        const dp = preset.elements.diagramPanel!;
+        adaptedPreset.elements.diagramPanel = {
+          x: Math.round(dp.x * scaleX),
+          y: Math.round(dp.y * scaleY),
+          width: Math.round(dp.width * scaleX),
+          height: Math.round(dp.height * scaleY),
+          zIndex: dp.zIndex
+        };
+      }
+      
+      setLayout(adaptedPreset);
       setSelectedElement(null);
     }
   };
@@ -352,53 +470,38 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
               <Typography variant="h6" gutterBottom>
                 Canvas Settings
               </Typography>
-              <TextField
-                label="Width"
-                type="number"
-                value={layout.canvas.width}
-                onChange={(e) =>
-                  setLayout(prev => ({
-                    ...prev,
-                    canvas: { ...prev.canvas, width: parseInt(e.target.value) || 1920 }
-                  }))
-                }
-                fullWidth
-                margin="dense"
-                size="small"
-              />
-              <TextField
-                label="Height"
-                type="number"
-                value={layout.canvas.height}
-                onChange={(e) =>
-                  setLayout(prev => ({
-                    ...prev,
-                    canvas: { ...prev.canvas, height: parseInt(e.target.value) || 1080 }
-                  }))
-                }
-                fullWidth
-                margin="dense"
-                size="small"
-              />
-              <FormControl fullWidth margin="dense" size="small">
-                <InputLabel>Aspect Ratio</InputLabel>
-                <Select
-                  value={layout.canvas.aspectRatio}
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Canvas dimensions are set by the book's aspect ratio and cannot be changed here.
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                <TextField
+                  label="Width"
+                  value={layout.canvas.width}
+                  fullWidth
+                  margin="dense"
+                  size="small"
+                  disabled
+                  InputProps={{ readOnly: true }}
+                />
+                <TextField
+                  label="Height"
+                  value={layout.canvas.height}
+                  fullWidth
+                  margin="dense"
+                  size="small"
+                  disabled
+                  InputProps={{ readOnly: true }}
+                />
+                <TextField
                   label="Aspect Ratio"
-                  onChange={(e) =>
-                    setLayout(prev => ({
-                      ...prev,
-                      canvas: { ...prev.canvas, aspectRatio: e.target.value }
-                    }))
-                  }
-                >
-                  <MenuItem value="16:9">16:9 (Landscape)</MenuItem>
-                  <MenuItem value="9:16">9:16 (Portrait)</MenuItem>
-                  <MenuItem value="3:4">3:4 (Standard)</MenuItem>
-                  <MenuItem value="21:9">21:9 (Ultra-wide)</MenuItem>
-                  <MenuItem value="1:1">1:1 (Square)</MenuItem>
-                </Select>
-              </FormControl>
+                  value={layout.canvas.aspectRatio}
+                  fullWidth
+                  margin="dense"
+                  size="small"
+                  disabled
+                  InputProps={{ readOnly: true }}
+                />
+              </Box>
 
               <Divider sx={{ my: 2 }} />
 

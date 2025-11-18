@@ -106,6 +106,11 @@ export class BookCache {
           }));
         }
         
+        // Preserve layout field if present
+        if (sceneData.layout) {
+          console.log(`📐 Scene "${sceneData.title}" has layout:`, sceneData.layout.type);
+        }
+        
         return new Scene(sceneData);
       }) : [];
       
@@ -205,6 +210,7 @@ export class BookCache {
           description: scene.description,
           textPanel: scene.textPanel,
           diagramPanel: scene.diagramPanel,
+          layout: scene.layout, // Custom layout configuration
           characters: scene.characters,
           elements: scene.elements,
           imageHistory: scene.imageHistory,

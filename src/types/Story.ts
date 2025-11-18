@@ -152,4 +152,7 @@ export const WHITEBOARD_DIAGRAM_STYLE: DiagramStyle = {
 };
 
 // Current version of the data structure
-export const CURRENT_VERSION = '3.0.0'; 
+export const CURRENT_VERSION = '3.0.0';
+
+// Explicit re-exports to ensure module resolution
+export type { LayoutElement, SceneLayout }; 

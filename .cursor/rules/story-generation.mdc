@@ -1,0 +1,393 @@
+# Story Generation Rule for Code Academy
+
+## Purpose
+Generate whimsical, educational JSON story files for the Code Academy application that teach programming concepts through narrative, Dr. Seuss-style rhymes, and Python code examples.
+
+## Rule Name
+`story-generation`
+
+## When to Apply
+Use this rule when creating new educational stories for the Code Academy that:
+- Teach a specific programming or computer science concept
+- Feature a professor character teaching students
+- Include step-by-step progression through a topic
+- Combine narrative descriptions, rhyming stanzas, and code examples
+- Need to be importable into the Story Prompter application
+
+## Required User Input
+
+Before generating a story, gather the following information from the user:
+
+### 1. Professor Information
+- **Name**: Who is the professor teaching this topic?
+- **Description**: Full character description including:
+  - Physical appearance
+  - Clothing and accessories
+  - Mannerisms and gestures
+  - Teaching style
+  - Props or tools they carry
+- **Teaching Personality**: Energetic, calm, theatrical, methodical, etc.
+
+### 2. Topic Information
+- **Topic Name**: What concept is being taught? (e.g., "Bubble Sort", "Binary Trees", "Recursion")
+- **Key Concepts**: List of specific sub-topics to cover
+- **Complexity Level**: Beginner, intermediate, or advanced
+- **Prerequisites**: What students should know before this topic
+
+### 3. Teaching Approach
+- **Visual Metaphor**: What physical metaphor will represent the concept? (e.g., bubbles rising, cards being inserted, trees branching)
+- **Teaching Style**: Step-by-step, hands-on demonstration, comparison-based, etc.
+- **Examples to Use**: Specific data sets, arrays, or examples to demonstrate (e.g., [64, 34, 25, 12, 22])
+- **Learning Objectives**: What should students understand by the end?
+
+### 4. Story Specifications
+- **Number of Scenes**: Recommended 8-12 scenes for complete coverage
+- **Scene Breakdown**: Optional list of specific scenes/topics to cover
+
+## JSON Story Structure Template
+
+### Top-Level Structure
+```json
+{
+  "story": {
+    "title": "[Topic]: [Catchy Subtitle]",
+    "backgroundSetup": "[Classroom description]. IMPORTANT: All characters ([Professor name] and students) should be positioned in the BOTTOM HALF of the image, with the code panels, stage elements, and visual demonstrations in the top half.",
+    "description": "A whimsical introduction to [topic] through [metaphor]"
+  },
+  "characters": [],
+  "elements": [],
+  "scenes": []
+}
+```
+
+### Character Structure
+
+#### Professor Character
+```json
+{
+  "name": "[Professor Name from user input]",
+  "description": "[Full description from user input]"
+}
+```
+
+#### Standard Student Characters (ALWAYS INCLUDE ALL FOUR)
+```json
+{
+  "name": "Student Eager Noodler",
+  "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes."
+},
+{
+  "name": "student Thoughtful Giggler",
+  "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet."
+},
+{
+  "name": "Student Zippy Zapper",
+  "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'"
+},
+{
+  "name": "Student Quiet observer",
+  "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook."
+}
+```
+
+### Element Structure
+
+Create 3-5 thematic elements per story:
+
+```json
+{
+  "name": "[Element Name]",
+  "description": "[Detailed description of the element and its function]",
+  "category": "Rooms" | "Set Pieces" | "Machinery"
+}
+```
+
+**Element Categories:**
+- **Rooms** (1 per story): Main classroom or teaching space
+- **Set Pieces** (2-3 per story): Physical platforms, stages, tables where concepts are demonstrated
+- **Machinery** (1-2 per story): Tracking devices, interactive teaching tools
+
+**Element Naming Examples:**
+- Rooms: "The Sorting Studio", "The Card Hall", "The Divide Hall", "The Partition Arena"
+- Set Pieces: "Number Platform", "Merge Bridge", "Pivot Pedestal", "Sorting Table"
+- Machinery: "Recursion Tracker", "Speed-O-Meter", "Pass Counter", "Comparison Counter"
+
+### Scene Structure
+
+```json
+{
+  "title": "[Scene Title - 3-6 words]",
+  "description": "[Detailed scene description: 3-5 sentences describing what's happening, professor actions, student reactions, visual elements]",
+  "textPanel": "[Dr. Seuss-style rhyming stanzas]",
+  "diagramPanel": {
+    "type": "code",
+    "content": "[Python code with educational comments]",
+    "language": "python",
+    "style": {
+      "boardStyle": "blackboard",
+      "position": "top-center",
+      "widthPercentage": 60-70,
+      "heightPercentage": 20-40,
+      "autoScale": true,
+      "backgroundColor": "#2d3748",
+      "foregroundColor": "#ffffff",
+      "borderColor": "#8b7355",
+      "borderWidth": 3,
+      "padding": 15,
+      "fontSize": 14-18,
+      "gutterTop": 20,
+      "gutterBottom": 0,
+      "gutterLeft": 0,
+      "gutterRight": 0
+    }
+  },
+  "characters": ["[Professor Name]", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+  "elements": ["[Relevant Element 1]", "[Relevant Element 2]", "..."]
+}
+```
+
+## Content Standards and Requirements
+
+### Scene Description Standards
+- **Length**: 3-5 sentences per scene
+- **Content**: Describe physical actions, visual elements, and reactions
+- **Professor Actions**: Include specific gestures, movements, demonstrations
+- **Student Reactions**: Reference student characteristics (antennae twitching, giggling, zinging, observing)
+- **Visual Elements**: Mention glowing, lighting up, moving, changing colors
+- **Tone**: Whimsical, magical, engaging, educational
+
+### Text Panel (Rhyming Stanzas) Standards
+- **Format**: Dr. Seuss-style rhyming poetry
+- **Length**: MAXIMUM 2 stanzas = 8 lines total
+- **Stanza Structure**: 4 lines per stanza
+- **Rhyme Scheme**: AABB or ABAB
+- **Content**: Explain the concept being taught in the scene
+- **Tone**: Whimsical, rhythmic, memorable, educational
+- **References**: Can mention visual elements, professor actions, or student reactions
+
+**CRITICAL RULE**: NEVER include three stanzas (12 lines). Maximum is 2 stanzas (8 lines).
+
+### Diagram Panel (Code) Standards
+- **Language**: Always use Python
+- **Format**: Clean, educational code with comments
+- **Comments**: Explain what the code does, NOT character actions
+- **Character References**: NEVER include character names in code or comments
+- **Content**: Show progression from simple to complex across scenes
+- **Examples**: Use realistic, practical examples
+- **Length**: Keep focused on one concept per scene
+
+**CRITICAL RULE**: NO character names or references in code comments. Use only technical explanations.
+
+### Background Setup Standards
+- **Content**: Description of the classroom setting and theme
+- **Length**: 4-6 sentences
+- **Theme**: Should relate metaphorically to the topic
+- **Professor Reference**: Mention professor name and teaching style
+- **Positioning Instruction**: MUST include: "IMPORTANT: All characters ([Professor name] and students) should be positioned in the BOTTOM HALF of the image, with the code panels, stage elements, and visual demonstrations in the top half."
+
+## Recommended Story Arc (10-12 scenes)
+
+### Scene Progression Pattern
+1. **Welcome/Introduction**
+   - Professor welcomes students
+   - Introduce topic and visual metaphor
+   - Show initial unsorted/unprocessed data
+   - Set learning goals
+
+2. **Basic Concept** (1-2 scenes)
+   - Explain fundamental idea
+   - Simple example
+   - First demonstration
+
+3. **Step-by-Step Process** (3-5 scenes)
+   - Break down the algorithm/concept
+   - Show each step in action
+   - Build complexity gradually
+   - Include student participation moments
+
+4. **Complete Algorithm** (1 scene)
+   - Show full code implementation
+   - Trace through complete example
+   - Consolidate understanding
+
+5. **Analysis/Complexity** (1-2 scenes)
+   - Discuss performance (time/space complexity)
+   - Show best/worst cases
+   - Explain trade-offs
+
+6. **Practical Applications** (1 scene)
+   - When to use this concept
+   - Real-world scenarios
+   - Comparison with alternatives
+
+7. **Summary/Celebration** (1 scene)
+   - Review key points
+   - Celebrate learning
+   - Connect all concepts
+   - MAXIMUM 2 stanzas (8 lines)
+
+## Quality Assurance Checklist
+
+### Technical Verification
+- [ ] JSON is valid and properly formatted
+- [ ] All Python code is syntactically correct
+- [ ] All character names are spelled consistently
+- [ ] All element references in scenes exist in elements array
+- [ ] Professor character matches user's description
+- [ ] Background setup includes positioning instruction
+
+### Educational Content
+- [ ] Concepts build logically from simple to complex
+- [ ] Each scene has a clear learning objective
+- [ ] Code examples are practical and correct
+- [ ] Visual metaphor is consistent throughout
+- [ ] All four standard students are included
+- [ ] Professor's teaching style is consistent
+
+### Story Quality
+- [ ] Rhyming stanzas follow AABB or ABAB pattern
+- [ ] NO scenes have three stanzas (maximum 2 stanzas = 8 lines)
+- [ ] Scene descriptions are vivid and engaging
+- [ ] Student reactions are character-appropriate
+- [ ] Whimsical tone is maintained throughout
+- [ ] NO character names in code comments
+
+### Format Compliance
+- [ ] Title follows "[Topic]: [Subtitle]" pattern
+- [ ] All scenes include all required fields
+- [ ] Diagram panel widthPercentage is 60-70
+- [ ] Diagram panel heightPercentage is 20-40
+- [ ] Font sizes are between 14-18
+- [ ] File naming follows `[topic_name].json` convention
+
+## Output Specifications
+
+### File Naming
+- **Format**: `[topic_name].json`
+- **Convention**: Lowercase with underscores
+- **Examples**: `bubble_sort.json`, `binary_trees.json`, `recursion_basics.json`
+
+### File Location
+- **Directory**: `/stories/`
+- **Full Path**: `/Users/juancho/src/prompter/stories/[topic_name].json`
+
+### File Structure
+- **Encoding**: UTF-8
+- **Indentation**: 2 spaces
+- **Line Endings**: Unix (LF)
+- **Trailing Newline**: Yes
+
+## Example Story References
+
+### Successful Story Examples
+- `bubble_sort.json` - Dancing numbers with bubble metaphor
+- `insertion_sort.json` - Card sorting metaphor
+- `merge_sort.json` - Divide and conquer with multi-level stage
+- `quick_sort.json` - Pivot and partition with arena setting
+- `boolean_if_else.json` - Decision pathways for conditionals
+
+### Key Success Patterns
+- Strong visual metaphor (bubbles, cards, levels, pathways)
+- Consistent professor personality throughout
+- Clear progression from simple to complex
+- Engaging student reactions that reinforce concepts
+- Clean Python code without character clutter
+- Maximum 2 stanzas per scene (8 lines)
+
+## Anti-Patterns to Avoid
+
+### Content Anti-Patterns
+- ❌ Three stanzas in a scene (12 lines)
+- ❌ Character names in code comments
+- ❌ Inconsistent professor personality
+- ❌ Missing standard students
+- ❌ Scenes without clear learning objectives
+- ❌ Overly complex code examples for early scenes
+- ❌ Breaking visual metaphor consistency
+
+### Format Anti-Patterns
+- ❌ Invalid JSON syntax
+- ❌ Missing positioning instruction in backgroundSetup
+- ❌ Inconsistent element naming
+- ❌ Diagram panel height > 40%
+- ❌ Font sizes outside 14-18 range
+- ❌ Missing professor in character list
+
+### Educational Anti-Patterns
+- ❌ Skipping prerequisite concepts
+- ❌ Jumping difficulty levels too quickly
+- ❌ Insufficient explanation in rhymes
+- ❌ Code without educational value
+- ❌ Missing real-world applications
+
+## Workflow Process
+
+### Step 1: Information Gathering
+1. Ask user about professor (name, description, style)
+2. Ask about topic (name, concepts, complexity)
+3. Ask about teaching approach (metaphor, examples)
+4. Ask about specifications (number of scenes, specific topics)
+
+### Step 2: Planning
+1. Design visual metaphor for the topic
+2. Create thematic classroom and elements
+3. Outline scene progression (8-12 scenes)
+4. Identify key code examples needed
+
+### Step 3: Generation
+1. Create story structure (title, background, description)
+2. Define professor and student characters
+3. Create themed elements (room, set pieces, machinery)
+4. Generate each scene with:
+   - Descriptive title
+   - Detailed description
+   - Rhyming stanzas (max 2 stanzas)
+   - Python code example
+   - Character and element lists
+
+### Step 4: Quality Check
+1. Verify JSON validity
+2. Check all code is correct Python
+3. Ensure no three-stanza scenes
+4. Verify no character names in code
+5. Confirm positioning instruction present
+6. Review educational progression
+
+### Step 5: Output
+1. Save as `[topic_name].json` in `/stories/` directory
+2. Confirm file is importable into application
+
+## Maintenance and Updates
+
+### When to Update Stories
+- Python syntax changes
+- Educational approach improvements
+- User feedback on clarity
+- Visual metaphor enhancements
+- Bug fixes in code examples
+
+### Version Control
+- Track changes to story files
+- Document major concept revisions
+- Maintain consistent style across updates
+
+## Related Components
+
+### Application Integration
+- Stories are imported via "Import Story Bundle" feature
+- Characters are added at book level
+- Scenes become individual pages with image generation
+- Code panels appear as overlays on generated images
+- Text panels appear at bottom of images
+
+### Image Generation Context
+- Professor and students positioned in bottom half
+- Code panels in top half
+- Visual elements (platforms, machines) in middle
+- Diagram style uses blackboard theme
+- Aspect ratio typically 3:4
+
+## Version History
+- v1.0: Initial rule creation based on sorting algorithm stories
+- Created: November 2024
+- Last Updated: November 2024

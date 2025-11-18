@@ -1,0 +1,559 @@
+{
+  "story": {
+    "title": "Merge Sort: Divide and Conquer",
+    "backgroundSetup": "The Divide Hall, a magical classroom where arrays split and recombine in elegant harmony. The room features a grand stage with multiple levels - arrays split apart as they descend the levels, reaching individual elements at the bottom, then merge back together as they ascend. Glowing merge bridges connect sorted sections, and the walls display recursive call trees that light up as the algorithm progresses. A giant visualization shows how divide-and-conquer conquers complexity. Professor Richard teaches here, conducting the recursive dance with dramatic flair. IMPORTANT: All characters (Professor Richard and students) should be positioned in the BOTTOM HALF of the image, with the code panels, stage elements, and visual demonstrations in the top half.",
+    "description": "A whimsical introduction to merge sort through recursive division and merging"
+  },
+  "characters": [
+    {
+      "name": "Professor Richard",
+      "description": "An energetic, theatrical professor with wild, Einstein-like hair that bounces as he moves. He wears a vest covered in ascending number sequences and carries a conductor's baton that he waves to orchestrate the sorting dance. His bow tie spins when numbers swap correctly, and his shoes squeak in rhythm with the comparisons. He has a booming, encouraging voice and gestures grandly to emphasize each step of the algorithm. His pockets are filled with colored markers to draw swap arrows, and he often snaps his fingers to mark the beat of the sorting rhythm."
+    },
+    {
+      "name": "Student Eager Noodler",
+      "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes."
+    },
+    {
+      "name": "student Thoughtful Giggler",
+      "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet."
+    },
+    {
+      "name": "Student Zippy Zapper",
+      "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'"
+    },
+    {
+      "name": "Student Quiet observer",
+      "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook."
+    }
+  ],
+  "elements": [
+    {
+      "name": "Divide Hall Classroom",
+      "description": "A magnificent classroom with a multi-level stage. Arrays float at the top, split as they descend through levels, reach individual elements at the bottom, then merge as they ascend. Each level glows with a different color representing recursion depth. The walls display animated trees showing the divide and merge process.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Split Platform",
+      "description": "A magical platform that splits arrays down the middle. When an array lands on it, it divides into two equal (or nearly equal) halves that float to separate platforms below. The split happens with a satisfying 'snap' sound and a flash of light.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Merge Bridge",
+      "description": "A glowing bridge that connects two sorted sections. Elements from both sections walk across the bridge in order, comparing themselves and merging into a single sorted array. The bridge changes color based on which side the next element comes from.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Recursion Tracker",
+      "description": "A large display showing the current recursion depth and which recursive calls are active. It visualizes the call stack as a tree, with branches lighting up as the algorithm divides and dims as it merges back up.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Comparison Counter",
+      "description": "A display that tracks the number of comparisons and merges performed. It shows how merge sort achieves O(n log n) efficiency by doing less work than O(n²) algorithms.",
+      "category": "Machinery"
+    }
+  ],
+  "scenes": [
+    {
+      "title": "Welcome to Divide and Conquer",
+      "description": "Professor Richard stands before the multi-level stage of the Divide Hall, gesturing grandly at an array [38, 27, 43, 3, 9, 82, 10] floating at the top level. The students sit in an arc, notebooks ready. The Recursion Tracker displays the initial call. Professor Richard's bow tie is already spinning with anticipation of demonstrating the elegant merge sort algorithm.",
+      "textPanel": "Welcome, students, to a sort so grand,\nDivide and conquer - isn't it grand?\nWe'll split arrays, then merge them back,\nMerge sort keeps the whole attack!\n\nLike breaking puzzles into tiny parts,\nThen putting them together - that's the art!\nRecursion is the key you'll see,\nWatch the magic, one, two, three!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Merge sort: divide and conquer algorithm\narr = [38, 27, 43, 3, 9, 82, 10]\nprint(f\"Starting array: {arr}\")\n\n# We'll recursively divide, then merge\n# Time: O(n log n) - much faster than O(n²)!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 60,
+          "heightPercentage": 22,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 18,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Divide Hall Classroom",
+        "Split Platform",
+        "Recursion Tracker"
+      ]
+    },
+    {
+      "title": "The Divide Step",
+      "description": "The array [38, 27, 43, 3, 9, 82, 10] lands on the Split Platform, which glows brightly. With a dramatic snap, it splits into [38, 27, 43, 3] and [9, 82, 10]. Both halves float to the level below. Professor Richard explains that we keep dividing until we reach arrays of size 1. The Recursion Tracker shows the array branching into two recursive calls. Student Eager Noodler's antennae twitch with excitement.",
+      "textPanel": "Step one: divide, split in two,\nHalf and half - that's what we do!\nKeep on splitting, don't you see,\nTill each piece is just one lonely three!\n\nWell, one element, to be clear,\nThat's the base case drawing near!\nAn array of one is sorted, true,\nThen we merge - that's step two!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "def merge_sort(arr):\n    # Base case: array of 1 element is sorted\n    if len(arr) <= 1:\n        return arr\n    \n    # Divide: find the middle\n    mid = len(arr) // 2\n    left = arr[:mid]    # Left half\n    right = arr[mid:]   # Right half\n    \n    print(f\"Dividing {arr}\")\n    print(f\"  Left: {left}\")\n    print(f\"  Right: {right}\")\n    \n    # Recursively sort both halves (we'll see this!)\n    # Then merge them back together",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Divide Hall Classroom",
+        "Split Platform",
+        "Recursion Tracker"
+      ]
+    },
+    {
+      "title": "Continuing the Division",
+      "description": "The division continues! [38, 27, 43, 3] splits into [38, 27] and [43, 3]. Then [9, 82, 10] splits into [9, 82] and [10]. The Recursion Tracker shows the tree growing deeper, now at level 2. Professor Richard moves his baton to show each split. The students watch as the arrays cascade down through the levels, getting smaller and smaller. Student Zippy Zapper zings at each split.",
+      "textPanel": "Split again, and yet again,\nDivide and conquer - count to ten!\nTwo becomes one, four becomes two,\nWatch the recursion coming through!\n\nDeeper, deeper down we go,\nTill single elements steal the show!\nThen we'll climb back up with care,\nMerging sorted pieces everywhere!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# First division:\narr = [38, 27, 43, 3, 9, 82, 10]\nleft = [38, 27, 43, 3]\nright = [9, 82, 10]\n\n# Second division (left side):\nleft_left = [38, 27]\nleft_right = [43, 3]\n\n# Second division (right side):\nright_left = [9, 82]\nright_right = [10]\n\n# Keep dividing until we reach size 1!\n# Next: [38] [27] [43] [3] [9] [82] [10]\n# Each of these is sorted (base case)!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Divide Hall Classroom",
+        "Split Platform",
+        "Recursion Tracker"
+      ]
+    },
+    {
+      "title": "The Base Case",
+      "description": "Finally, we reach the bottom! Seven individual elements sit on the lowest level: [38], [27], [43], [3], [9], [82], [10]. Each one glows gold - they are all 'sorted' because an array of one element is always sorted. Professor Richard dramatically points out that this is the base case of the recursion. The Recursion Tracker shows all the leaf nodes lit up. Now the merging can begin! The students lean forward in anticipation.",
+      "textPanel": "At the bottom, what do we find?\nSingle elements, one of a kind!\nEach one sorted, that's for sure,\nThe base case is the cure!\n\nNow we merge, climbing back up,\nFilling each sorted cup!\nTwo by two, they'll combine,\nIn perfect order, so divine!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Base case reached!\narray_of_one = [38]\nprint(f\"Base case: {array_of_one} - already sorted!\")\n\n# All single elements are sorted:\n# [38] ✓  [27] ✓  [43] ✓  [3] ✓\n# [9] ✓   [82] ✓  [10] ✓\n\n# Now we merge pairs:\n# [38] + [27] → merge to [27, 38]\n# [43] + [3]  → merge to [3, 43]\n# [9] + [82]  → merge to [9, 82]\n# [10] stays [10]\n\n# Then merge these sorted pairs!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 28,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Divide Hall Classroom",
+        "Recursion Tracker"
+      ]
+    },
+    {
+      "title": "The Merge Process",
+      "description": "A Merge Bridge appears connecting [38] and [27]. Professor Richard demonstrates the merge: compare 38 and 27, take the smaller (27) first, then take 38. The result is [27, 38], which rises to the level above. Similarly, [43] and [3] merge to [3, 43], and [9] and [82] merge to [9, 82]. The students watch as the merging creates sorted pairs. Student Quiet observer sketches the merge process carefully.",
+      "textPanel": "Merge time! Compare and choose,\nSmallest first - we cannot lose!\nTwenty-seven before thirty-eight,\nBoth together, sorted straight!\n\nThree and forty-three unite,\nThree goes first - that feels right!\nNine and eighty-two stand tall,\nAlready sorted, that's all!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "def merge(left, right):\n    result = []\n    i = j = 0\n    \n    # Compare elements and merge\n    while i < len(left) and j < len(right):\n        if left[i] <= right[j]:\n            result.append(left[i])\n            i += 1\n        else:\n            result.append(right[j])\n            j += 1\n    \n    # Add remaining elements\n    result.extend(left[i:])\n    result.extend(right[j:])\n    return result\n\n# Example: merge([38], [27]) → [27, 38]",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 32,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Divide Hall Classroom",
+        "Merge Bridge",
+        "Comparison Counter"
+      ]
+    },
+    {
+      "title": "Merging Larger Sections",
+      "description": "Now we merge the sorted pairs! [27, 38] and [3, 43] meet on a Merge Bridge. Professor Richard shows the process: compare 27 and 3 (take 3), compare 27 and 43 (take 27), compare 38 and 43 (take 38), take 43. Result: [3, 27, 38, 43]. On the right side, [9, 82] and [10] merge to [9, 10, 82]. Both merged sections rise to a higher level. The Recursion Tracker shows the tree collapsing back up.",
+      "textPanel": "Bigger merges, more to sort,\nCompare and pick, the merge report!\nThree, then twenty-seven goes,\nThirty-eight, and forty-three flows!\n\nOn the right, nine, ten, eighty-two,\nMerged together, sorted through!\nClimbing up the levels high,\nNearly done - oh me, oh my!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Merge sorted pairs into sorted groups of 4\nleft = [27, 38]   # Already sorted\nright = [3, 43]   # Already sorted\n\n# Merge process:\n# Compare 27 vs 3   → take 3   → [3]\n# Compare 27 vs 43  → take 27  → [3, 27]\n# Compare 38 vs 43  → take 38  → [3, 27, 38]\n# Only 43 left     → take 43  → [3, 27, 38, 43]\n\nmerged_left = [3, 27, 38, 43]\n\n# Right side:\nmerged_right = [9, 10, 82]  # From [9, 82] + [10]\n\n# Next: merge these two!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Divide Hall Classroom",
+        "Merge Bridge",
+        "Comparison Counter",
+        "Recursion Tracker"
+      ]
+    },
+    {
+      "title": "The Final Merge",
+      "description": "The grand finale! [3, 27, 38, 43] and [9, 10, 82] meet on the largest Merge Bridge at the top level. Professor Richard conducts the final merge like a symphony: 3, 9, 10, 27, 38, 43, 82. The fully sorted array floats triumphantly at the top: [3, 9, 10, 27, 38, 43, 82]. Confetti explodes! The Recursion Tracker shows the complete tree, all lit up. All students cheer! Professor Richard's bow tie spins so fast it becomes a blur!",
+      "textPanel": "Final merge, the last act here,\nCompare and choose without fear!\nThree, then nine, then ten come through,\nTwenty-seven follows too!\n\nThirty-eight, then forty-three,\nEighty-two completes the spree!\nAll sorted now, from small to great,\nMerge sort's done - isn't it great?",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Final merge!\nleft = [3, 27, 38, 43]\nright = [9, 10, 82]\n\n# Step by step:\n# 3 vs 9   → [3]\n# 27 vs 9  → [3, 9]\n# 27 vs 10 → [3, 9, 10]\n# 27 vs 82 → [3, 9, 10, 27]\n# 38 vs 82 → [3, 9, 10, 27, 38]\n# 43 vs 82 → [3, 9, 10, 27, 38, 43]\n# Take 82  → [3, 9, 10, 27, 38, 43, 82]\n\nresult = [3, 9, 10, 27, 38, 43, 82]\nprint(f\"✓ Sorted! {result}\")",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Divide Hall Classroom",
+        "Merge Bridge",
+        "Recursion Tracker"
+      ]
+    },
+    {
+      "title": "The Complete Algorithm",
+      "description": "Professor Richard reveals the complete merge sort code, showing both the recursive splitting and the merging function. He traces through it with his baton, showing how the recursion handles the divide step and the merge function combines sorted halves. The students study the elegant simplicity of the code - just a few lines accomplish so much! Student Eager Noodler's antennae are fully extended, absorbing every detail.",
+      "textPanel": "Here's the code, complete and whole,\nRecursion plays the starring role!\nDivide in half, recurse on each,\nThen merge them back - easy to teach!\n\nBase case stops the recursion's call,\nOne element arrays, that's all!\nMerge function does the heavy lifting,\nComparing, choosing, constantly shifting!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "def merge_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    \n    mid = len(arr) // 2\n    left = merge_sort(arr[:mid])   # Recursive!\n    right = merge_sort(arr[mid:])  # Recursive!\n    return merge(left, right)\n\ndef merge(left, right):\n    result = []\n    i = j = 0\n    while i < len(left) and j < len(right):\n        if left[i] <= right[j]:\n            result.append(left[i])\n            i += 1\n        else:\n            result.append(right[j])\n            j += 1\n    result.extend(left[i:])\n    result.extend(right[j:])\n    return result",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 40,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Divide Hall Classroom"
+      ]
+    },
+    {
+      "title": "Why O(n log n)?",
+      "description": "Professor Richard draws a tree diagram showing the recursion levels. He explains: log n levels (because we halve each time), and n comparisons at each level (to merge all elements). Log n × n = n log n! The Comparison Counter displays the formula. The students see how this is much better than n² algorithms. Student Quiet observer calculates the difference for various array sizes in their notebook, eyes widening at the savings.",
+      "textPanel": "Why so fast? Let me explain,\nO of N log N - what a gain!\nLog N levels, as we divide,\nN work at each level, side by side!\n\nMultiply them, what do we get?\nN log N - the best one yet!\nFor big arrays, this is key,\nMuch faster than N squared, you see!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Time Complexity: O(n log n)\n\n# How many times can we divide n by 2?\n# log₂(n) times!\n\nimport math\nn = 8\nlevels = math.log2(n)  # 3 levels\nprint(f\"Array of {n} needs {levels} division levels\")\n\n# At each level, we do n comparisons total\n# Level 0: n comparisons to merge all\n# Level 1: n comparisons across all merges\n# Level 2: n comparisons across all merges\n# ...\n\n# Total: log(n) levels × n comparisons = O(n log n)\n\n# Much better than O(n²)!\n# n=1000: n²=1,000,000 vs n log n ≈ 10,000",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Divide Hall Classroom",
+        "Comparison Counter",
+        "Recursion Tracker"
+      ]
+    },
+    {
+      "title": "The Trade-off: Space Complexity",
+      "description": "Professor Richard shows the downside: merge sort needs extra space for the temporary arrays during merging. He demonstrates how each merge creates new arrays rather than sorting in-place. The stage shows multiple levels with arrays at each level, illustrating the O(n) space usage. The students understand the trade-off: faster sorting but more memory. Student Thoughtful Giggler giggles at the balance between time and space.",
+      "textPanel": "But wait, there's more to understand,\nMerge sort needs extra space on hand!\nEach merge creates arrays new,\nO of N space - that's the clue!\n\nNot in-place like insertion sort,\nMemory's the price for this report!\nBut for speed, it's worth the cost,\nWhen time is precious, nothing's lost!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Space Complexity: O(n)\n\n# Merge sort needs temporary arrays\narr = [5, 2, 8, 1]\n\n# During merge, we create new arrays:\nleft = [5, 2]      # Space for left half\nright = [8, 1]     # Space for right half\nresult = []        # Space for merged result\n\n# At each recursion level, we need space\n# Maximum space: O(n) for the temporary arrays\n\n# Trade-off:\n# ✓ Time: O(n log n) - very fast!\n# ✗ Space: O(n) - extra memory needed\n\n# Compare to:\n# - Insertion/Bubble: O(n²) time, O(1) space\n# - Merge: O(n log n) time, O(n) space",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Divide Hall Classroom"
+      ]
+    },
+    {
+      "title": "Stability: A Bonus Feature",
+      "description": "Professor Richard demonstrates that merge sort is stable - equal elements maintain their relative order. He shows an array with duplicate values and colors them differently. After sorting, the duplicates retain their original order. This matters when sorting complex data! The students see examples with tied scores or equal priorities. Student Zippy Zapper zings with understanding of why stability matters in real applications.",
+      "textPanel": "One more thing that merge sort brings,\nStability - one of the best things!\nEqual elements keep their place,\nRelative order, face to face!\n\nWhen sorting records, this is key,\nMaintain the order naturally!\nFirst come, first stay, if values tie,\nMerge sort's stable - that's no lie!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Merge sort is STABLE\n# Equal elements keep their relative order\n\n# Example with duplicates:\nscores = [(\"Alice\", 85), (\"Bob\", 90), \n          (\"Carol\", 85), (\"Dave\", 90)]\n\n# After sorting by score:\n# (\"Bob\", 90), (\"Dave\", 90),    ← 90s keep order\n# (\"Alice\", 85), (\"Carol\", 85)  ← 85s keep order\n\n# Why stable?\n# During merge, when left[i] == right[j],\n# we take from LEFT first:\nif left[i] <= right[j]:  # <= not <\n    result.append(left[i])\n\n# This preserves original order for equal elements!\n# Important for multi-key sorting!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Divide Hall Classroom"
+      ]
+    },
+    {
+      "title": "When to Use Merge Sort",
+      "description": "Professor Richard creates a comparison chart showing when merge sort excels. Large arrays? Merge sort wins! Need guaranteed O(n log n)? Merge sort delivers! Need stability? Merge sort provides it! Have extra memory? Perfect! The students discuss scenarios. Student Eager Noodler suggests sorting a million students by test scores - Professor Richard confirms merge sort is ideal for that! The chart compares it with other sorting algorithms.",
+      "textPanel": "When to use our merge sort friend?\nWhen big arrays need to blend!\nGuaranteed fast time, that's for sure,\nO of N log N is the cure!\n\nNeed stability? Check, it's there!\nExtra memory? If you can spare!\nLinked lists? Even better still,\nMerge sort has the perfect skill!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# When to use MERGE SORT:\n\n# ✓ Large arrays (n > 1000)\n# ✓ Need guaranteed O(n log n) performance\n# ✓ Stability required\n# ✓ Have O(n) extra space available\n# ✓ Sorting linked lists (no space penalty!)\n# ✓ External sorting (disk-based)\n\n# When NOT to use:\n# ✗ Small arrays (use insertion sort)\n# ✗ Very limited memory (use heap sort)\n# ✗ Need in-place sorting (use quick sort)\n\n# Merge sort vs others:\n# - Always O(n log n), never O(n²)\n# - Stable (unlike quick sort)\n# - Predictable (unlike quick sort worst case)",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Divide Hall Classroom"
+      ]
+    },
+    {
+      "title": "Summary: Divide and Conquer Victory",
+      "description": "Professor Richard stands with all students gathered around as the multi-level stage displays one final, beautiful animation of merge sort in action - arrays dividing down, single elements at the bottom, then merging back up into perfect order. He reviews: divide until size 1, merge sorted halves, O(n log n) time, O(n) space, stable sorting. All students understand the power of divide and conquer. The Recursion Tracker displays the complete tree one last time. Professor Richard's bow tie does a final triumphant spin as confetti falls!",
+      "textPanel": "Now you've learned merge sort complete,\nDivide and conquer - what a feat!\nSplit arrays down, then merge them back,\nO of N log N - on the right track!\n\nRecursion is the secret key,\nStable sorting, can't you see?\nDivide, conquer, merge with grace,\nYou've mastered this algorithmic space!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# MERGE SORT SUMMARY\n# Time: O(n log n) - all cases!\n# Space: O(n) - temporary arrays needed\n# Stable: Yes - maintains relative order\n# Divide and Conquer algorithm\n\ndef merge_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    mid = len(arr) // 2\n    left = merge_sort(arr[:mid])\n    right = merge_sort(arr[mid:])\n    return merge(left, right)\n\n# Perfect for:\n# - Large datasets\n# - When stability matters  \n# - Guaranteed performance\n# - Linked list sorting\n# You've conquered divide and conquer!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 40,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Divide Hall Classroom",
+        "Split Platform",
+        "Merge Bridge",
+        "Recursion Tracker"
+      ]
+    }
+  ]
+}
+

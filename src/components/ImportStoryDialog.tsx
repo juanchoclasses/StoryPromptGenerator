@@ -135,40 +135,71 @@ export const ImportStoryDialog: React.FC<ImportStoryDialogProps> = ({ open, onCl
     setError(null);
 
     try {
-      // Get the active book data
-      const bookData = await BookService.getActiveBookData();
-      if (!bookData) {
-        throw new Error('No active book selected. Please create or select a book first.');
-      }
-      
       const activeBookId = await BookService.getActiveBookId();
       if (!activeBookId) {
         throw new Error('No active book selected');
       }
 
-      // Create characters
-      const characterMap = new Map<string, string>(); // name -> id
-      const characters: Character[] = parsedBundle.characters.map(pc => {
+      // Get the actual Book object to access book-level characters
+      const { StorageService } = await import('../services/StorageService');
+      const book = await StorageService.getBook(activeBookId);
+      if (!book) {
+        throw new Error('No active book selected. Please create or select a book first.');
+      }
+
+      // Get book data for StoryData format (used for saving)
+      const bookData = await BookService.getActiveBookData();
+      if (!bookData) {
+        throw new Error('No active book selected. Please create or select a book first.');
+      }
+
+      // Create characters - add to book level instead of story level
+      const characterMap = new Map<string, string>(); // name -> id (for validation only)
+      
+      // First, add all existing book-level characters to the map
+      const existingBookCharacters = book.characters || [];
+      existingBookCharacters.forEach(char => {
+        characterMap.set(char.name, char.id);
+      });
+      
+      // Then create new characters from the import
+      const newCharacters: Character[] = parsedBundle.characters.map(pc => {
         const char: Character = {
           id: crypto.randomUUID(),
           name: pc.name,
           description: pc.description
         };
+        // Add to map (will overwrite if duplicate, but that's ok - we check by name)
         characterMap.set(pc.name, char.id);
         return char;
       });
+
+      // Only add characters that don't already exist at book level (case-insensitive check)
+      const existingCharacterNames = new Set(
+        existingBookCharacters.map(c => c.name.toLowerCase())
+      );
+      
+      const charactersToAdd = newCharacters.filter(
+        char => !existingCharacterNames.has(char.name.toLowerCase())
+      );
+      
+      console.log(`Import: Found ${existingBookCharacters.length} existing book characters`);
+      console.log(`Import: Adding ${charactersToAdd.length} new characters to book level`);
+      console.log(`Import: Character map has ${characterMap.size} total characters`);
 
       // Create elements
       const elementMap = new Map<string, string>(); // name -> id
       const elements: StoryElement[] = [];
       
-      // If JSON file was uploaded, it might include element definitions
+      // If JSON file was uploaded, read it once for elements and diagramPanels
       let jsonElements: any[] = [];
+      let jsonScenes: any[] = [];
       if (importMode === 'json' && jsonFile) {
         try {
           const content = await MarkdownStoryParser.readFile(jsonFile);
           const jsonData = JSON.parse(content);
           jsonElements = jsonData.elements || [];
+          jsonScenes = jsonData.scenes || [];
         } catch (e) {
           // Ignore if can't read
         }
@@ -240,50 +271,95 @@ export const ImportStoryDialog: React.FC<ImportStoryDialogProps> = ({ open, onCl
         const stanza = parsedBundle.stanzas[index];
         const textPanel = stanza ? stanza.content : '';
         
-        // Map character names to IDs
-        const characterIds = ps.characterNames
-          .map(name => characterMap.get(name))
-          .filter((id): id is string => id !== undefined);
+        // Use character names directly (Scene uses names, not IDs)
+        // Filter to only include characters that exist in the character map
+        const characters = ps.characterNames.filter(name => {
+          const exists = characterMap.has(name);
+          if (!exists) {
+            console.warn(`Import: Scene "${ps.title}" references character "${name}" which is not in character map`);
+          }
+          return exists;
+        });
         
-        // Map element names to IDs
-        const elementIds = ps.elementNames
-          .map(name => elementMap.get(name))
-          .filter((id): id is string => id !== undefined);
+        // Use element names directly (Scene uses names, not IDs)
+        const elements = ps.elementNames.filter(name => elementMap.has(name));
+        
+        console.log(`Import: Scene "${ps.title}" has ${characters.length} characters:`, characters);
+
+        // Extract diagramPanel from JSON if available
+        // Note: diagramPanel.style is stored separately in Story.diagramStyle
+        // but we preserve the full structure for now (style will be extracted to story level if needed)
+        const jsonScene = jsonScenes[index];
+        let diagramPanel: any = undefined;
+        if (jsonScene?.diagramPanel) {
+          // Extract just the DiagramPanel fields (type, content, language)
+          // Style is handled separately at the Story level
+          diagramPanel = {
+            type: jsonScene.diagramPanel.type,
+            content: jsonScene.diagramPanel.content,
+            language: jsonScene.diagramPanel.language
+          };
+        }
 
         const scene: Scene = {
           id: crypto.randomUUID(),
           title: ps.title,
           description: ps.description,
           textPanel: textPanel,
-          characterIds: characterIds,
-          elementIds: elementIds,
+          diagramPanel: diagramPanel,
+          characters: characters,
+          elements: elements,
           createdAt: new Date(),
           updatedAt: new Date()
         };
         return scene;
       });
 
-      // Create the story with its characters and elements
+      // Extract diagramStyle from first scene's diagramPanel.style if available
+      // (diagramStyle is shared at Story level, but JSON may have it per-scene)
+      let diagramStyle: any = undefined;
+      if (jsonScenes.length > 0) {
+        const firstSceneWithStyle = jsonScenes.find((s: any) => s.diagramPanel?.style);
+        if (firstSceneWithStyle?.diagramPanel?.style) {
+          diagramStyle = firstSceneWithStyle.diagramPanel.style;
+        }
+      }
+
+      // Create the story (without characters - they're at book level)
       const story: Story = {
         id: crypto.randomUUID(),
         title: storyTitle.trim(),
         description: undefined,
         backgroundSetup: storyBackgroundSetup.trim() || 'Story background setup',
-        characters: characters, // Characters now belong to the story
-        elements: elements, // Elements now belong to the story
+        characters: [], // Characters are at book level, not story level
+        elements: elements, // Elements remain at story level
         scenes: scenes,
+        diagramStyle: diagramStyle,
         createdAt: new Date(),
         updatedAt: new Date()
       };
 
-      // Add the new story to the existing book
+      // Update the book with new characters and story
+      book.characters = [...existingBookCharacters, ...charactersToAdd]; // Add new characters to book level
+      book.stories.push(story);
+      book.updatedAt = new Date();
+
+      // Debug: Log what we're saving
+      console.log(`Import: Saving story "${story.title}" with ${story.scenes.length} scenes`);
+      story.scenes.forEach((scene, idx) => {
+        console.log(`  Scene ${idx + 1} "${scene.title}": ${scene.characters.length} characters`, scene.characters);
+      });
+      console.log(`Import: Book now has ${book.characters.length} book-level characters:`, book.characters.map(c => c.name));
+
+      // Save the book using StorageService (which handles book-level characters)
+      await StorageService.saveBook(book);
+
+      // Also update bookData for statistics (StoryData format)
       const updatedBookData = {
         ...bookData,
         stories: [...bookData.stories, story],
         lastUpdated: new Date()
       };
-
-      await BookService.saveBookData(activeBookId, updatedBookData);
       await BookService.updateBookStatistics(activeBookId, updatedBookData);
 
       // Success!

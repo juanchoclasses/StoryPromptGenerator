@@ -171,6 +171,22 @@ export async function composeImageWithPanel(
   console.log('Panel (ImageBitmap) size:', panel.width, 'x', panel.height);
   console.log('Panel position:', at.x, ',', at.y);
   
+  // Ensure image is fully decoded before drawing
+  if (baseImg.naturalWidth === 0 || baseImg.naturalHeight === 0) {
+    console.error('⚠️ Base image not loaded! Attempting to decode...');
+    try {
+      await baseImg.decode();
+      console.log('✓ Image decoded:', baseImg.naturalWidth, 'x', baseImg.naturalHeight);
+    } catch (err) {
+      console.error('✗ Failed to decode image:', err);
+      throw new Error('Base image failed to load/decode');
+    }
+  }
+  
+  if (baseImg.naturalWidth === 0 || baseImg.naturalHeight === 0) {
+    throw new Error('Base image has zero dimensions after decode attempt');
+  }
+  
   const canvas = document.createElement("canvas");
   canvas.width = baseImg.naturalWidth;
   canvas.height = baseImg.naturalHeight;
@@ -192,8 +208,20 @@ export async function composeImageWithPanel(
   const blob = await new Promise<Blob | null>((res) =>
     canvas.toBlob(res, outputType, quality)
   );
-  if (!blob) throw new Error("Failed to export image.");
-  return URL.createObjectURL(blob);
+  if (!blob) {
+    console.error('✗ toBlob returned null!');
+    throw new Error("Failed to export image: toBlob returned null");
+  }
+  
+  if (blob.size === 0) {
+    console.error('✗ Blob has zero size!');
+    throw new Error("Failed to export image: Blob is empty");
+  }
+  
+  console.log('✓ Blob created:', blob.size, 'bytes, type:', blob.type);
+  const blobUrl = URL.createObjectURL(blob);
+  console.log('✓ Blob URL created:', blobUrl.substring(0, 50) + '...');
+  return blobUrl;
 }
 
 // Helper function to composite text panel onto an image data URL
@@ -340,10 +368,7 @@ export async function overlayDiagramOnImage(
   diagramPanel: DiagramPanel,
   diagramStyle: DiagramStyle
 ): Promise<string> {
-  // Import DiagramRenderService (lazy load to avoid circular deps)
-  const { renderDiagramToCanvas, measureDiagramNaturalSize } = await import('./DiagramRenderService');
-  
-  // Load the base image
+  // Load the base image first (needed for dimensions regardless of success/error)
   const baseImg = await loadImage(imageDataUrl);
   
   // Use actual image dimensions
@@ -354,50 +379,81 @@ export async function overlayDiagramOnImage(
   let panelWidth = Math.round(actualImageWidth * (diagramStyle.widthPercentage / 100));
   let panelHeight = Math.round(actualImageHeight * (diagramStyle.heightPercentage / 100));
   
-  // If autoScale is enabled, calculate optimal dimensions to fit content
-  if (diagramStyle.autoScale) {
-    console.log('=== AUTO-SCALING DIAGRAM ===');
-    const naturalSize = await measureDiagramNaturalSize(
-      diagramPanel,
-      diagramStyle,
-      panelWidth
-    );
-    console.log('Natural diagram size:', naturalSize.width, 'x', naturalSize.height);
+  let panel: ImageBitmap;
+  let scale = 1;
+  
+  try {
+    // Import DiagramRenderService (lazy load to avoid circular deps)
+    const { renderDiagramToCanvas, measureDiagramNaturalSize } = await import('./DiagramRenderService');
     
-    // Use the natural height (width is already constrained)
-    panelWidth = naturalSize.width;
-    panelHeight = naturalSize.height;
-    
-    // Ensure we don't exceed image bounds
-    const maxHeight = actualImageHeight - diagramStyle.gutterTop - diagramStyle.gutterBottom;
-    if (panelHeight > maxHeight) {
-      console.log('Diagram exceeds max height, capping at', maxHeight);
-      panelHeight = maxHeight;
+    // If autoScale is enabled, calculate optimal dimensions to fit content
+    if (diagramStyle.autoScale) {
+      console.log('=== AUTO-SCALING DIAGRAM ===');
+      const naturalSize = await measureDiagramNaturalSize(
+        diagramPanel,
+        diagramStyle,
+        panelWidth
+      );
+      console.log('Natural diagram size:', naturalSize.width, 'x', naturalSize.height);
+      
+      // Use the natural height (width is already constrained)
+      panelWidth = naturalSize.width;
+      panelHeight = naturalSize.height;
+      
+      // Ensure we don't exceed image bounds
+      const maxHeight = actualImageHeight - diagramStyle.gutterTop - diagramStyle.gutterBottom;
+      if (panelHeight > maxHeight) {
+        console.log('Diagram exceeds max height, capping at', maxHeight);
+        panelHeight = maxHeight;
+      }
+      
+      console.log('Final auto-scaled panel size:', panelWidth, 'x', panelHeight);
     }
     
-    console.log('Final auto-scaled panel size:', panelWidth, 'x', panelHeight);
+    // Render the diagram to canvas AT THE TARGET DIMENSIONS
+    const diagramCanvas = await renderDiagramToCanvas(
+      diagramPanel,
+      diagramStyle,
+      panelWidth,
+      panelHeight
+    );
+    
+    // Note: html2canvas renders at 2x scale for quality, so we need to scale back down
+    console.log('=== OVERLAY COMPOSITING ===');
+    console.log('Diagram canvas size:', diagramCanvas.width, 'x', diagramCanvas.height);
+    console.log('Expected panel size:', panelWidth, 'x', panelHeight);
+    
+    panel = await createImageBitmap(diagramCanvas);
+    console.log('ImageBitmap size:', panel.width, 'x', panel.height);
+    
+    // The canvas is 2x the intended size due to html2canvas scale parameter
+    scale = diagramCanvas.width / panelWidth;
+    console.log('Detected scale factor:', scale);
+    
+  } catch (error) {
+    // If diagram rendering fails, create an error panel instead
+    console.error('❌ Diagram rendering failed:', error);
+    console.log('🛠️ Creating error panel instead...');
+    
+    const errorMessage = `DIAGRAM ERROR\n\nType: ${diagramPanel.type}\n\n${error instanceof Error ? error.message : String(error)}\n\nCheck diagram syntax and try again.`;
+    
+    // Create a text-based error panel using the diagram's style
+    panel = await createTextPanel(errorMessage, {
+      width: panelWidth,
+      height: panelHeight,
+      bgColor: '#ff000033', // Semi-transparent red background
+      borderColor: '#ff0000', // Red border
+      borderWidth: diagramStyle.borderWidth,
+      borderRadius: 8,
+      padding: diagramStyle.padding,
+      fontFamily: 'monospace',
+      fontSize: Math.max(14, diagramStyle.fontSize - 4), // Slightly smaller for error text
+      fontColor: '#ffffff', // White text
+      textAlign: 'left'
+    });
+    
+    console.log('✓ Error panel created');
   }
-  
-  // Render the diagram to canvas AT THE TARGET DIMENSIONS
-  // This prevents aspect ratio distortion!
-  const diagramCanvas = await renderDiagramToCanvas(
-    diagramPanel,
-    diagramStyle,
-    panelWidth,
-    panelHeight
-  );
-  
-  // Note: html2canvas renders at 2x scale for quality, so we need to scale back down
-  console.log('=== OVERLAY COMPOSITING ===');
-  console.log('Diagram canvas size:', diagramCanvas.width, 'x', diagramCanvas.height);
-  console.log('Expected panel size:', panelWidth, 'x', panelHeight);
-  
-  const panel = await createImageBitmap(diagramCanvas);
-  console.log('ImageBitmap size:', panel.width, 'x', panel.height);
-  
-  // The canvas is 2x the intended size due to html2canvas scale parameter
-  const scale = diagramCanvas.width / panelWidth;
-  console.log('Detected scale factor:', scale);
   
   // Get gutter values
   const gutterTop = diagramStyle.gutterTop;

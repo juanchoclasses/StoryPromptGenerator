@@ -1,0 +1,533 @@
+{
+  "story": {
+    "title": "Bubble Sort: Dancing Numbers Rise",
+    "backgroundSetup": "The Sorting Studio, a magical classroom where numbers come alive and dance into order. The room features a long, floating platform where numbers stand on colored tiles that light up during comparisons. Giant bubble wands create shimmering bubbles that lift numbers upward when they need to swap positions. The walls display arrays of numbers in various states of sortedness, and a grand scoreboard tracks the number of comparisons and swaps. Professor Richard teaches here, conducting the sorting dance with enthusiasm and precision. IMPORTANT: All characters (Professor Richard and students) should be positioned in the BOTTOM HALF of the image, with the code panels, number platform, and visual demonstrations in the top half.",
+    "description": "A whimsical introduction to the bubble sort algorithm through dancing numbers"
+  },
+  "characters": [
+    {
+      "name": "Professor Richard",
+      "description": "An energetic, theatrical professor with wild, Einstein-like hair that bounces as he moves. He wears a vest covered in ascending number sequences and carries a conductor's baton that he waves to orchestrate the sorting dance. His bow tie spins when numbers swap correctly, and his shoes squeak in rhythm with the comparisons. He has a booming, encouraging voice and gestures grandly to emphasize each step of the algorithm. His pockets are filled with colored markers to draw swap arrows, and he often snaps his fingers to mark the beat of the sorting rhythm."
+    },
+    {
+      "name": "Student Eager Noodler",
+      "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes."
+    },
+    {
+      "name": "student Thoughtful Giggler",
+      "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet."
+    },
+    {
+      "name": "Student Zippy Zapper",
+      "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'"
+    },
+    {
+      "name": "Student Quiet observer",
+      "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook."
+    }
+  ],
+  "elements": [
+    {
+      "name": "Sorting Studio Classroom",
+      "description": "A theatrical classroom where sorting algorithms come to life. A long platform runs across the center where numbers stand on illuminated tiles. Giant bubble wands hang from the ceiling, ready to create bubbles that lift and swap numbers. The walls are covered in before-and-after examples of sorted arrays. A scoreboard tracks comparisons and swaps in real-time.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Number Platform",
+      "description": "A raised platform divided into sections where numbers stand. Each section lights up during comparisons - red when comparing, green when in correct order, blue when swapping. Numbers can slide left and right along the platform during the sorting process.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Bubble Machine",
+      "description": "A whimsical machine that creates large, shimmering bubbles to lift numbers upward during swaps. When two numbers need to swap positions, the machine creates bubbles that gently lift the larger number and float it over the smaller one. Makes satisfying 'pop' sounds when swaps complete.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Comparison Spotlight",
+      "description": "A pair of spotlights that shine on the two numbers currently being compared. The lights pulse and change color based on the comparison result - red if they need to swap, green if they're already in order.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Pass Counter",
+      "description": "A large digital display showing which pass through the array is currently happening. It counts down the remaining passes and celebrates when the array is fully sorted with confetti and bells.",
+      "category": "Machinery"
+    }
+  ],
+  "scenes": [
+    {
+      "title": "Welcome to the Sorting Studio",
+      "description": "Professor Richard stands center stage in the Sorting Studio, arms spread wide in welcome. Behind him, the Number Platform displays five unsorted numbers on glowing tiles. The students are seated in the front row, notebooks ready. The Bubble Machine floats overhead, waiting to spring into action. Professor Richard's bow tie is already starting to spin with excitement.",
+      "textPanel": "Welcome, students, to the Sorting Studio bright,\nWhere numbers dance and leap with all their might!\nToday we'll learn a sort that's fun to do,\nBubble Sort's the name, I'll show it all to you!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Our unsorted array of numbers\narr = [64, 34, 25, 12, 22]\nprint(f\"Starting array: {arr}\")\n# Professor Richard points to each number\n# Let's sort these numbers, small to great!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 60,
+          "heightPercentage": 20,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 18,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Sorting Studio Classroom",
+        "Number Platform",
+        "Pass Counter"
+      ]
+    },
+    {
+      "title": "How Bubble Sort Works",
+      "description": "Professor Richard waves his baton, and the Comparison Spotlight illuminates the first two numbers: 64 and 34. He explains that we compare adjacent pairs and swap them if they're in the wrong order. The students lean forward, watching intently. A diagram appears showing the comparison process with arrows pointing between the two highlighted numbers.",
+      "textPanel": "We start at the left, compare two by two,\nIf the first is bigger, here's what we do:\nWe swap them around, let the big one rise,\nLike bubbles float up to the skies!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Bubble Sort compares adjacent elements\narr = [64, 34, 25, 12, 22]\n#      ^^  ^^  <- Compare these first!\n\n# If arr[0] > arr[1], we swap them\nif arr[0] > arr[1]:\n    # Student Eager Noodler watches the comparison\n    arr[0], arr[1] = arr[1], arr[0]\n    print(f\"After swap: {arr}\")",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 60,
+          "heightPercentage": 25,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 18,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Sorting Studio Classroom",
+        "Number Platform",
+        "Comparison Spotlight",
+        "Bubble Machine"
+      ]
+    },
+    {
+      "title": "First Swap: 64 and 34",
+      "description": "The Bubble Machine activates! A large, shimmering bubble surrounds 64 and lifts it up and over 34. The numbers swap positions with a satisfying 'pop'. The array now shows [34, 64, 25, 12, 22]. Student Zippy Zapper bounces excitedly, while Student Quiet observer sketches the swap in their notebook. Professor Richard's bow tie spins once.",
+      "textPanel": "Sixty-four is bigger than thirty-four,\nSo up it floats, watch it soar!\nThe bubble lifts it, gentle and light,\nNow they've swapped - that's quite a sight!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# First comparison and swap\narr = [64, 34, 25, 12, 22]\nprint(f\"Before: {arr}\")\n\n# 64 > 34, so swap! (Student Zippy Zapper cheers!)\narr[0], arr[1] = arr[1], arr[0]\nprint(f\"After:  {arr}\")\n# Result: [34, 64, 25, 12, 22]\n\n# Now move to next pair (student Thoughtful Giggler giggles)",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 60,
+          "heightPercentage": 25,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 18,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Sorting Studio Classroom",
+        "Number Platform",
+        "Comparison Spotlight",
+        "Bubble Machine"
+      ]
+    },
+    {
+      "title": "Second Swap: 64 and 25",
+      "description": "The spotlight moves to the next pair: 64 and 25. Professor Richard conducts with his baton as the Bubble Machine creates another bubble. 64 rises up and swaps with 25. The array is now [34, 25, 64, 12, 22]. Student Eager Noodler's antennae twitch with understanding. The pattern is becoming clear - larger numbers are bubbling toward the right.",
+      "textPanel": "Move one spot right, compare the next pair,\nSixty-four and twenty-five standing there!\nSixty-four's bigger, up it must go,\nWatch the bubble sort make numbers flow!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Continue comparing adjacent pairs\narr = [34, 64, 25, 12, 22]\n#          ^^  ^^  <- Compare these now!\n\n# 64 > 25, swap again! (Professor Richard conducts)\nif arr[1] > arr[2]:\n    arr[1], arr[2] = arr[2], arr[1]\nprint(f\"After swap: {arr}\")\n# Result: [34, 25, 64, 12, 22]\n# Student Eager Noodler sees the pattern!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 60,
+          "heightPercentage": 25,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 18,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Sorting Studio Classroom",
+        "Number Platform",
+        "Comparison Spotlight",
+        "Bubble Machine"
+      ]
+    },
+    {
+      "title": "Continuing the First Pass",
+      "description": "Professor Richard keeps conducting as the spotlight illuminates 64 and 12, then 64 and 22. Each time, 64 is larger, so it bubbles up past each number. By the end of the first pass, 64 has reached the rightmost position. The array shows [34, 25, 12, 22, 64]. The Pass Counter shows 'Pass 1 Complete!' and the rightmost position glows gold - the largest number is now in its final position.",
+      "textPanel": "Keep comparing, pair by pair,\nSixty-four keeps rising through the air!\nPast twelve, past twenty-two it goes,\nTo the end it flows, as everyone knows!\n\nFirst pass complete, see what we've done?\nThe biggest number's reached the end - we've won!\nBut more work awaits, don't you see?\nFour more numbers need to be free!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Completing first pass\narr = [34, 25, 64, 12, 22]\n\n# Compare 64 and 12 (Student Quiet observer watches)\nif arr[2] > arr[3]:\n    arr[2], arr[3] = arr[3], arr[2]\nprint(f\"After swap: {arr}\")  # [34, 25, 12, 64, 22]\n\n# Compare 64 and 22 (student Thoughtful Giggler giggles)\nif arr[3] > arr[4]:\n    arr[3], arr[4] = arr[4], arr[3]\nprint(f\"After swap: {arr}\")  # [34, 25, 12, 22, 64]\n\n# Pass 1 done! Largest number in place!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 28,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 17,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Sorting Studio Classroom",
+        "Number Platform",
+        "Comparison Spotlight",
+        "Bubble Machine",
+        "Pass Counter"
+      ]
+    },
+    {
+      "title": "Understanding Passes",
+      "description": "Professor Richard pauses and turns to the students. He explains that we need multiple passes through the array. Each pass moves the next-largest number to its correct position. The Pass Counter now displays a diagram showing all the passes needed. The students nod in understanding - Student Eager Noodler is already counting on their fingers how many more passes are needed.",
+      "textPanel": "One pass moves the biggest to the end,\nBut that's not where our journey will end!\nWe need more passes, four to be exact,\nEach one will bubble numbers, that's a fact!\n\nPass two will put the second-largest right,\nPass three, pass four - keep the end in sight!\nTill every number finds its proper place,\nBubble sort will run at its own pace!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Bubble sort needs n-1 passes for n elements\nn = len(arr)  # n = 5\nprint(f\"Array has {n} elements\")\nprint(f\"We need {n-1} passes = {n-1} passes\")\n\n# After Pass 1: [34, 25, 12, 22, 64] ← 64 in place\n# Professor Richard shows remaining passes:\n# Pass 2 will position 34\n# Pass 3 will position 25  \n# Pass 4 will position 22\n# Pass 5 will position 12 (Student Eager Noodler counts)",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 28,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 17,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Sorting Studio Classroom",
+        "Number Platform",
+        "Pass Counter"
+      ]
+    },
+    {
+      "title": "Second Pass in Action",
+      "description": "The Pass Counter displays 'Pass 2 Starting'. The spotlight begins at the left again, but this time it only goes up to the second-to-last position (since 64 is already in place and glowing gold). 34 bubbles up past 25, then past 12, then past 22, settling into the second-to-last position. The array is now [25, 12, 22, 34, 64]. Two positions glow gold. Student Zippy Zapper zings excitedly.",
+      "textPanel": "Pass two begins, back to the start,\nBut we're smarter now, we'll take less part!\nNo need to check that sixty-four,\nIt's done, it's placed, we'll check one less, no more!\n\nThirty-four now bubbles to its spot,\nPast twenty-five, twelve, twenty-two - a lot!\nSecond-largest finds its rightful place,\nWatch the sorting dance with style and grace!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Pass 2: Bubble up second-largest\narr = [34, 25, 12, 22, 64]\n\n# We don't need to check last position (it's sorted!)\nfor i in range(len(arr) - 2):\n    # student Thoughtful Giggler tracks the comparisons\n    if arr[i] > arr[i+1]:\n        arr[i], arr[i+1] = arr[i+1], arr[i]\n        print(f\"Swapped: {arr}\")\n\n# After Pass 2: [25, 12, 22, 34, 64]\n# Student Zippy Zapper: Two numbers in place now!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 28,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 17,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Sorting Studio Classroom",
+        "Number Platform",
+        "Comparison Spotlight",
+        "Bubble Machine",
+        "Pass Counter"
+      ]
+    },
+    {
+      "title": "The Remaining Passes",
+      "description": "Professor Richard speeds up the demonstration, showing passes 3 and 4 in quick succession. In pass 3, 25 bubbles up to its position: [12, 22, 25, 34, 64]. In pass 4, 22 moves to its spot: [12, 22, 25, 34, 64]. The array is now completely sorted! All five positions glow gold. Confetti falls from above as the Pass Counter celebrates. The students applaud, finally understanding how the algorithm works.",
+      "textPanel": "Pass three, pass four, watch them fly,\nEach number bubbles to its place on high!\nTwenty-five finds home, then twenty-two,\nTwelve stays put - there's nothing more to do!\n\nThe array is sorted, small to great,\nEvery number found its perfect state!\nBubble sort has worked its magic spell,\nAnd you, dear students, learned it well!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Pass 3: [25, 12, 22, 34, 64] → [12, 22, 25, 34, 64]\n# Pass 4: Already sorted, no swaps needed!\n\narr = [12, 22, 25, 34, 64]\nprint(f\"✓ Sorted! {arr}\")\n\n# Professor Richard's bow tie spins wildly!\n# Student Quiet observer: \"All numbers in order!\"\n# student Thoughtful Giggler giggles with joy!\n# Student Zippy Zapper zings and zaps!\n# Student Eager Noodler: \"I understand!\"",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 28,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 17,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Sorting Studio Classroom",
+        "Number Platform",
+        "Bubble Machine",
+        "Pass Counter"
+      ]
+    },
+    {
+      "title": "The Complete Algorithm",
+      "description": "Professor Richard stands before a large board showing the complete bubble sort code with nested loops. He traces through it with his baton, explaining how the outer loop controls the passes and the inner loop does the comparisons. Student Eager Noodler's antennae are fully extended in concentration. The other students study the code carefully, seeing how all the pieces fit together.",
+      "textPanel": "Now let's see the code, complete and whole,\nTwo loops nested - that's the goal!\nOuter loop counts passes, one by one,\nInner loop compares till each pass is done!\n\nFor every pass, compare and swap,\nBubble numbers up with each compare and tap!\nThe pattern's clear, the logic's sound,\nBubble sort - the algorithm we've found!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "def bubble_sort(arr):\n    n = len(arr)\n    # Professor Richard: Outer loop for passes\n    for i in range(n):\n        # Inner loop for comparisons\n        # Student Eager Noodler: Each pass checks pairs\n        for j in range(0, n-i-1):\n            # Compare adjacent elements\n            if arr[j] > arr[j+1]:\n                # Swap if needed (student Thoughtful Giggler)\n                arr[j], arr[j+1] = arr[j+1], arr[j]\n    return arr\n\n# Test it! (Student Zippy Zapper tests)\narr = [64, 34, 25, 12, 22]\nprint(f\"Before: {arr}\")\nresult = bubble_sort(arr)\nprint(f\"After:  {result}\")",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Sorting Studio Classroom",
+        "Number Platform"
+      ]
+    },
+    {
+      "title": "Why It's Called Bubble Sort",
+      "description": "Professor Richard creates a beautiful visual demonstration. He shows how with each pass, the largest unsorted number 'bubbles up' to its correct position, just like bubbles in water rise to the surface. The Bubble Machine creates a cascade of real bubbles that float upward, carrying miniature numbers with them. The students watch in wonder, finally understanding the perfect metaphor.",
+      "textPanel": "Why 'bubble' sort, you might inquire?\nWatch the numbers rise up higher and higher!\nLike bubbles in water, up they float,\nLargest ones rise, that's what we note!\n\nEach pass lifts one more to the top,\nBubbling upward till they stop!\nAt their final resting place so right,\nBubble sort's a beautiful sight!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Why the name? Watch how numbers \"bubble up\"\narr = [64, 34, 25, 12, 22]\n\n# Pass 1: 64 bubbles to the end →\n#         [34, 25, 12, 22, 64]\n\n# Pass 2: 34 bubbles to second-to-last →  \n#         [25, 12, 22, 34, 64]\n\n# Pass 3: 25 bubbles up →\n#         [12, 22, 25, 34, 64]\n\n# Like bubbles rising through water!\n# Student Quiet observer: \"Each pass bubbles up the max\"\n# Professor Richard: \"Exactly right!\"",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Sorting Studio Classroom",
+        "Number Platform",
+        "Bubble Machine"
+      ]
+    },
+    {
+      "title": "Optimizing Bubble Sort",
+      "description": "Professor Richard shows an improvement - if a pass completes without any swaps, the array is already sorted and we can stop early! He demonstrates with a nearly-sorted array. The students see how this saves time. Student Quiet observer sketches the optimization in their notebook while student Thoughtful Giggler giggles at the cleverness of it.",
+      "textPanel": "But wait, there's more - a clever trick,\nTo make our bubble sort more quick!\nIf a pass completes with no swaps made,\nThe array is sorted - end the parade!\n\nNo need to continue, we're already done,\nThis optimization makes sorting more fun!\nCheck for swaps, if none occur,\nStop right there - that's for sure!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "def bubble_sort_optimized(arr):\n    n = len(arr)\n    for i in range(n):\n        swapped = False  # Track if we made any swaps\n        # student Thoughtful Giggler: \"Smart flag!\"\n        \n        for j in range(0, n-i-1):\n            if arr[j] > arr[j+1]:\n                arr[j], arr[j+1] = arr[j+1], arr[j]\n                swapped = True\n        \n        # If no swaps, we're done early!\n        if not swapped:\n            print(\"Already sorted! Stopping early.\")\n            break  # Student Quiet observer: \"Efficient!\"\n    return arr\n\n# Professor Richard: \"Smart algorithm knows when to stop!\"",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Sorting Studio Classroom",
+        "Number Platform"
+      ]
+    },
+    {
+      "title": "Time Complexity and Summary",
+      "description": "Professor Richard stands with all his students gathered around. The board shows the time complexity: O(n²) in worst case, with explanations of why. He reviews all they've learned - comparing adjacent pairs, swapping when needed, multiple passes, and the bubble metaphor. All the students nod in understanding. The Number Platform displays one final successful sort with all positions glowing gold. Professor Richard takes a bow as his bow tie spins one last time.",
+      "textPanel": "Now you know bubble sort from start to end,\nCompare, swap, repeat - that's the trend!\nAdjacent pairs compared with care,\nPass by pass, they all get there!\n\nLike bubbles rising, numbers find their place,\nSimple to code, easy to trace!\nN-squared time, but that's okay,\nYou've mastered bubble sort today!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# BUBBLE SORT SUMMARY\n# Time: O(n²) - nested loops\n# Space: O(1) - sorts in place\n# Simple but not the fastest for large arrays\n\ndef bubble_sort(arr):\n    for i in range(len(arr)):  # n passes\n        for j in range(len(arr)-i-1):  # n-i comparisons\n            if arr[j] > arr[j+1]:\n                arr[j], arr[j+1] = arr[j+1], arr[j]\n    return arr\n\n# Perfect for:\n# - Learning sorting algorithms\n# - Small datasets\n# - Simple implementation needed\n# You've mastered bubble sort!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Sorting Studio Classroom",
+        "Number Platform",
+        "Pass Counter"
+      ]
+    }
+  ]
+}
+

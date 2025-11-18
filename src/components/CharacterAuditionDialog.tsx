@@ -29,7 +29,9 @@ import {
   Card,
   CardMedia,
   CardActions,
-  Badge
+  Badge,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -38,7 +40,8 @@ import {
   Refresh as RefreshIcon,
   Visibility as VisibilityIcon,
   Upload as UploadIcon,
-  ContentCopy as ContentCopyIcon
+  ContentCopy as ContentCopyIcon,
+  ContentPaste as ContentPasteIcon
 } from '@mui/icons-material';
 import type { Character } from '../models/Story';
 import type { Book } from '../models/Book';
@@ -78,6 +81,11 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
   // File upload state
   const [uploading, setUploading] = useState(false);
   
+  // Reference image state
+  const [referenceImage, setReferenceImage] = useState<string | null>(null);
+  const [includeReferenceImage, setIncludeReferenceImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   // Track last saved image count to prevent duplicate saves during React strict mode double-invocation
   const lastSavedCountRef = useRef<number | null>(null);
 
@@ -113,13 +121,253 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     }
   }, [storyId, character.name, character.imageGallery, onUpdate]);
 
-  // Reset ref when dialog opens or character changes, then load gallery
+  // Handle reference image upload
+  const handleReferenceImageUpload = useCallback(async (file: File) => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please provide an image file');
+      return;
+    }
+
+    try {
+      // Convert file to blob URL for immediate display
+      const blobUrl = URL.createObjectURL(file);
+      setReferenceImage(blobUrl);
+      setIncludeReferenceImage(true);
+
+      // Generate a unique ID for this reference image
+      const imageId = crypto.randomUUID();
+
+      // Store to filesystem using ImageStorageService
+      const { ImageStorageService } = await import('../services/ImageStorageService');
+      await ImageStorageService.storeCharacterImage(
+        storyId,
+        character.name,
+        imageId,
+        blobUrl,
+        'reference-image'
+      );
+
+      // Update character metadata with the reference image ID
+      character.referenceImageId = imageId;
+      
+      // Save the updated character metadata
+      onUpdate();
+
+      setSuccess('Reference image saved successfully!');
+    } catch (err) {
+      console.error('Error processing reference image:', err);
+      setError('Failed to save reference image');
+      throw err;
+    }
+  }, [character, storyId, onUpdate]);
+
+  // Handle reference image file input change
+  const handleReferenceImageFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleReferenceImageUpload(file);
+    }
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [handleReferenceImageUpload]);
+
+  // Clear reference image
+  const handleClearReferenceImage = useCallback(async () => {
+    // Delete from filesystem if it exists
+    if (character.referenceImageId) {
+      try {
+        await CharacterImageService.deleteCharacterImage(
+          storyId,
+          character.name,
+          character.referenceImageId
+        );
+      } catch (err) {
+        console.error('Failed to delete reference image from filesystem:', err);
+        // Continue anyway to clear the UI state
+      }
+      
+      // Clear the reference from character metadata
+      character.referenceImageId = undefined;
+      onUpdate();
+    }
+
+    setReferenceImage(null);
+    setIncludeReferenceImage(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [character, storyId, onUpdate]);
+
+  const processImageFile = useCallback(async (file: File, source: 'upload' | 'paste') => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please provide an image file');
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      // Create a blob URL from the file
+      const blobUrl = URL.createObjectURL(file);
+
+      // Create character image metadata (without actual generation)
+      const imageId = crypto.randomUUID();
+      const characterImage = {
+        id: imageId,
+        url: blobUrl,
+        model: source === 'paste' ? 'user-pasted' : 'user-uploaded',
+        prompt: source === 'paste' 
+          ? `Manual paste by user for ${character.name}`
+          : `Manual upload by user for ${character.name}`,
+        timestamp: new Date(),
+      };
+
+      // Store to filesystem using ImageStorageService
+      const { ImageStorageService } = await import('../services/ImageStorageService');
+      await ImageStorageService.storeCharacterImage(
+        storyId,
+        character.name,
+        imageId,
+        blobUrl,
+        source === 'paste' ? 'user-pasted' : 'user-uploaded'
+      );
+
+      // Add to character's gallery
+      CharacterImageService.addImageToGallery(character, characterImage);
+
+      // If this is the first image, auto-select it
+      if (!character.selectedImageId) {
+        CharacterImageService.setSelectedCharacterImage(character, imageId);
+      }
+
+      // Notify parent to save changes
+      onUpdate();
+
+      // Reload gallery
+      await loadGallery();
+
+      setSuccess(`Image ${source === 'paste' ? 'pasted' : 'uploaded'} successfully! Select it to use as a reference image in scene generation.`);
+    } catch (err: unknown) {
+      console.error(`Failed to ${source} image:`, err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(`Failed to ${source} image: ${errorMessage}`);
+    } finally {
+      setUploading(false);
+    }
+  }, [storyId, character.name, onUpdate, loadGallery]);
+
+  // Load reference image from character metadata
+  const loadReferenceImage = useCallback(async () => {
+    if (!character.referenceImageId) {
+      setReferenceImage(null);
+      setIncludeReferenceImage(false);
+      return;
+    }
+
+    try {
+      // Load the reference image from filesystem
+      const imageUrl = await CharacterImageService.loadCharacterImage(
+        storyId,
+        character.name,
+        character.referenceImageId
+      );
+      
+      if (imageUrl) {
+        setReferenceImage(imageUrl);
+        setIncludeReferenceImage(true); // Auto-check when loading existing reference image
+      } else {
+        // Reference image not found - clear the invalid reference
+        character.referenceImageId = undefined;
+        setReferenceImage(null);
+        setIncludeReferenceImage(false);
+      }
+    } catch (err) {
+      console.error('Failed to load reference image:', err);
+      setReferenceImage(null);
+      setIncludeReferenceImage(false);
+    }
+  }, [character, storyId]);
+
+  // Reset ref when dialog opens or character changes, then load gallery and reference image
   useEffect(() => {
     if (open) {
       lastSavedCountRef.current = null; // Reset ref when dialog opens
       loadGallery();
+      loadReferenceImage();
     }
-  }, [open, character.name, loadGallery]);
+  }, [open, character.name, loadGallery, loadReferenceImage]);
+
+  // Handle paste button click for regular image upload
+  const handlePasteButtonClick = async () => {
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+      for (const clipboardItem of clipboardItems) {
+        for (const type of clipboardItem.types) {
+          if (type.startsWith('image/')) {
+            const blob = await clipboardItem.getType(type);
+            const file = new File([blob], 'pasted-image.png', { type });
+            await processImageFile(file, 'paste');
+            return;
+          }
+        }
+      }
+      setError('No image found in clipboard');
+    } catch (err) {
+      console.error('Failed to paste image:', err);
+      setError('Failed to paste image. Make sure you have an image copied to your clipboard.');
+    }
+  };
+
+  // Handle paste events when dialog is open
+  // This handles both regular image paste (to gallery) and reference image paste
+  useEffect(() => {
+    if (!open) return;
+
+    const handlePaste = async (event: ClipboardEvent) => {
+      const items = event.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        
+        if (item.type.startsWith('image/')) {
+          event.preventDefault(); // Prevent default paste behavior
+          
+          const file = item.getAsFile();
+          if (file) {
+            // Check if user is focused on reference image section or if reference image is already set
+            // If reference image section is active, paste to reference; otherwise paste to gallery
+            const activeElement = document.activeElement;
+            const isReferenceSectionActive = activeElement?.closest('[data-reference-section]') !== null;
+            
+            try {
+              if (isReferenceSectionActive || referenceImage !== null) {
+                // Paste to reference image
+                await handleReferenceImageUpload(file);
+              } else {
+                // Paste to gallery (existing behavior)
+                await processImageFile(file, 'paste');
+              }
+            } catch (err) {
+              console.error('Error pasting image:', err);
+              // Error is already set by handleReferenceImageUpload or processImageFile
+            }
+          }
+          return;
+        }
+      }
+    };
+
+    window.addEventListener('paste', handlePaste);
+    return () => {
+      window.removeEventListener('paste', handlePaste);
+    };
+  }, [open, processImageFile, handleReferenceImageUpload, referenceImage]);
 
   const handleClose = () => {
     // Save changes before closing
@@ -133,6 +381,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     console.log('Character:', character.name);
     console.log('Story ID:', storyId);
     console.log('Model:', selectedModel);
+    console.log('Include reference image:', includeReferenceImage);
     
     setGenerating(true);
     setError(null);
@@ -140,6 +389,30 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
 
     try {
       // Generate the character image (always use 1:1 for character portraits)
+      // Include reference image if checkbox is checked and image is available
+      let referenceImageToUse = includeReferenceImage && referenceImage ? referenceImage : null;
+      
+      // If reference image is a blob URL, convert it to data URL for API
+      if (referenceImageToUse && referenceImageToUse.startsWith('blob:')) {
+        console.log('⚙️  Converting blob URL to data URL for API...');
+        try {
+          const response = await fetch(referenceImageToUse);
+          const blob = await response.blob();
+          referenceImageToUse = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          console.log('✓ Converted to data URL');
+        } catch (err) {
+          console.error('Failed to convert blob URL to data URL:', err);
+          setError('Failed to process reference image');
+          setGenerating(false);
+          return;
+        }
+      }
+      
       console.log('Step 1: Calling generateCharacterImage...');
       const characterImage = await CharacterImageService.generateCharacterImage(
         character,
@@ -147,7 +420,8 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
         storyBackgroundSetup,
         book,
         selectedModel,
-        '1:1'
+        '1:1',
+        referenceImageToUse
       );
       console.log('✓ Step 1 complete: Image generated', characterImage.id);
 
@@ -243,64 +517,12 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please upload an image file');
-      return;
-    }
-
-    setUploading(true);
-    setError(null);
-
-    try {
-      // Create a blob URL from the file
-      const blobUrl = URL.createObjectURL(file);
-
-      // Create character image metadata (without actual generation)
-      const imageId = crypto.randomUUID();
-      const characterImage = {
-        id: imageId,
-        url: blobUrl,
-        model: 'user-uploaded',
-        prompt: `Manual upload by user for ${character.name}`,
-        timestamp: new Date(),
-      };
-
-      // Store to filesystem using ImageStorageService
-      const { ImageStorageService } = await import('../services/ImageStorageService');
-      await ImageStorageService.storeCharacterImage(
-        storyId,
-        character.name,
-        imageId,
-        blobUrl,
-        'user-uploaded'
-      );
-
-      // Add to character's gallery
-      CharacterImageService.addImageToGallery(character, characterImage);
-
-      // If this is the first image, auto-select it
-      if (!character.selectedImageId) {
-        CharacterImageService.setSelectedCharacterImage(character, imageId);
-      }
-
-      // Notify parent to save changes
-      onUpdate();
-
-      // Reload gallery
-      await loadGallery();
-
-      setSuccess('Image uploaded successfully!');
-    } catch (err: unknown) {
-      console.error('Failed to upload image:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      setError(`Failed to upload image: ${errorMessage}`);
-    } finally {
-      setUploading(false);
-      // Reset file input
-      event.target.value = '';
-    }
+    await processImageFile(file, 'upload');
+    
+    // Reset file input
+    event.target.value = '';
   };
+
 
   return (
     <>
@@ -348,6 +570,115 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
             }}
             helperText="Edit description in the Characters panel"
           />
+        </Box>
+
+        {/* Reference Image Section */}
+        <Box mb={3} data-reference-section>
+          <Typography variant="subtitle2" gutterBottom>
+            Reference Image (Optional):
+          </Typography>
+          <Box display="flex" gap={2} alignItems="center" flexWrap="wrap">
+            {referenceImage ? (
+              <>
+                <Box
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: 'grey.100'
+                  }}
+                >
+                  <img
+                    src={referenceImage}
+                    alt="Reference"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                    onError={() => {
+                      console.error('Failed to load reference image');
+                      setError('Failed to load reference image. Please try uploading again.');
+                      setReferenceImage(null);
+                    }}
+                  />
+                </Box>
+                <Box>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={includeReferenceImage}
+                        onChange={(e) => setIncludeReferenceImage(e.target.checked)}
+                        disabled={generating}
+                      />
+                    }
+                    label="Include reference image in generation"
+                  />
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="error"
+                    onClick={handleClearReferenceImage}
+                    sx={{ mt: 1 }}
+                  >
+                    Clear
+                  </Button>
+                </Box>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outlined"
+                  component="label"
+                  startIcon={<UploadIcon />}
+                >
+                  Upload Reference Image
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={handleReferenceImageFileChange}
+                  />
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={async () => {
+                    try {
+                      const clipboardItems = await navigator.clipboard.read();
+                      for (const clipboardItem of clipboardItems) {
+                        for (const type of clipboardItem.types) {
+                          if (type.startsWith('image/')) {
+                            const blob = await clipboardItem.getType(type);
+                            const file = new File([blob], 'pasted-reference.png', { type });
+                            await handleReferenceImageUpload(file);
+                            return;
+                          }
+                        }
+                      }
+                      setError('No image found in clipboard');
+                    } catch (err) {
+                      console.error('Failed to paste reference image:', err);
+                      setError('Failed to paste image. Make sure you have an image copied to your clipboard.');
+                    }
+                  }}
+                  startIcon={<ContentPasteIcon />}
+                >
+                  Paste Reference Image
+                </Button>
+              </>
+            )}
+          </Box>
+          <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
+            Upload or paste a photo or image of the person to use as a reference when generating character images.
+            Check the box to include it in the generation request. You can also press Ctrl+V/Cmd+V to paste when this section is focused.
+          </Typography>
         </Box>
 
         {/* Image Generation Section */}
@@ -403,9 +734,20 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
                 onChange={handleUploadImage}
               />
             </Button>
+
+            <Button
+              variant="outlined"
+              onClick={handlePasteButtonClick}
+              disabled={uploading}
+              startIcon={uploading ? <CircularProgress size={20} /> : <ContentPasteIcon />}
+            >
+              {uploading ? 'Pasting...' : 'Paste Image'}
+            </Button>
           </Box>
           <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
-            Generate with API, view the prompt for external tools, or upload an existing image
+            Generate with API, view the prompt for external tools, upload an image, or click "Paste Image" (or press Ctrl+V/Cmd+V).
+            <br />
+            <strong>Tip:</strong> Select any image from the gallery below to use it as a reference image in scene generation prompts.
           </Typography>
         </Box>
 

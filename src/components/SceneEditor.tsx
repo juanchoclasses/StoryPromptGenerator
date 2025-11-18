@@ -31,7 +31,8 @@ import {
   Image as ImageIcon,
   ErrorOutline as ErrorIcon,
   Code as CodeIcon,
-  TextFields as TextFieldsIcon
+  TextFields as TextFieldsIcon,
+  DeleteSweep as ClearImagesIcon
 } from '@mui/icons-material';
 import type { Scene, Story } from '../types/Story';
 import type { Character } from '../models/Story'; // v4.1: New Character type with imageGallery
@@ -166,10 +167,9 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
               setDiagramType(freshScene.diagramPanel?.type as any || 'mermaid');
               setDiagramContent(freshScene.diagramPanel?.content || '');
               setDiagramLanguage(freshScene.diagramPanel?.language || 'javascript');
-              // Load image from filesystem
-              loadImageWithFallback(freshScene).then(imageUrl => {
-                setGeneratedImageUrl(imageUrl);
-              });
+              // Load image from filesystem (or null if no images)
+              const imageUrl = await loadImageWithFallback(freshScene);
+              setGeneratedImageUrl(imageUrl);
               return;
             }
           }
@@ -186,10 +186,9 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         setDiagramType(selectedScene.diagramPanel?.type as any || 'mermaid');
         setDiagramContent(selectedScene.diagramPanel?.content || '');
         setDiagramLanguage(selectedScene.diagramPanel?.language || 'javascript');
-        // Load image from filesystem
-        loadImageWithFallback(selectedScene).then(imageUrl => {
-          setGeneratedImageUrl(imageUrl);
-        });
+        // Load image from filesystem (or null if no images)
+        const imageUrl = await loadImageWithFallback(selectedScene);
+        setGeneratedImageUrl(imageUrl);
       } else {
         setCurrentScene(null);
         setSelectedCharacters([]);
@@ -201,7 +200,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       }
     };
     loadScene();
-  }, [selectedScene, story]);
+  }, [selectedScene, story, onStoryUpdate]);
 
   // Load active book to access book-level characters
   useEffect(() => {
@@ -775,6 +774,72 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     setModelSelectionOpen(true);
   };
 
+  // Clear all images for the current scene
+  const handleClearSceneImages = async () => {
+    if (!currentScene) return;
+    
+    if (!window.confirm(`Clear all images from this scene? This will delete all generated images for "${currentScene.title}".`)) {
+      return;
+    }
+
+    try {
+      let deletedCount = 0;
+      
+      // Delete images from filesystem
+      if (currentScene.imageHistory && currentScene.imageHistory.length > 0) {
+        for (const image of currentScene.imageHistory) {
+          try {
+            await ImageStorageService.deleteImage(image.id, currentScene.id);
+            deletedCount++;
+          } catch (err) {
+            console.error(`Failed to delete image ${image.id}:`, err);
+          }
+        }
+      }
+      
+      // Clear imageHistory from scene
+      const activeBookData = await BookService.getActiveBookData();
+      if (activeBookData && story) {
+        const updatedStories = activeBookData.stories.map(s => {
+          if (s.id === story.id) {
+            const updatedScenes = s.scenes.map(scene => {
+              if (scene.id === currentScene.id) {
+                return {
+                  ...scene,
+                  imageHistory: [],
+                  updatedAt: new Date()
+                };
+              }
+              return scene;
+            });
+            return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+          }
+          return s;
+        });
+        
+        const updatedData = { ...activeBookData, stories: updatedStories };
+        await BookService.saveActiveBookData(updatedData);
+        
+        setSnackbarMessage(`Cleared ${deletedCount} image(s) from scene`);
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+        
+        // Clear UI state
+        setGeneratedImageUrl(null);
+        if (onImageStateChange) {
+          onImageStateChange(false, () => {});
+        }
+        
+        onStoryUpdate();
+      }
+    } catch (error) {
+      console.error('Failed to clear scene images:', error);
+      setSnackbarMessage(`Failed to clear images: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
   // Actually perform the image generation with the selected model
   const performImageGeneration = async (modelName: string) => {
     // Store the selected model for potential retry
@@ -896,8 +961,6 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           }
         }
         
-        setGeneratedImageUrl(finalImageUrl);
-        
         // Save generated image to scene in local storage
         if (story && currentScene) {
           const activeBookData = await BookService.getActiveBookData();
@@ -914,7 +977,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             };
             
             // Store image to filesystem for persistence
-            ImageStorageService.storeImage(
+            await ImageStorageService.storeImage(
               imageId,
               currentScene.id,
               finalImageUrl,
@@ -922,7 +985,18 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             ).catch(error => {
               console.error('Failed to store image to filesystem:', error);
               // This is critical - without filesystem storage, image will be lost on refresh
+              throw error;
             });
+            
+            // Load the image back from filesystem to ensure we're displaying the persisted version
+            // This prevents issues with blob URLs becoming invalid
+            const persistedImageUrl = await ImageStorageService.getImage(imageId);
+            if (persistedImageUrl) {
+              setGeneratedImageUrl(persistedImageUrl);
+            } else {
+              console.warn('Failed to load newly stored image from filesystem, using original URL');
+              setGeneratedImageUrl(finalImageUrl);
+            }
             
             const updatedStories = activeBookData.stories.map(s => {
               if (s.id === story.id) {
@@ -1127,6 +1201,15 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             >
               {isGeneratingImage ? 'Generating...' : 'Generate Image'}
             </Button>
+            <Button
+              variant="outlined"
+              color="warning"
+              startIcon={<ClearImagesIcon />}
+              onClick={handleClearSceneImages}
+              disabled={!currentScene?.imageHistory || currentScene.imageHistory.length === 0}
+            >
+              Clear Scene Images
+            </Button>
           </Box>
         </Box>
 
@@ -1313,11 +1396,11 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
               input={<OutlinedInput label="Select Characters" />}
               renderValue={(selected) => (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {selected.map((characterId) => {
-                    const character = availableCharacters.find(c => c.id === characterId);
+                  {selected.map((characterName) => {
+                    const character = availableCharacters.find(c => c.name === characterName);
                     return character ? (
                       <Chip 
-                        key={characterId} 
+                        key={characterName} 
                         label={character.name} 
                         size="small" 
                         color="primary"
@@ -1325,8 +1408,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
                       />
                     ) : (
                       <Chip 
-                        key={characterId} 
-                        label={`Unknown (${characterId.slice(0, 8)}...)`} 
+                        key={characterName} 
+                        label={`Unknown (${characterName})`} 
                         size="small" 
                         color="error"
                         variant="outlined"
@@ -1367,30 +1450,30 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
                 Selected Characters:
               </Typography>
               <Box display="flex" flexWrap="wrap" gap={1}>
-                {selectedCharacters.map((characterId) => {
-                  const character = availableCharacters.find(c => c.id === characterId);
+                {selectedCharacters.map((characterName) => {
+                  const character = availableCharacters.find(c => c.name === characterName);
                   return character ? (
                     <Chip
-                      key={characterId}
+                      key={characterName}
                       label={character.name}
                       size="small"
                       color="primary"
                       variant="outlined"
                       onDelete={() => {
-                        const newSelection = selectedCharacters.filter(id => id !== characterId);
+                        const newSelection = selectedCharacters.filter(name => name !== characterName);
                         setSelectedCharacters(newSelection);
                         updateSceneCharacterIds(newSelection);
                       }}
                     />
                   ) : (
                     <Chip
-                      key={characterId}
-                      label={`Unknown (${characterId.slice(0, 8)}...)`}
+                      key={characterName}
+                      label={`Unknown (${characterName})`}
                       size="small"
                       color="error"
                       variant="outlined"
                       onDelete={() => {
-                        const newSelection = selectedCharacters.filter(id => id !== characterId);
+                        const newSelection = selectedCharacters.filter(name => name !== characterName);
                         setSelectedCharacters(newSelection);
                         updateSceneCharacterIds(newSelection);
                       }}

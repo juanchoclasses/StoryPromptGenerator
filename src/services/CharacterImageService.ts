@@ -55,6 +55,7 @@ export class CharacterImageService {
 
   /**
    * Generate a character image
+   * @param referenceImage Optional base64 data URL of reference image to include in generation
    * @returns CharacterImage object with metadata (url will be loaded separately)
    */
   static async generateCharacterImage(
@@ -63,7 +64,8 @@ export class CharacterImageService {
     storyBackgroundSetup: string,
     book: Book,
     model: string,
-    aspectRatio: string = '1:1'
+    aspectRatio: string = '1:1',
+    referenceImage?: string | null
   ): Promise<CharacterImage> {
     // Build the prompt
     const prompt = this.buildCharacterPrompt(character, storyBackgroundSetup, book);
@@ -73,11 +75,15 @@ export class CharacterImageService {
       throw new Error('Failed to generate prompt: Character description is required');
     }
 
+    // Prepare reference images array if provided
+    const referenceImages = referenceImage ? [referenceImage] : undefined;
+
     // Generate the image
     const result = await ImageGenerationService.generateImage({
       prompt,
       model,
-      aspectRatio
+      aspectRatio,
+      referenceImages
     });
 
     // Check for errors

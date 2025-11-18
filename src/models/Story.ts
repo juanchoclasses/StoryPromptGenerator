@@ -26,6 +26,7 @@ export interface Character {
   // Character image gallery (v4.1+)
   imageGallery?: CharacterImage[]; // Array of generated character images
   selectedImageId?: string; // ID of the currently selected/active image
+  referenceImageId?: string; // ID of the reference image for generation (stored in filesystem)
 }
 
 /**

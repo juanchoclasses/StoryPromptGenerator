@@ -9,8 +9,18 @@ export class FileSystemService {
   private static db: IDBDatabase | null = null;
   private static directoryHandle: FileSystemDirectoryHandle | null = null;
 
-  // Check if File System Access API is supported
+  /**
+   * Check if running in Electron
+   */
+  static isElectron(): boolean {
+    return typeof window !== 'undefined' && window.electronAPI !== undefined;
+  }
+
+  // Check if File System Access API is supported (browser mode)
   static isSupported(): boolean {
+    if (this.isElectron()) {
+      return true; // Electron always supports file operations
+    }
     return 'showDirectoryPicker' in window;
   }
 
@@ -75,6 +85,13 @@ export class FileSystemService {
     hasExistingData?: boolean;
     oldPath?: string;
   }> {
+    // Route to Electron implementation if in Electron mode
+    if (this.isElectron()) {
+      const { ElectronFileSystemService } = await import('./ElectronFileSystemService');
+      return ElectronFileSystemService.selectDirectory();
+    }
+
+    // Browser implementation
     if (!this.isSupported()) {
       return {
         success: false,
@@ -179,7 +196,20 @@ export class FileSystemService {
 
   // Get current directory handle (load from storage if needed)
   // Checks test mode first - if in test mode, returns test directory
-  static async getDirectoryHandle(): Promise<FileSystemDirectoryHandle | null> {
+  // In Electron mode, returns a handle-like object with path
+  static async getDirectoryHandle(): Promise<FileSystemDirectoryHandle | { name: string; path: string } | null> {
+    // Route to Electron implementation if in Electron mode
+    if (this.isElectron()) {
+      const { ElectronFileSystemService } = await import('./ElectronFileSystemService');
+      const path = await ElectronFileSystemService.getDirectoryPath();
+      if (path) {
+        // Return a handle-like object for compatibility
+        return { name: path.split(/[/\\]/).pop() || path, path };
+      }
+      return null;
+    }
+
+    // Browser implementation
     // Check if we're in test mode - if so, use test directory
     const testModeFlag = localStorage.getItem('prompter-test-mode');
     if (testModeFlag === 'true') {
@@ -241,8 +271,18 @@ export class FileSystemService {
 
   // Get directory name/path
   static async getDirectoryPath(): Promise<string | null> {
+    // Route to Electron implementation if in Electron mode
+    if (this.isElectron()) {
+      const { ElectronFileSystemService } = await import('./ElectronFileSystemService');
+      return ElectronFileSystemService.getDirectoryPath();
+    }
+
+    // Browser implementation
     const handle = await this.getDirectoryHandle();
-    return handle ? handle.name : null;
+    if (handle && 'name' in handle) {
+      return handle.name;
+    }
+    return null;
   }
 
   // Clear directory handle (forget directory)

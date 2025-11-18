@@ -25,15 +25,13 @@ import {
   Upload as UploadIcon,
   AutoAwesome as GenerateAllIcon,
   Description as DocxIcon,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  DeleteSweep as ClearImagesIcon
 } from '@mui/icons-material';
 import { BookService } from '../services/BookService';
 import { ImportStoryDialog } from './ImportStoryDialog';
 import { BatchImageGenerationDialog } from './BatchImageGenerationDialog';
-import { ImageGenerationService } from '../services/ImageGenerationService';
 import { ImageStorageService } from '../services/ImageStorageService';
-import { overlayTextOnImage } from '../services/OverlayService';
-import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 import { DocxExportService } from '../services/DocxExportService';
 import { StoryExportService } from '../services/StoryExportService';
 import type { Story, StoryData } from '../types/Story';
@@ -327,121 +325,47 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
     }
   };
 
-  const replaceMacros = (text: string, macros: Record<string, string>): string => {
-    let result = text;
-    Object.entries(macros).forEach(([key, value]) => {
-      const regex = new RegExp(`\\{${key}\\}`, 'g');
-      result = result.replace(regex, value);
-    });
-    return result;
-  };
-
-  const getImageDimensionsFromAspectRatio = (aspectRatio: string): { width: number; height: number } => {
-    switch (aspectRatio) {
-      case '1:1':
-        return { width: 1024, height: 1024 };
-      case '16:9':
-        return { width: 1792, height: 1024 };
-      case '9:16':
-        return { width: 1024, height: 1792 };
-      case '3:4':
-        return { width: 768, height: 1024 };
-      default:
-        return { width: 1024, height: 1792 };
-    }
-  };
-
   const handleBatchGenerateScene = async (sceneId: string, modelName: string) => {
     if (!batchGenerationStory) return;
     
     const scene = batchGenerationStory.scenes.find(s => s.id === sceneId);
-    if (!scene) return;
+    if (!scene) {
+      console.error(`❌ BATCH: Scene not found with ID: ${sceneId}`);
+      return;
+    }
+
+    const sceneIndex = batchGenerationStory.scenes.findIndex(s => s.id === sceneId);
+    console.log(`\n📦 BATCH: Starting generation for scene #${sceneIndex + 1}/${batchGenerationStory.scenes.length}`);
+    console.log(`   Scene ID: ${sceneId}`);
+    console.log(`   Scene Title: "${scene.title}"`);
 
     // Get book data
     const activeBookId = await BookService.getActiveBookId();
     const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
     const aspectRatio = activeBook?.aspectRatio || '3:4';
-    const panelConfig = activeBook?.style?.panelConfig || DEFAULT_PANEL_CONFIG;
     
-    // Get characters and elements for this scene (handle both new and legacy formats)
-    const characterIds = scene.characterIds || [];
-    const elementIds = scene.elementIds || [];
-    const sceneCharacters = batchGenerationStory.characters.filter(char => characterIds.includes(char.id));
-    const sceneElements = batchGenerationStory.elements.filter(elem => elementIds.includes(elem.id));
+    console.log(`   Book: ${activeBook?.title || 'N/A'}`);
+    console.log(`   Model: ${modelName}`);
+    console.log(`   Aspect Ratio: ${aspectRatio}`);
     
-    // Generate prompt for this scene
-    const characterSection = sceneCharacters.length > 0
-      ? `## Characters in this Scene\n\n${sceneCharacters.map(char => {
-          const macros = { 'SceneDescription': scene.description };
-          return `[Character Definition: ${char.name}] ${replaceMacros(char.description, macros)}`;
-        }).join('\n\n')}`
-      : '';
-    
-    const elementSection = sceneElements.length > 0
-      ? `## Elements in this Scene\n\n${sceneElements.map(elem => {
-          const macros = { 'SceneDescription': scene.description };
-          return `[Object Definition: ${elem.name}] ${replaceMacros(elem.description, macros)}`;
-        }).join('\n\n')}`
-      : '';
-    
-    const prompt = `Create an illustration in the whimsical storybook style with the following requirements:
-
-## BOOK-WIDE VISUAL WORLD
-${activeBook?.backgroundSetup || 'A whimsical, storybook world with vibrant colors and playful details.'}
-
-## STORY CONTEXT
-${batchGenerationStory.backgroundSetup}
-
-## THIS SCENE
-${scene.description}
-
-${characterSection}
-
-${elementSection}
-
-TECHNICAL REQUIREMENTS:
-- Aspect ratio: ${aspectRatio}
-- Do NOT include any text, titles, or labels in the image
-- Focus solely on visual storytelling`;
-
-    // Generate the image
-    const result = await ImageGenerationService.generateImage({ 
-      prompt,
+    // Use the UNIFIED service to generate complete image with all overlays
+    const { SceneImageGenerationService } = await import('../services/SceneImageGenerationService');
+    const finalImageUrl = await SceneImageGenerationService.generateCompleteSceneImage({
+      scene,
+      story: batchGenerationStory,
+      book: activeBook,
+      model: modelName,
       aspectRatio,
-      model: modelName
+      applyOverlays: true // Apply text and diagram panels
     });
-    
-    if (!result.success || !result.imageUrl) {
-      throw new Error(result.error || 'Failed to generate image');
-    }
-    
-    let finalImageUrl = result.imageUrl;
-    
-    // Apply text overlay if textPanel exists
-    if (scene.textPanel && scene.textPanel.trim()) {
-      try {
-        const macros = { 'SceneDescription': scene.description };
-        const panelText = replaceMacros(scene.textPanel, macros);
-        const imageDimensions = getImageDimensionsFromAspectRatio(aspectRatio);
-        
-        finalImageUrl = await overlayTextOnImage(
-          result.imageUrl,
-          panelText,
-          imageDimensions.width,
-          imageDimensions.height,
-          panelConfig
-        );
-      } catch (overlayError) {
-        console.error('Error overlaying text:', overlayError);
-        // Continue with original image if overlay fails
-      }
-    }
     
     // Save to scene in local storage
     const activeBookData = await BookService.getActiveBookData();
     if (activeBookData) {
       // Create image metadata (NO URL to avoid localStorage quota)
       const imageId = crypto.randomUUID();
+      console.log(`   Generated Image ID: ${imageId}`);
+      
       const newGeneratedImage = {
         id: imageId,
         // url is omitted - not stored in localStorage
@@ -450,25 +374,31 @@ TECHNICAL REQUIREMENTS:
       };
       
       // Store to filesystem
-      ImageStorageService.storeImage(
+      console.log(`   Storing image to filesystem...`);
+      await ImageStorageService.storeImage(
         imageId,
         sceneId,
         finalImageUrl,
         modelName
       ).catch(error => {
-        console.error('Failed to store image to filesystem during batch generation:', error);
+        console.error('❌ Failed to store image to filesystem during batch generation:', error);
+        throw error;
       });
+      console.log(`   ✓ Image stored to filesystem`);
       
       const updatedStories = activeBookData.stories.map(s => {
         if (s.id === batchGenerationStory.id) {
           const updatedScenes = s.scenes.map(sc => {
             if (sc.id === sceneId) {
-              return {
+              const oldImageCount = sc.imageHistory?.length || 0;
+              const updatedScene = {
                 ...sc,
                 imageHistory: [...(sc.imageHistory || []), newGeneratedImage],
                 lastGeneratedImage: finalImageUrl, // Keep for backward compatibility
                 updatedAt: new Date()
               };
+              console.log(`   Updated scene imageHistory: ${oldImageCount} → ${updatedScene.imageHistory.length} images`);
+              return updatedScene;
             }
             return sc;
           });
@@ -479,9 +409,59 @@ TECHNICAL REQUIREMENTS:
       
       const updatedData = { ...activeBookData, stories: updatedStories };
       await BookService.saveActiveBookData(updatedData);
+      console.log(`✓ BATCH: Scene #${sceneIndex + 1} generation complete\n`);
       
       // Don't reload stories here - it causes re-render which can close the dialog
       // The dialog will handle reloading when it closes
+    }
+  };
+
+  const handleClearStoryImages = async (story: Story) => {
+    if (!window.confirm(`Clear all images from "${story.title}"? This will delete all generated images for all scenes in this story.`)) {
+      return;
+    }
+
+    try {
+      let deletedCount = 0;
+      
+      // Delete images for each scene
+      for (const scene of story.scenes) {
+        if (scene.imageHistory && scene.imageHistory.length > 0) {
+          for (const image of scene.imageHistory) {
+            try {
+              await ImageStorageService.deleteImage(image.id, scene.id);
+              deletedCount++;
+            } catch (err) {
+              console.error(`Failed to delete image ${image.id}:`, err);
+            }
+          }
+        }
+      }
+      
+      // Clear imageHistory from all scenes
+      const activeBookData = await BookService.getActiveBookData();
+      if (activeBookData) {
+        const updatedStories = activeBookData.stories.map(s => {
+          if (s.id === story.id) {
+            const updatedScenes = s.scenes.map(scene => ({
+              ...scene,
+              imageHistory: [],
+              updatedAt: new Date()
+            }));
+            return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+          }
+          return s;
+        });
+        
+        const updatedData = { ...activeBookData, stories: updatedStories };
+        await BookService.saveActiveBookData(updatedData);
+        
+        showSnackbar(`Cleared ${deletedCount} image(s) from "${story.title}"`, 'success');
+        onStoryUpdate();
+      }
+    } catch (error) {
+      console.error('Failed to clear story images:', error);
+      showSnackbar(`Failed to clear images: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     }
   };
 
@@ -626,6 +606,18 @@ TECHNICAL REQUIREMENTS:
                         onClick={(e) => handleConfigureDiagramStyle(story, e)}
                       >
                         <SettingsIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Clear all images">
+                      <IconButton
+                        size="small"
+                        color="warning"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClearStoryImages(story);
+                        }}
+                      >
+                        <ClearImagesIcon />
                       </IconButton>
                     </Tooltip>
                     <IconButton

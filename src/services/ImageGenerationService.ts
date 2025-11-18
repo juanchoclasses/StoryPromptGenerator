@@ -44,20 +44,48 @@ export class ImageGenerationService {
       if (options.referenceImages && options.referenceImages.length > 0) {
         // Multi-modal: text + images
         console.log('📸 Building MULTI-MODAL request (text + images)');
+        
+        // Validate and process reference images
+        const processedImages = options.referenceImages.map((imageUrl, i) => {
+          console.log(`  Validating image ${i + 1}...`);
+          
+          // Check if it's a data URL
+          if (!imageUrl.startsWith('data:image/')) {
+            console.warn(`  ⚠️  Image ${i + 1} is not a data URL (starts with: ${imageUrl.substring(0, 20)})`);
+            throw new Error(`Reference image ${i + 1} must be a data URL (data:image/...)`);
+          }
+          
+          // Extract format and data
+          const matches = imageUrl.match(/^data:image\/(\w+);base64,(.+)$/);
+          if (!matches) {
+            console.error(`  ❌ Image ${i + 1} has invalid data URL format`);
+            throw new Error(`Reference image ${i + 1} has invalid data URL format`);
+          }
+          
+          const [, format, base64Data] = matches;
+          const sizeKB = Math.round((base64Data.length * 3/4) / 1024);
+          console.log(`  ✓ Image ${i + 1}: ${format.toUpperCase()}, ~${sizeKB}KB`);
+          
+          // Warn if image is very large (>5MB)
+          if (sizeKB > 5120) {
+            console.warn(`  ⚠️  Image ${i + 1} is very large (${sizeKB}KB). This may cause API errors.`);
+          }
+          
+          console.log(`  Adding image ${i + 1} to content array`);
+          return {
+            type: 'image_url',
+            image_url: {
+              url: imageUrl
+            }
+          };
+        });
+        
         messageContent = [
           {
             type: 'text',
             text: options.prompt
           },
-          ...options.referenceImages.map((imageUrl, i) => {
-            console.log(`  Adding image ${i + 1} to content array`);
-            return {
-              type: 'image_url',
-              image_url: {
-                url: imageUrl
-              }
-            };
-          })
+          ...processedImages
         ];
         console.log(`✓ Message content array has ${messageContent.length} items (1 text + ${options.referenceImages.length} images)`);
       } else {

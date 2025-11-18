@@ -1,0 +1,530 @@
+{
+  "story": {
+    "title": "Insertion Sort: Building Order Card by Card",
+    "backgroundSetup": "The Card Hall, a magical classroom where sorting happens like organizing playing cards. The room features a large table with a sorted section on the left and an unsorted pile on the right. As each card is picked up, it finds its proper place in the sorted section by sliding past cards until it reaches the correct position. Glowing arrows show where each card needs to go, and the walls display examples of partially sorted sequences. Professor Richard teaches here, demonstrating how to build a sorted list one element at a time with patience and precision. IMPORTANT: All characters (Professor Richard and students) should be positioned in the BOTTOM HALF of the image, with the code panels, sorting table, and visual demonstrations in the top half.",
+    "description": "A whimsical introduction to insertion sort through card sorting"
+  },
+  "characters": [
+    {
+      "name": "Professor Richard",
+      "description": "An energetic, theatrical professor with wild, Einstein-like hair that bounces as he moves. He wears a vest covered in ascending number sequences and carries a conductor's baton that he waves to orchestrate the sorting dance. His bow tie spins when numbers swap correctly, and his shoes squeak in rhythm with the comparisons. He has a booming, encouraging voice and gestures grandly to emphasize each step of the algorithm. His pockets are filled with colored markers to draw swap arrows, and he often snaps his fingers to mark the beat of the sorting rhythm."
+    },
+    {
+      "name": "Student Eager Noodler",
+      "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes."
+    },
+    {
+      "name": "student Thoughtful Giggler",
+      "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet."
+    },
+    {
+      "name": "Student Zippy Zapper",
+      "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'"
+    },
+    {
+      "name": "Student Quiet observer",
+      "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook."
+    }
+  ],
+  "elements": [
+    {
+      "name": "Card Hall Classroom",
+      "description": "A serene classroom where elements are sorted like playing cards. A large table divides the room, with a glowing green section on the left (sorted) and a dimmer blue section on the right (unsorted). Cards float above the table during sorting, sliding smoothly into position. The walls show step-by-step examples of insertion sort in progress.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Sorting Table",
+      "description": "A magical table divided into sections. The left side glows green (sorted section) and grows larger as more elements are sorted. The right side glows blue (unsorted section) and shrinks. A bright spotlight marks the current element being inserted. Cards can slide left and right within the sorted section to make room for new insertions.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Insertion Guide",
+      "description": "A mechanical arm with a glowing pointer that picks up the next unsorted element and guides it leftward through the sorted section, comparing it with each card until finding the correct position. It leaves a trail of light showing the path the element travels.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Position Marker",
+      "description": "A vertical line of light that shows where the current element will be inserted. It moves left and right as comparisons are made, finally settling at the correct insertion point with a gentle chime.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Progress Display",
+      "description": "A large display showing the current state of the array with the sorted portion highlighted in green and the unsorted portion in blue. It updates after each insertion, showing how the sorted section grows.",
+      "category": "Machinery"
+    }
+  ],
+  "scenes": [
+    {
+      "title": "Welcome to Card Sorting",
+      "description": "Professor Richard stands beside the Sorting Table, which displays five unsorted numbers. The students sit around the table, ready to learn. The left side of the table is empty (no sorted elements yet), and all five numbers wait on the right. Professor Richard holds an oversized card showing the first element, ready to begin the demonstration.",
+      "textPanel": "Welcome, students, to the Card Hall today,\nWhere sorting happens in a special way!\nLike cards in your hand, we'll sort with care,\nInsertion sort - we'll build order there!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Our unsorted array\narr = [12, 11, 13, 5, 6]\nprint(f\"Starting array: {arr}\")\n\n# Insertion sort builds sorted section one element at a time",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 60,
+          "heightPercentage": 20,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 18,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Card Hall Classroom",
+        "Sorting Table",
+        "Progress Display"
+      ]
+    },
+    {
+      "title": "The First Element is Already Sorted",
+      "description": "Professor Richard explains that the first element (12) is already sorted by itself - a section of one element is always sorted. He moves it to the sorted section (left side) which now glows green. The students nod in understanding. The Progress Display shows position 0 highlighted in green, positions 1-4 still in blue.",
+      "textPanel": "The first card stands alone, you see,\nA single card is sorted, naturally!\nNo comparisons needed, no work to do,\nOne element sorted - we start with you!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "arr = [12, 11, 13, 5, 6]\n#      ^^  <- Index 0, already \"sorted\"\n\n# The first element forms our initial sorted section\n# Sorted: [12]\n# Unsorted: [11, 13, 5, 6]\n\n# Now we'll insert elements one by one into sorted section",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 60,
+          "heightPercentage": 25,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 18,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Card Hall Classroom",
+        "Sorting Table",
+        "Progress Display"
+      ]
+    },
+    {
+      "title": "Inserting the Second Element",
+      "description": "The Insertion Guide picks up 11 (the second element) and compares it with 12. Since 11 is smaller, it needs to go before 12. The Position Marker moves to the beginning, and 12 slides right to make room. Then 11 slides into position 0. The sorted section now shows [11, 12] in green. The students watch the smooth sliding motion.",
+      "textPanel": "Pick up eleven, compare with twelve,\nInto the sorted list we'll delve!\nEleven's smaller, it must go first,\nSlide twelve over - order comes first!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "arr = [12, 11, 13, 5, 6]\n#          ^^  <- Pick this element (index 1)\n\nkey = arr[1]  # key = 11\nj = 0  # Compare with sorted section\n\n# 11 < 12, so shift 12 right and insert 11 at position 0\nwhile j >= 0 and arr[j] > key:\n    arr[j+1] = arr[j]  # Shift right\n    j -= 1\narr[j+1] = key  # Insert\n\n# Result: [11, 12, 13, 5, 6]",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 28,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 17,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Card Hall Classroom",
+        "Sorting Table",
+        "Insertion Guide",
+        "Position Marker"
+      ]
+    },
+    {
+      "title": "Inserting the Third Element",
+      "description": "Now the Insertion Guide picks up 13. It compares with 12 (13 > 12), so it doesn't need to move left. 13 stays in its current position. The sorted section is now [11, 12, 13]. Professor Richard explains that sometimes elements are already in the right place. Student Eager Noodler's antennae perk up with this insight.",
+      "textPanel": "Thirteen comes next, what do we do?\nCompare with twelve - it's bigger too!\nNo need to shift, it's in the right place,\nSometimes sorting wins the race!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "arr = [11, 12, 13, 5, 6]\n#              ^^  <- Pick this element (index 2)\n\nkey = arr[2]  # key = 13\nj = 1\n\n# 13 > 12, so no shifting needed\nwhile j >= 0 and arr[j] > key:\n    arr[j+1] = arr[j]\n    j -= 1\narr[j+1] = key  # Stays at position 2\n\n# Result: [11, 12, 13, 5, 6]\n# Sorted: [11, 12, 13]",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 28,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 17,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Card Hall Classroom",
+        "Sorting Table",
+        "Insertion Guide",
+        "Position Marker",
+        "Progress Display"
+      ]
+    },
+    {
+      "title": "Inserting Five - Multiple Shifts",
+      "description": "The Insertion Guide picks up 5, the smallest number so far. It compares with 13 (5 < 13), so 13 shifts right. Then 5 compares with 12 (5 < 12), so 12 shifts right. Then 5 compares with 11 (5 < 11), so 11 shifts right. Finally, 5 reaches position 0. The array shows [5, 11, 12, 13, 6]. The students watch as three elements slide to make room. Student Zippy Zapper zings at each shift.",
+      "textPanel": "Now comes five, the smallest yet,\nWatch it travel, don't forget!\nPast thirteen, twelve, eleven it goes,\nShifting them all, as the sorting flows!\n\nCompare and shift, compare and shift,\nTill five finds home - what a gift!\nAt the very start it takes its place,\nInsertion sort - such elegant grace!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "arr = [11, 12, 13, 5, 6]\n#                  ^  <- Pick this element (index 3)\n\nkey = arr[3]  # key = 5\nj = 2\n\n# Compare and shift:\n# 5 < 13, shift 13 right → [11, 12, 13, 13, 6]\n# 5 < 12, shift 12 right → [11, 12, 12, 13, 6]\n# 5 < 11, shift 11 right → [11, 11, 12, 13, 6]\nwhile j >= 0 and arr[j] > key:\n    arr[j+1] = arr[j]\n    j -= 1\narr[j+1] = key  # Insert at position 0\n\n# Result: [5, 11, 12, 13, 6]",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 32,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Card Hall Classroom",
+        "Sorting Table",
+        "Insertion Guide",
+        "Position Marker"
+      ]
+    },
+    {
+      "title": "The Final Insertion",
+      "description": "The last element, 6, is picked up by the Insertion Guide. It compares with 13 (shift), with 12 (shift), with 11 (shift), but when it reaches 5, it stops because 6 > 5. The Position Marker settles at position 1, and 6 slides into place. The array is now fully sorted: [5, 6, 11, 12, 13]. The entire table glows green. Confetti falls as the Progress Display shows 100% complete. All students cheer!",
+      "textPanel": "Last card is six, one more to go,\nWatch it find its place in the show!\nPast thirteen, twelve, eleven it slides,\nBut after five, there it resides!\n\nNow all are sorted, small to great,\nEvery number found its fate!\nInsertion sort has done its task,\nBuilding order - that's all we ask!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "arr = [5, 11, 12, 13, 6]\n#                     ^  <- Pick last element (index 4)\n\nkey = arr[4]  # key = 6\nj = 3\n\n# Compare and shift:\n# 6 < 13, shift → [5, 11, 12, 13, 13]\n# 6 < 12, shift → [5, 11, 12, 12, 13]\n# 6 < 11, shift → [5, 11, 11, 12, 13]\n# 6 > 5, stop!\nwhile j >= 0 and arr[j] > key:\n    arr[j+1] = arr[j]\n    j -= 1\narr[j+1] = key  # Insert at position 1\n\nprint(f\"✓ Sorted! {arr}\")  # [5, 6, 11, 12, 13]",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 32,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Card Hall Classroom",
+        "Sorting Table",
+        "Insertion Guide",
+        "Position Marker",
+        "Progress Display"
+      ]
+    },
+    {
+      "title": "The Complete Algorithm",
+      "description": "Professor Richard displays the complete insertion sort code with its nested structure. The outer loop picks each element starting from index 1. The inner loop compares and shifts elements in the sorted section. He traces through the code with his baton, showing how the algorithm systematically builds the sorted section. The students study the code carefully, seeing the pattern clearly now.",
+      "textPanel": "Let's see the code, complete and clear,\nTwo parts working, drawing near!\nOuter loop picks each element new,\nInner loop finds where it's due!\n\nCompare and shift within sorted part,\nInsertion sort - a work of art!\nBuilding order, one by one,\nTill the sorting work is done!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "def insertion_sort(arr):\n    # Start from second element (first is \"sorted\")\n    for i in range(1, len(arr)):\n        key = arr[i]  # Element to insert\n        j = i - 1  # Start of sorted section\n        \n        # Shift larger elements right\n        while j >= 0 and arr[j] > key:\n            arr[j+1] = arr[j]\n            j -= 1\n        \n        # Insert element at correct position\n        arr[j+1] = key\n    return arr\n\n# Test it!\narr = [12, 11, 13, 5, 6]\nprint(f\"Before: {arr}\")\nresult = insertion_sort(arr)\nprint(f\"After:  {result}\")",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Card Hall Classroom",
+        "Sorting Table"
+      ]
+    },
+    {
+      "title": "How It's Like Sorting Cards",
+      "description": "Professor Richard holds up a hand of playing cards, demonstrating how insertion sort mimics how humans naturally sort cards. He picks up each card one at a time and slides it into the correct position in his hand, just like the algorithm does. The students try it with their own cards, experiencing the intuitive nature of insertion sort. Student Quiet observer sketches the parallel between card sorting and the algorithm.",
+      "textPanel": "Like cards you hold within your hand,\nInsertion sort - now you understand!\nPick a new card from the pile,\nSlide it in place with style!\n\nCompare with cards you've already got,\nFind the right spot, the perfect slot!\nThat's how insertion sort will do,\nExactly like me and you!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Insertion sort works like sorting cards in your hand\n\n# Your hand (sorted): [2, 5, 7]\n# Draw new card: 4\n\n# Compare: 4 < 7? Yes, slide 7 right\n# Compare: 4 < 5? Yes, slide 5 right  \n# Compare: 4 < 2? No, stop!\n# Insert 4: [2, 4, 5, 7]\n\n# Just like the algorithm!\narr = [2, 5, 7, 4]\nkey = arr[3]\nj = 2\nwhile j >= 0 and arr[j] > key:\n    arr[j+1] = arr[j]\n    j -= 1\narr[j+1] = key",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 32,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Card Hall Classroom",
+        "Sorting Table"
+      ]
+    },
+    {
+      "title": "Best Case: Already Sorted",
+      "description": "Professor Richard shows what happens when the array is already sorted. He displays [1, 2, 3, 4, 5] on the Sorting Table. As each element is picked up, it's immediately found to be in the correct position with just one comparison - no shifts needed! The sorting completes very quickly. The Progress Display shows minimal work done. The students marvel at how efficient insertion sort can be in the best case.",
+      "textPanel": "What if cards are sorted from the start?\nInsertion sort shows its smartest part!\nEach new card needs just one look,\nNo shifts needed - by the book!\n\nBest case is linear, O of N,\nCompare once, done again and again!\nAlready sorted? Lightning fast,\nInsertion sort is built to last!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Best case: array already sorted\narr = [1, 2, 3, 4, 5]\n\n# For i = 1: key = 2, compare with 1, 2 > 1, done!\n# For i = 2: key = 3, compare with 2, 3 > 2, done!\n# For i = 3: key = 4, compare with 3, 4 > 3, done!\n# For i = 4: key = 5, compare with 4, 5 > 4, done!\n\n# Only 1 comparison per element\n# Total: n-1 comparisons\n# Time: O(n) - linear!\n\n# No shifts needed at all\n# Best case performance!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Card Hall Classroom",
+        "Sorting Table",
+        "Progress Display"
+      ]
+    },
+    {
+      "title": "Worst Case: Reverse Sorted",
+      "description": "Now Professor Richard shows the opposite - an array sorted in reverse: [5, 4, 3, 2, 1]. Each element must travel all the way to the beginning, shifting every element in the sorted section. The Insertion Guide works hard, making many comparisons and shifts. The Progress Display shows maximum work. Despite this, the algorithm completes successfully, showing its reliability even in worst-case scenarios.",
+      "textPanel": "What if cards are backward, reversed?\nInsertion sort, though fully immersed!\nEach card travels all the way,\nShifting everything in its way!\n\nWorst case means O of N squared,\nLike bubble sort, the time is shared!\nBut small arrays? Still works great,\nInsertion sort will not frustrate!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Worst case: array sorted in reverse\narr = [5, 4, 3, 2, 1]\n\n# For i = 1: key = 4, shifts 5, insert at 0 (1 shift)\n# For i = 2: key = 3, shifts 5,4, insert at 0 (2 shifts)\n# For i = 3: key = 2, shifts 5,4,3, insert at 0 (3 shifts)\n# For i = 4: key = 1, shifts 5,4,3,2, insert at 0 (4 shifts)\n\n# Total shifts: 1+2+3+4 = 10 = n*(n-1)/2\n# Time: O(n²) - quadratic\n\n# But still sorts correctly!\n# Result: [1, 2, 3, 4, 5]",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Card Hall Classroom",
+        "Sorting Table",
+        "Insertion Guide",
+        "Progress Display"
+      ]
+    },
+    {
+      "title": "When to Use Insertion Sort",
+      "description": "Professor Richard creates a comparison chart showing when insertion sort shines. He lists its advantages: simple to implement, efficient for small arrays, adaptive for nearly-sorted data, stable (maintains relative order of equal elements), and in-place (no extra space needed). The students discuss real-world applications. Student Eager Noodler suggests using it for sorting a small deck of cards, which Professor Richard confirms is perfect!",
+      "textPanel": "When should insertion sort be used?\nLet me tell you, don't be confused!\nSmall arrays? It works just fine,\nTen or twenty? It will shine!\n\nNearly sorted? Even better still,\nInsertion sort has the skill!\nSimple code, easy to write,\nFor the right job, it's quite alright!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# When to use insertion sort:\n\n# ✓ Small arrays (n < 50)\n# ✓ Nearly sorted data (best case O(n))\n# ✓ Stable sort needed (preserves order)\n# ✓ In-place sorting (minimal memory)\n# ✓ Simple implementation required\n\n# When NOT to use:\n# ✗ Large unsorted arrays (use quicksort, mergesort)\n# ✗ Reverse sorted large data\n\n# Example: Good for small or nearly-sorted\narr = [1, 3, 2, 4, 5, 6, 7, 8]  # Only 1 out of place\n# Insertion sort handles this efficiently!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Card Hall Classroom"
+      ]
+    },
+    {
+      "title": "Summary and Reflection",
+      "description": "Professor Richard stands with all students gathered around the Sorting Table, which displays a final beautiful animation of insertion sort in action. He reviews the key concepts: building a sorted section one element at a time, comparing and shifting, the card-sorting analogy, and performance characteristics. All students understand the elegant simplicity of insertion sort. The Progress Display shows a timeline of their learning journey. Professor Richard's bow tie spins wildly as he congratulates everyone.",
+      "textPanel": "Now you've learned insertion sort so well,\nBuilding order, can't you tell?\nOne by one, we place each card,\nCompare and shift - it's not so hard!\n\nLike sorting cards within your hand,\nInsertion sort - now you understand!\nFor small arrays or nearly sorted,\nThis method leaves you well-supported!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# INSERTION SORT SUMMARY\n# Time: O(n²) worst case, O(n) best case\n# Space: O(1) - in-place sorting\n# Stable: Yes (maintains order of equal elements)\n# Adaptive: Yes (fast on nearly-sorted data)\n\ndef insertion_sort(arr):\n    for i in range(1, len(arr)):\n        key = arr[i]\n        j = i - 1\n        while j >= 0 and arr[j] > key:\n            arr[j+1] = arr[j]\n            j -= 1\n        arr[j+1] = key\n    return arr\n\n# Perfect for:\n# - Small arrays\n# - Nearly sorted data  \n# - When simplicity matters\n# You've mastered insertion sort!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 40,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Card Hall Classroom",
+        "Sorting Table",
+        "Progress Display"
+      ]
+    }
+  ]
+}
+

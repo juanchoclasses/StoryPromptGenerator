@@ -973,6 +973,367 @@
           ]
         }
       ]
+    },
+    {
+      "story": {
+        "title": "If and If-Else: Making Choices",
+        "backgroundSetup": "The Code Garden, a magical classroom where programming concepts bloom like flowers. The room features floating code panels that display examples, decision trees that grow from the ground, and pathways that split into two directions based on conditions. The walls are covered in glowing binary symbols (true/false, yes/no) that pulse with the rhythm of logical thinking. Professor Ildar teaches here, using whimsical demonstrations where students follow different paths based on simple conditions.",
+        "description": "A whimsical introduction to if statements and if-else statements"
+      },
+      "characters": [
+        {
+          "id": "Professor Ildar",
+          "name": "Professor Ildar",
+          "description": "A wise, patient professor with a beard that flows like cascading code blocks. He wears a robe covered in question marks and exclamation points that glow when he explains conditions. His spectacles are shaped like parentheses, and he carries a magical pointer that draws glowing paths in the air. His hat is a stack of nested if-statements, and his expression is always encouraging and thoughtful. He moves with deliberate, measured steps, pausing at decision points to let students think.",
+          "imageGallery": [],
+          "selectedImageId": null
+        }
+      ],
+      "elements": [
+        {
+          "id": "Code Garden Classroom",
+          "name": "Code Garden Classroom",
+          "description": "A whimsical classroom where code panels float in the air like leaves. The floor has pathways that split into two directions at decision points, marked with glowing true/false signs. Decision trees grow from the ground, their branches representing different code paths. The walls display examples of code that students can touch to see them execute. Floating question marks drift through the air, representing conditions waiting to be evaluated.",
+          "category": "Rooms"
+        },
+        {
+          "id": "Decision Pathway",
+          "name": "Decision Pathway",
+          "description": "A magical pathway that splits into two directions at a decision point. One path glows green (true) and leads to one outcome, the other glows red (false) and leads to another. Students can walk down these paths to experience how if-else statements work. The paths sometimes merge back together after the decision.",
+          "category": "Set Pieces"
+        },
+        {
+          "id": "Condition Evaluator",
+          "name": "Condition Evaluator",
+          "description": "A whimsical machine shaped like a giant question mark that evaluates conditions. When a student presents a condition, it lights up either green (true) or red (false), and then points to the appropriate path or code block. It makes cheerful beeping sounds when evaluating.",
+          "category": "Machinery"
+        },
+        {
+          "id": "Code Display Board",
+          "name": "Code Display Board",
+          "description": "A large, floating board that displays code examples. The code is written in glowing, colorful letters that students can read easily. When Professor Ildar explains a concept, the relevant parts of the code highlight and pulse. The board can show multiple code examples side by side.",
+          "category": "Machinery"
+        }
+      ],
+      "scenes": [
+        {
+          "title": "Welcome to Decisions",
+          "description": "Professor Ildar stands at the front of the Code Garden Classroom, welcoming the students. Behind him, a large Code Display Board shows a simple if statement. The students are gathered around, looking curious and excited. Decision Pathways are visible in the background, waiting to be explored. The Condition Evaluator sits to the side, glowing softly.",
+          "textPanel": "Welcome, students, to the Code Garden grand,\nWhere decisions grow like trees across the land!\nToday we'll learn to make choices in code,\nWith if and if-else, a powerful mode!",
+          "diagramPanel": {
+            "type": "code",
+            "content": "if (condition) {\n  // Do something\n}",
+            "language": "javascript",
+            "style": {
+              "boardStyle": "blackboard",
+              "position": "top-center",
+              "widthPercentage": 60,
+              "heightPercentage": 20,
+              "autoScale": true,
+              "backgroundColor": "#2d3748",
+              "foregroundColor": "#ffffff",
+              "borderColor": "#8b7355",
+              "borderWidth": 3,
+              "padding": 15,
+              "fontSize": 18,
+              "gutterTop": 20,
+              "gutterBottom": 0,
+              "gutterLeft": 0,
+              "gutterRight": 0
+            }
+          },
+          "characters": [
+            "Professor Ildar",
+            "Student Eager Noodler",
+            "student Thoughtful Giggler",
+            "Student Zippy Zapper",
+            "Student Quiet observer"
+          ],
+          "elements": [
+            "Code Garden Classroom",
+            "Code Display Board"
+          ]
+        },
+        {
+          "title": "Simple If Statement",
+          "description": "Professor Ildar points to the Code Display Board showing a simple if statement. He demonstrates by checking if it's raining - the Condition Evaluator lights up green (true), and a student walks down the green Decision Pathway holding an umbrella. The other students watch, understanding that when the condition is true, the code inside the if block runs.",
+          "textPanel": "An if statement checks a condition true,\nIf it's true, then the code will run through!\nLike checking if it's raining outside,\nIf true, grab an umbrella and run to hide!",
+          "diagramPanel": {
+            "type": "code",
+            "content": "let isRaining = true;\n\nif (isRaining) {\n  console.log('Grab an umbrella!');\n}",
+            "language": "javascript",
+            "style": {
+              "boardStyle": "blackboard",
+              "position": "top-center",
+              "widthPercentage": 60,
+              "heightPercentage": 25,
+              "autoScale": true,
+              "backgroundColor": "#2d3748",
+              "foregroundColor": "#ffffff",
+              "borderColor": "#8b7355",
+              "borderWidth": 3,
+              "padding": 15,
+              "fontSize": 18,
+              "gutterTop": 20,
+              "gutterBottom": 0,
+              "gutterLeft": 0,
+              "gutterRight": 0
+            }
+          },
+          "characters": [
+            "Professor Ildar",
+            "Student Eager Noodler",
+            "student Thoughtful Giggler",
+            "Student Zippy Zapper",
+            "Student Quiet observer"
+          ],
+          "elements": [
+            "Code Garden Classroom",
+            "Code Display Board",
+            "Condition Evaluator",
+            "Decision Pathway"
+          ]
+        },
+        {
+          "title": "When Condition is False",
+          "description": "Professor Ildar shows what happens when the condition is false. The Condition Evaluator lights up red (false), and nothing happens - no student walks down any path. The students look confused, and Professor Ildar smiles, explaining that sometimes we need an alternative path. The Code Display Board shows the same if statement, but this time with isRaining set to false.",
+          "textPanel": "But what if the condition is false, you see?\nThen nothing happens, as plain as can be!\nThe code inside the if block won't run,\nIt's skipped entirely, we're done!",
+          "diagramPanel": {
+            "type": "code",
+            "content": "let isRaining = false;\n\nif (isRaining) {\n  console.log('Grab an umbrella!');\n}\n// Nothing happens when false!",
+            "language": "javascript",
+            "style": {
+              "boardStyle": "blackboard",
+              "position": "top-center",
+              "widthPercentage": 60,
+              "heightPercentage": 25,
+              "autoScale": true,
+              "backgroundColor": "#2d3748",
+              "foregroundColor": "#ffffff",
+              "borderColor": "#8b7355",
+              "borderWidth": 3,
+              "padding": 15,
+              "fontSize": 18,
+              "gutterTop": 20,
+              "gutterBottom": 0,
+              "gutterLeft": 0,
+              "gutterRight": 0
+            }
+          },
+          "characters": [
+            "Professor Ildar",
+            "Student Eager Noodler",
+            "student Thoughtful Giggler",
+            "Student Zippy Zapper",
+            "Student Quiet observer"
+          ],
+          "elements": [
+            "Code Garden Classroom",
+            "Code Display Board",
+            "Condition Evaluator"
+          ]
+        },
+        {
+          "title": "Introducing If-Else",
+          "description": "Professor Ildar introduces the if-else statement. The Code Display Board now shows an if-else structure. He demonstrates with the rain example again - when true, a student takes the green path with an umbrella, when false, a different student takes the red path without an umbrella. The Decision Pathway clearly shows both branches splitting from the same point.",
+          "textPanel": "Now if-else gives us two paths to choose,\nOne for true, one for false - we can't lose!\nIf raining is true, grab that umbrella,\nElse go outside, be a happy fella!",
+          "diagramPanel": {
+            "type": "code",
+            "content": "let isRaining = true;\n\nif (isRaining) {\n  console.log('Grab an umbrella!');\n} else {\n  console.log('Go outside and play!');\n}",
+            "language": "javascript",
+            "style": {
+              "boardStyle": "blackboard",
+              "position": "top-center",
+              "widthPercentage": 60,
+              "heightPercentage": 25,
+              "autoScale": true,
+              "backgroundColor": "#2d3748",
+              "foregroundColor": "#ffffff",
+              "borderColor": "#8b7355",
+              "borderWidth": 3,
+              "padding": 15,
+              "fontSize": 18,
+              "gutterTop": 20,
+              "gutterBottom": 0,
+              "gutterLeft": 0,
+              "gutterRight": 0
+            }
+          },
+          "characters": [
+            "Professor Ildar",
+            "Student Eager Noodler",
+            "student Thoughtful Giggler",
+            "Student Zippy Zapper",
+            "Student Quiet observer"
+          ],
+          "elements": [
+            "Code Garden Classroom",
+            "Code Display Board",
+            "Condition Evaluator",
+            "Decision Pathway"
+          ]
+        },
+        {
+          "title": "Comparing Numbers",
+          "description": "Professor Ildar shows a practical example comparing numbers. The Code Display Board shows an if-else statement checking if a number is greater than 10. Student Eager Noodler holds up the number 15, and the Condition Evaluator lights up green. Student Thoughtful Giggler holds up the number 5, and it lights up red. Each student follows their respective path.",
+          "textPanel": "We can compare numbers, big and small,\nIf greater than ten, stand up tall!\nElse if it's smaller, sit down low,\nThe condition decides which way to go!",
+          "diagramPanel": {
+            "type": "code",
+            "content": "let number = 15;\n\nif (number > 10) {\n  console.log('Number is greater than 10!');\n} else {\n  console.log('Number is 10 or less!');\n}",
+            "language": "javascript",
+            "style": {
+              "boardStyle": "blackboard",
+              "position": "top-center",
+              "widthPercentage": 60,
+              "heightPercentage": 25,
+              "autoScale": true,
+              "backgroundColor": "#2d3748",
+              "foregroundColor": "#ffffff",
+              "borderColor": "#8b7355",
+              "borderWidth": 3,
+              "padding": 15,
+              "fontSize": 18,
+              "gutterTop": 20,
+              "gutterBottom": 0,
+              "gutterLeft": 0,
+              "gutterRight": 0
+            }
+          },
+          "characters": [
+            "Professor Ildar",
+            "Student Eager Noodler",
+            "student Thoughtful Giggler",
+            "Student Zippy Zapper",
+            "Student Quiet observer"
+          ],
+          "elements": [
+            "Code Garden Classroom",
+            "Code Display Board",
+            "Condition Evaluator",
+            "Decision Pathway"
+          ]
+        },
+        {
+          "title": "Checking Equality",
+          "description": "Professor Ildar demonstrates checking if two values are equal. The Code Display Board shows an if-else statement using the equality operator (===). Student Zippy Zapper holds up two identical cards, and the Condition Evaluator lights up green. Then Student Quiet observer holds up two different cards, and it lights up red. The students understand that === checks if values match exactly.",
+          "textPanel": "We check if values match, equal and same,\nWith three equals signs, that's the name!\nIf they're equal, the first path we take,\nElse the other path, for goodness sake!",
+          "diagramPanel": {
+            "type": "code",
+            "content": "let password = 'secret123';\nlet userInput = 'secret123';\n\nif (password === userInput) {\n  console.log('Access granted!');\n} else {\n  console.log('Wrong password!');\n}",
+            "language": "javascript",
+            "style": {
+              "boardStyle": "blackboard",
+              "position": "top-center",
+              "widthPercentage": 60,
+              "heightPercentage": 25,
+              "autoScale": true,
+              "backgroundColor": "#2d3748",
+              "foregroundColor": "#ffffff",
+              "borderColor": "#8b7355",
+              "borderWidth": 3,
+              "padding": 15,
+              "fontSize": 18,
+              "gutterTop": 20,
+              "gutterBottom": 0,
+              "gutterLeft": 0,
+              "gutterRight": 0
+            }
+          },
+          "characters": [
+            "Professor Ildar",
+            "Student Eager Noodler",
+            "student Thoughtful Giggler",
+            "Student Zippy Zapper",
+            "Student Quiet observer"
+          ],
+          "elements": [
+            "Code Garden Classroom",
+            "Code Display Board",
+            "Condition Evaluator",
+            "Decision Pathway"
+          ]
+        },
+        {
+          "title": "Multiple Conditions",
+          "description": "Professor Ildar shows how to combine conditions using logical operators. The Code Display Board shows an if statement with AND (&&) and OR (||) operators. He demonstrates checking if someone is both old enough AND has permission, or if it's either weekend OR holiday. Students walk down different Decision Pathways based on the combined conditions. The Condition Evaluator evaluates each part separately, then combines the results.",
+          "textPanel": "We can combine conditions, two or more,\nWith AND and OR, we open the door!\nIf this AND that, both must be true,\nIf this OR that, either will do!",
+          "diagramPanel": {
+            "type": "code",
+            "content": "let age = 16;\nlet hasPermission = true;\n\nif (age >= 13 && hasPermission) {\n  console.log('You can watch the movie!');\n} else {\n  console.log('Sorry, not allowed!');\n}\n\n// OR example\nlet isWeekend = false;\nlet isHoliday = true;\n\nif (isWeekend || isHoliday) {\n  console.log('No school today!');\n}",
+            "language": "javascript",
+            "style": {
+              "boardStyle": "blackboard",
+              "position": "top-center",
+              "widthPercentage": 65,
+              "heightPercentage": 30,
+              "autoScale": true,
+              "backgroundColor": "#2d3748",
+              "foregroundColor": "#ffffff",
+              "borderColor": "#8b7355",
+              "borderWidth": 3,
+              "padding": 15,
+              "fontSize": 16,
+              "gutterTop": 20,
+              "gutterBottom": 0,
+              "gutterLeft": 0,
+              "gutterRight": 0
+            }
+          },
+          "characters": [
+            "Professor Ildar",
+            "Student Eager Noodler",
+            "student Thoughtful Giggler",
+            "Student Zippy Zapper",
+            "Student Quiet observer"
+          ],
+          "elements": [
+            "Code Garden Classroom",
+            "Code Display Board",
+            "Condition Evaluator",
+            "Decision Pathway"
+          ]
+        },
+        {
+          "title": "Putting It All Together",
+          "description": "Professor Ildar stands with all the students gathered around. The Code Display Board shows a complete example combining everything they've learned - multiple if-else statements checking different conditions. All the students are following different Decision Pathways based on their own conditions, demonstrating that each person's code can take different paths. The scene shows the power and flexibility of if-else statements. Professor Ildar smiles proudly as the students understand how to make their programs make decisions.",
+          "textPanel": "Now you know how to make choices in code,\nWith if and if-else, you're on the right road!\nCheck conditions, compare values too,\nYour programs will know just what to do!\n\nRemember: if true, take one path,\nElse take the other, do the math!\nDecisions in code make programs smart,\nNow you've learned this important art!",
+          "diagramPanel": {
+            "type": "code",
+            "content": "let temperature = 75;\nlet isSunny = true;\nlet hasUmbrella = false;\n\nif (temperature > 70 && isSunny) {\n  console.log('Perfect day for the beach!');\n} else if (temperature < 50) {\n  console.log('Stay inside, it's cold!');\n} else if (isSunny && hasUmbrella) {\n  console.log('Nice day, but bring umbrella!');\n} else {\n  console.log('Check the weather first!');\n}",
+            "language": "javascript",
+            "style": {
+              "boardStyle": "blackboard",
+              "position": "top-center",
+              "widthPercentage": 65,
+              "heightPercentage": 30,
+              "autoScale": true,
+              "backgroundColor": "#2d3748",
+              "foregroundColor": "#ffffff",
+              "borderColor": "#8b7355",
+              "borderWidth": 3,
+              "padding": 15,
+              "fontSize": 16,
+              "gutterTop": 20,
+              "gutterBottom": 0,
+              "gutterLeft": 0,
+              "gutterRight": 0
+            }
+          },
+          "characters": [
+            "Professor Ildar",
+            "Student Eager Noodler",
+            "student Thoughtful Giggler",
+            "Student Zippy Zapper",
+            "Student Quiet observer"
+          ],
+          "elements": [
+            "Code Garden Classroom",
+            "Code Display Board",
+            "Condition Evaluator",
+            "Decision Pathway"
+          ]
+        }
+      ]
     }
   ]
 }

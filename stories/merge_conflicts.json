@@ -1,0 +1,291 @@
+{
+  "story": {
+    "title": "Merge Conflicts: Bringing Code Together",
+    "backgroundSetup": "A vibrant, magical garden classroom called The Merge Garden, where code grows like plants along branching pathways. Two parallel garden paths wind through the space, occasionally intersecting at merge points marked by glowing archways. Professor Sparkly Yvonne, energetic and always in motion, teaches students how to handle situations when two gardeners cultivate the same plot. The garden has a large Resolution Table in the center, surrounded by blooming code flowers and conflict detector crystals that glow red when overlapping changes are detected. IMPORTANT: All characters (Professor Sparkly Yvonne and students) should be positioned in the BOTTOM HALF of the image, with the code panels, garden pathways, and visual demonstrations in the top half.",
+    "description": "A whimsical journey through the world of merge conflicts, where Professor Sparkly Yvonne teaches students how to handle overlapping changes when code paths converge."
+  },
+  "characters": [
+    {
+      "name": "Professor Sparkly Yvonne",
+      "description": "A spirited woman in her sixties with an infectious energy that keeps her perpetually in motion. She wears colorful tie-dyed shirts in swirling patterns of purple, blue, and green, paired with comfortable denim shorts and well-worn hiking boots. Her silver-streaked hair is pulled back in a practical ponytail that bounces as she dashes from student to student. She always wears a vintage backpack covered in coding stickers and conference pins, and she gestures animatedly with garden tools as she explains concepts. Her eyes sparkle with enthusiasm, and she often jogs in place while teaching, unable to contain her kinetic energy."
+    },
+    {
+      "name": "Student Eager Noodler",
+      "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes."
+    },
+    {
+      "name": "student Thoughtful Giggler",
+      "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet."
+    },
+    {
+      "name": "Student Zippy Zapper",
+      "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'"
+    },
+    {
+      "name": "Student Quiet observer",
+      "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook."
+    }
+  ],
+  "elements": [
+    {
+      "name": "The Merge Garden",
+      "description": "A magical garden classroom where code grows along branching pathways. Two main paths wind through the space in parallel, each representing a development branch. Glowing archways mark merge points where paths converge. Code flowers bloom along the paths, their petals displaying lines of code. When conflicts occur, red warning crystals light up at the merge point.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Branch Pathways",
+      "description": "Two parallel garden paths made of glowing stepping stones, each path representing a different branch of development. The paths start from a common trunk and diverge, winding through the garden independently. Each path has a nameplate showing branch names like 'main' and 'feature-branch'. The paths glow green when changes are compatible and red when conflicts are detected.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Resolution Table",
+      "description": "A large, circular wooden table in the center of the garden with a smooth, polished surface that displays conflict markers and code sections. The table has three sections that light up: the left side shows 'Current Changes', the right shows 'Incoming Changes', and the center shows the 'Resolved Version'. Garden tools hang from hooks around the table's edge, symbolizing the tools developers use to resolve conflicts.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Conflict Detector",
+      "description": "A tall, ornate crystal device that stands at merge points in the garden. When two paths converge with compatible changes, it glows soft green and chimes gently. When conflicts are detected, it pulses red and displays the conflicting file names. Small panels on its surface show Git status messages and conflict markers.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Merge History Wall",
+      "description": "A living wall of ivy-covered panels that displays the history of merges in the garden. Each successful merge appears as a glowing green node where two vines join. Conflict resolutions appear as golden nodes with small annotations showing how they were resolved. The wall helps students see the pattern of branching and merging over time.",
+      "category": "Machinery"
+    }
+  ],
+  "scenes": [
+    {
+      "title": "Welcome to The Merge Garden",
+      "description": "Professor Sparkly Yvonne jogs into The Merge Garden, her tie-dyed shirt flowing and backpack bouncing. She gestures excitedly at the two parallel Branch Pathways glowing before them, explaining how developers often work on different features simultaneously. The students gather around as she demonstrates how two gardeners can work on separate garden plots without problems. Student Eager Noodler's antennae twitch with interest while student Thoughtful Giggler's ears perk up. The Conflict Detector stands quietly, glowing a peaceful green.",
+      "textPanel": "\"Welcome, my friends, to the Merge Garden bright,\nWhere code branches grow and develop just right!\nTwo paths can diverge, with changes unique,\nBut what happens when they're ready to meet?\"",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Starting a new branch for feature development\n# This allows parallel work without conflicts\n\n# Create and switch to a new branch\ngit checkout -b feature-login\n\n# Now you can work independently\n# Changes here won't affect the main branch\n# until you're ready to merge\n\nprint(\"Working on new feature independently\")",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 25,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["The Merge Garden", "Branch Pathways", "Conflict Detector"]
+    },
+    {
+      "title": "Two Paths Diverge",
+      "description": "Professor Yvonne sprints along one Branch Pathway while pointing to the other, showing how two developers can work simultaneously. She plants code flowers along one path while an invisible second gardener plants along the other. The Branch Pathways glow independently, showing commits appearing as blooming flowers. Student Zippy Zapper zings excitedly between the paths while Student Quiet observer sketches the branching pattern in their notebook. The Merge History Wall begins to light up, showing the diverging branches.",
+      "textPanel": "\"Alice works here, on feature-login she goes,\nWhile Bob fixes bugs where the main pathway flows.\nEach commits their changes, their code flowers bloom,\nWorking in parallel, each in their own room!\"",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Two developers working independently\n\n# Alice on feature-login branch\n# Adds new login functionality\ndef login_user(username, password):\n    # Authenticate user\n    return validate_credentials(username, password)\n\n# Bob on main branch\n# Fixes a bug in validation\ndef validate_credentials(username, password):\n    # Check database for user\n    return check_database(username, password)",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Branch Pathways", "Merge History Wall"]
+    },
+    {
+      "title": "When Paths Converge",
+      "description": "Professor Yvonne runs toward the glowing merge archway where the two Branch Pathways meet. She explains that when Alice finishes her feature, she'll want to merge it back into main. The Conflict Detector begins to analyze the changes from both paths. Initially it glows green, but then suddenly pulses red as it detects that both Alice and Bob modified the same file in the same location. Student Eager Noodler's antennae droop slightly with concern while student Thoughtful Giggler lets out a nervous giggle.",
+      "textPanel": "\"Now Alice is ready, her feature complete,\nShe'll merge back to main, make her work concrete.\nBut wait! The Detector glows red with alarm—\nBoth changed the same spot! This might cause some harm!\"",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Attempting to merge feature-login into main\n\n# First, switch to the main branch\ngit checkout main\n\n# Try to merge the feature branch\ngit merge feature-login\n\n# Output:\n# Auto-merging login.py\n# CONFLICT (content): Merge conflict in login.py\n# Automatic merge failed; fix conflicts and commit",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 28,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Branch Pathways", "Conflict Detector", "The Merge Garden"]
+    },
+    {
+      "title": "Understanding Conflict Markers",
+      "description": "Professor Yvonne bounds over to the Resolution Table, where the conflicting code appears illuminated on its surface. She points energetically at the special markers that Git has inserted, explaining each section with animated gestures. The table's three sections light up: the left showing the current branch changes, the right showing incoming changes, and the center waiting for the resolution. Student Quiet observer peers through their periscope at the markers while Student Zippy Zapper's four arms point at different sections simultaneously.",
+      "textPanel": "\"See these markers? They're Git's helpful signs,\nShowing where code from two branches combines.\nThe HEAD shows your work, what you changed today,\nThe incoming shows theirs, coming your way!\"",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Conflict markers in login.py file\n\ndef validate_credentials(username, password):\n<<<<<<< HEAD\n    # Current branch (main): Bob's bug fix\n    if not username or not password:\n        return False\n    return check_database(username, password)\n=======\n    # Incoming branch (feature-login): Alice's changes\n    # Enhanced validation with logging\n    log_attempt(username)\n    return check_database(username, password)\n>>>>>>> feature-login",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Resolution Table", "Conflict Detector"]
+    },
+    {
+      "title": "Manual Resolution Strategy",
+      "description": "Professor Yvonne jogs around the Resolution Table, pulling garden tools from the hooks to demonstrate the resolution process. She explains that developers must read both versions carefully and decide what the final code should look like. Sometimes you keep one version, sometimes the other, and sometimes you combine both. She demonstrates removing the conflict markers and crafting the best solution. Student Thoughtful Giggler's ears perk up with understanding while Student Eager Noodler scribbles furiously in their notes.",
+      "textPanel": "\"To resolve, dear students, you must choose with care,\nKeep one version? Both? Create something rare?\nRemove all the markers—HEAD, equals, and more,\nCraft the best solution, better than before!\"",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Resolved version combining both changes\n\ndef validate_credentials(username, password):\n    # Combine Bob's validation with Alice's logging\n    # This gives us the best of both changes\n    \n    # Bob's bug fix: check for empty values\n    if not username or not password:\n        return False\n    \n    # Alice's enhancement: log the attempt\n    log_attempt(username)\n    \n    # Both agree on the database check\n    return check_database(username, password)",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Resolution Table", "The Merge Garden"]
+    },
+    {
+      "title": "Mark as Resolved",
+      "description": "Professor Yvonne energetically demonstrates how to tell Git that the conflict is resolved. She shows the students how to stage the fixed file and complete the merge with a commit. The Resolution Table's center section glows golden as the resolved code appears. The Conflict Detector shifts from red to green, chiming happily. A new golden node appears on the Merge History Wall, marking this successful conflict resolution. Student Zippy Zapper zings triumphantly while the other students cheer.",
+      "textPanel": "\"Once resolved, tell Git your fix is complete,\nStage the file, make the merge nice and neat.\nA commit seals the deal, your changes combine,\nBoth branches now merged in harmony fine!\"",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# After manually resolving conflicts in the file\n# Tell Git the conflict is resolved\n\n# Stage the resolved file\ngit add login.py\n\n# Check status to confirm\ngit status\n# Shows: All conflicts fixed but you are still merging\n\n# Complete the merge with a commit\ngit commit -m \"Merge feature-login with conflict resolution\"\n\n# Now the merge is complete!\nprint(\"Conflict resolved and merge completed!\")",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 32,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Resolution Table", "Conflict Detector", "Merge History Wall"]
+    },
+    {
+      "title": "Testing After Resolution",
+      "description": "Professor Yvonne runs through the merged Branch Pathways, now unified into one, emphasizing the importance of testing after conflict resolution. She demonstrates running tests and checking that both sets of changes work correctly together. The garden's code flowers bloom vibrantly along the merged path, but she warns students to always verify that their manual resolution didn't introduce bugs. Student Quiet observer nods solemnly while carefully documenting the testing process in their notebook.",
+      "textPanel": "\"But wait! Before you celebrate and rest,\nYour merged code needs to pass every test!\nMake sure both changes work as they should,\nA resolved conflict should make code more good!\"",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Always test after resolving conflicts!\n\n# Run your test suite\nimport unittest\n\nclass TestMergedCode(unittest.TestCase):\n    def test_validation(self):\n        # Test Bob's bug fix works\n        result = validate_credentials(\"\", \"pass\")\n        self.assertFalse(result)\n        \n        # Test Alice's feature works  \n        result = validate_credentials(\"user\", \"pass\")\n        # Should log and return correctly\n        self.assertTrue(result)",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Branch Pathways", "The Merge Garden", "Merge History Wall"]
+    },
+    {
+      "title": "Prevention and Best Practices",
+      "description": "Professor Yvonne gathers all the students around the Merge History Wall, which now displays a beautiful pattern of successful merges. She shares wisdom about preventing conflicts: communicate with your team, pull often, make smaller changes, and merge frequently. The students listen intently as she jogs in place, gesturing at the wall's patterns. Student Eager Noodler's antennae glow with understanding, student Thoughtful Giggler giggles knowingly, Student Zippy Zapper zaps in agreement, and Student Quiet observer hums a gentle melody of comprehension. The Merge Garden blooms around them, a testament to successful collaboration.",
+      "textPanel": "\"The best conflict is one you prevent with care,\nCommunicate often, keep your team aware!\nPull changes frequently, merge your work soon,\nAnd The Merge Garden will stay in tune!\"",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Best practices to minimize merge conflicts\n\n# 1. Pull often to stay synchronized\ngit pull origin main  # Get latest changes regularly\n\n# 2. Make focused, smaller commits\n# Smaller changes = fewer conflicts\n\n# 3. Communicate with your team\n# \"I'm working on login.py today\"\n\n# 4. Merge frequently\n# Don't let branches diverge too long\n\n# 5. Use feature flags for incomplete work\n# Merge code even if feature isn't done",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Merge History Wall", "The Merge Garden", "Branch Pathways"]
+    }
+  ]
+}
+

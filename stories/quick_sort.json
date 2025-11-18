@@ -1,0 +1,569 @@
+{
+  "story": {
+    "title": "Quick Sort: The Pivot Dance",
+    "backgroundSetup": "The Partition Arena, a dynamic classroom where elements dance around pivots. The room features a grand circular stage with a pivot pedestal in the center. Elements arrange themselves - smaller ones dance to the left, larger ones to the right. Glowing partitions divide the stage into sections that sort independently. The walls display partition diagrams and pivot selection strategies. A speedometer shows how quick sort lives up to its name. Professor Richard teaches here, conducting the rapid rearrangement with energetic precision. IMPORTANT: All characters (Professor Richard and students) should be positioned in the BOTTOM HALF of the image, with the code panels, stage elements, and visual demonstrations in the top half.",
+    "description": "A whimsical introduction to quick sort through pivot selection and partitioning"
+  },
+  "characters": [
+    {
+      "name": "Professor Richard",
+      "description": "An energetic, theatrical professor with wild, Einstein-like hair that bounces as he moves. He wears a vest covered in ascending number sequences and carries a conductor's baton that he waves to orchestrate the sorting dance. His bow tie spins when numbers swap correctly, and his shoes squeak in rhythm with the comparisons. He has a booming, encouraging voice and gestures grandly to emphasize each step of the algorithm. His pockets are filled with colored markers to draw swap arrows, and he often snaps his fingers to mark the beat of the sorting rhythm."
+    },
+    {
+      "name": "Student Eager Noodler",
+      "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes."
+    },
+    {
+      "name": "student Thoughtful Giggler",
+      "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet."
+    },
+    {
+      "name": "Student Zippy Zapper",
+      "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'"
+    },
+    {
+      "name": "Student Quiet observer",
+      "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook."
+    }
+  ],
+  "elements": [
+    {
+      "name": "Partition Arena Classroom",
+      "description": "A dynamic classroom with a circular stage. A pivot pedestal rises in the center where the chosen pivot element stands. Glowing dividers create left and right sections. Elements dance and swap positions during partitioning. The walls show partition trees and performance metrics. Everything moves fast, reflecting quick sort's speed.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Pivot Pedestal",
+      "description": "A raised platform in the center of the stage where the pivot element stands proudly. It rotates slowly, glowing bright gold. Elements compare themselves to the pivot to decide which side to join. The pedestal can move to different positions as recursion proceeds.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Partition Dividers",
+      "description": "Glowing walls that divide the stage into sections - left for elements smaller than the pivot, right for elements larger. The dividers move dynamically as the partition process unfolds, showing where elements will end up.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Swap Highlighter",
+      "description": "A pair of spotlights that illuminate elements being swapped during partitioning. When two elements need to switch places, the spotlights flash, and the elements swap with a dramatic whoosh sound.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Recursion Depth Tracker",
+      "description": "A display showing how many recursive calls are active and which sections are currently being sorted. It visualizes the partition tree, with branches representing recursive calls on left and right sections.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Speed-O-Meter",
+      "description": "A gauge showing quick sort's impressive speed. In average cases, it points to O(n log n). It displays comparisons and swaps in real-time, showing why quick sort is often the fastest practical sorting algorithm.",
+      "category": "Machinery"
+    }
+  ],
+  "scenes": [
+    {
+      "title": "Welcome to Quick Sort",
+      "description": "Professor Richard stands in the Partition Arena, gesturing dramatically at an array [33, 10, 55, 71, 29, 19, 83] arranged in a circle on the stage. The Pivot Pedestal glows, ready to receive its first element. The students sit on tiered seating around the arena, notebooks ready. The Speed-O-Meter needle quivers with anticipation. Professor Richard's bow tie is already spinning slowly, building excitement.",
+      "textPanel": "Welcome, students, to a sort so quick,\nWatch the pivot do its trick!\nWe'll partition left and right,\nQuick sort's speed is quite a sight!\n\nChoose a pivot, rearrange the rest,\nSmaller left, larger - you've guessed!\nThen recurse on both new parts,\nQuick sort - the fastest of all arts!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Quick sort: partition-based sorting\narr = [33, 10, 55, 71, 29, 19, 83]\nprint(f\"Starting array: {arr}\")\n\n# Choose pivot, partition, recurse\n# Average: O(n log n) - very fast!\n# In-place: O(log n) space",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 60,
+          "heightPercentage": 22,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 18,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Partition Arena Classroom",
+        "Pivot Pedestal",
+        "Speed-O-Meter"
+      ]
+    },
+    {
+      "title": "Choosing the Pivot",
+      "description": "Professor Richard explains pivot selection. For simplicity, he chooses the last element: 83. The number 83 rises dramatically to the Pivot Pedestal, glowing gold. He explains other strategies (first element, middle, random, median-of-three) but will use the last element for this demonstration. The Partition Dividers appear, ready to separate elements. Student Eager Noodler's antennae twitch with anticipation.",
+      "textPanel": "Step one: choose a pivot bright,\nLast element? That works just right!\nOr first, or middle, take your pick,\nThe pivot's role is the main trick!\n\nEighty-three steps up with pride,\nAll others will be classified!\nSmaller left, and larger right,\nPartition's goal is quite a sight!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "arr = [33, 10, 55, 71, 29, 19, 83]\n#                                ^^  <- Choose pivot (last element)\n\npivot = arr[-1]  # pivot = 83\nprint(f\"Pivot: {pivot}\")\n\n# Common pivot strategies:\n# - Last element (simple)\n# - First element\n# - Middle element\n# - Random element\n# - Median-of-three (best average case)\n\n# Now partition around pivot!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 28,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Partition Arena Classroom",
+        "Pivot Pedestal",
+        "Partition Dividers"
+      ]
+    },
+    {
+      "title": "The Partition Process Begins",
+      "description": "Professor Richard introduces two pointers: i (partition boundary, starts at -1) and j (current element scanner, starts at 0). Element 33 compares with pivot 83 - it's smaller! The Swap Highlighter flashes. 33 moves to the left section. Then 10 compares (smaller, moves left), 55 (smaller, left), 71 (smaller, left), 29 (smaller, left), 19 (smaller, left). All elements are smaller than 83! The students watch as elements find their sides.",
+      "textPanel": "Now we partition, compare each one,\nWith the pivot, till we're done!\nSmaller? Move to the left side here,\nLarger? Right side, that's quite clear!\n\nThirty-three, ten, fifty-five dance left,\nSeventy-one, twenty-nine, skilled and deft!\nNineteen joins them, small they stay,\nAll less than eighty-three today!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "arr = [33, 10, 55, 71, 29, 19, 83]\npivot = 83\ni = -1  # Partition boundary\n\n# Scan through array\nfor j in range(len(arr) - 1):\n    if arr[j] <= pivot:\n        i += 1\n        # All elements are <= 83, so all go left!\n        arr[i], arr[j] = arr[j], arr[i]\n\n# After scanning:\n# [33, 10, 55, 71, 29, 19, 83]\n# All elements < 83 are to the left\n# Now place pivot in correct position",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Partition Arena Classroom",
+        "Pivot Pedestal",
+        "Partition Dividers",
+        "Swap Highlighter"
+      ]
+    },
+    {
+      "title": "Placing the Pivot",
+      "description": "Professor Richard now places the pivot 83 in its final position. Since all elements are smaller, 83 goes at the end where it already is! The pedestal moves to position 6 (index 6). 83 glows bright green - it's in its final sorted position! The array shows [33, 10, 55, 71, 29, 19 | 83]. The left section needs sorting, but 83 is done forever. Student Zippy Zapper zings with excitement at seeing the first element in its final place.",
+      "textPanel": "Pivot finds its rightful place,\nFinal position in the race!\nEighty-three stands at the end,\nNever moves again, my friend!\n\nLeft side needs more work to do,\nBut pivot's sorted through and through!\nThis is quick sort's clever way,\nOne by one, in place they stay!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "arr = [33, 10, 55, 71, 29, 19, 83]\ni = 5  # Partition boundary position\n\n# Place pivot in its final position\narr[i + 1], arr[-1] = arr[-1], arr[i + 1]\nprint(f\"After partition: {arr}\")\n# Result: [33, 10, 55, 71, 29, 19, 83]\n\npivot_index = i + 1  # 6\nprint(f\"Pivot 83 is now at index {pivot_index}\")\n\n# Left subarray: [33, 10, 55, 71, 29, 19] (needs sorting)\n# Right subarray: [] (empty)\n# Pivot: [83] (in final position!)",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Partition Arena Classroom",
+        "Pivot Pedestal",
+        "Partition Dividers"
+      ]
+    },
+    {
+      "title": "Recursion on Left Partition",
+      "description": "Now the left section [33, 10, 55, 71, 29, 19] becomes the new focus. Professor Richard picks 19 as the new pivot (last element of this section). The Recursion Depth Tracker shows we're one level deeper. Elements compare with 19: 33 is larger (right), 10 is smaller (left), 55 is larger (right), 71 is larger (right), 29 is larger (right). After partitioning: [10 | 19 | 33, 55, 71, 29]. Now 19 is also in its final position! The students see the recursion pattern emerging.",
+      "textPanel": "Recurse on the left, away we go,\nNineteen's the pivot for this show!\nTen is smaller, to the left it flies,\nThirty-three and friends? No surprise!\n\nAll the rest are larger, true,\nThey go right, that's what they do!\nNineteen finds its perfect spot,\nTwo elements sorted - look what we've got!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Recursive call on left partition\nleft_partition = [33, 10, 55, 71, 29, 19]\npivot = 19\n\n# Partition around 19:\n# 33 > 19 → right\n# 10 < 19 → left\n# 55 > 19 → right\n# 71 > 19 → right\n# 29 > 19 → right\n\n# After partition: [10, 19, 33, 55, 71, 29]\nprint(\"Left of 19: [10]\")\nprint(\"Pivot: 19 (final position!)\")\nprint(\"Right of 19: [33, 55, 71, 29]\")\n\n# Continue recursing...",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Partition Arena Classroom",
+        "Pivot Pedestal",
+        "Partition Dividers",
+        "Recursion Depth Tracker"
+      ]
+    },
+    {
+      "title": "More Recursive Calls",
+      "description": "The recursion continues! [10] is a single element (base case - done!). [33, 55, 71, 29] needs sorting. Pivot is 29. After partitioning: [29 | 33, 55, 71]. Now 29 is in place. Then [33, 55, 71] with pivot 71 becomes [33, 55 | 71]. Then [33, 55] with pivot 55 becomes [33 | 55]. Finally [33] is done (base case). The Recursion Depth Tracker shows the tree collapsing back up. Professor Richard conducts the final positions with his baton. Student Quiet observer sketches the complete recursion tree.",
+      "textPanel": "Recurse and recurse, again, again,\nTill all base cases we attain!\nSingle elements, sorted right,\nNo more work, what a delight!\n\nTwenty-nine finds its place,\nSeventy-one joins the race!\nFifty-five and thirty-three,\nAll lined up for us to see!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Continuing recursion:\n\n# [10] → base case, done!\n\n# [33, 55, 71, 29], pivot = 29\n# → [29] + [33, 55, 71]\n\n# [33, 55, 71], pivot = 71  \n# → [33, 55] + [71]\n\n# [33, 55], pivot = 55\n# → [33] + [55]\n\n# [33] → base case, done!\n\n# Final sorted array:\narr = [10, 19, 29, 33, 55, 71, 83]\nprint(f\"✓ Sorted! {arr}\")",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Partition Arena Classroom",
+        "Recursion Depth Tracker",
+        "Speed-O-Meter"
+      ]
+    },
+    {
+      "title": "The Complete Algorithm",
+      "description": "Professor Richard reveals the complete quick sort code - both the main recursive function and the partition helper function. He traces through it with his baton, showing how the partition function rearranges elements and returns the pivot's final position, and how quick_sort recursively sorts the left and right sections. The code is elegant and powerful. The students study it carefully, seeing how few lines accomplish so much! Student Eager Noodler's antennae are fully extended, absorbing every detail.",
+      "textPanel": "Here's the code, both functions clear,\nQuick sort's beauty drawing near!\nPartition rearranges all,\nReturns pivot's place - that's the call!\n\nQuick sort recurses left and right,\nTill base case ends the fight!\nIn-place sorting, fast and true,\nQuick sort's magic, tried and true!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "def quick_sort(arr, low, high):\n    if low < high:\n        pi = partition(arr, low, high)\n        quick_sort(arr, low, pi - 1)   # Left\n        quick_sort(arr, pi + 1, high)  # Right\n\ndef partition(arr, low, high):\n    pivot = arr[high]\n    i = low - 1\n    for j in range(low, high):\n        if arr[j] <= pivot:\n            i += 1\n            arr[i], arr[j] = arr[j], arr[i]\n    arr[i + 1], arr[high] = arr[high], arr[i + 1]\n    return i + 1\n\narr = [33, 10, 55, 71, 29, 19, 83]\nquick_sort(arr, 0, len(arr) - 1)\nprint(arr)  # [10, 19, 29, 33, 55, 71, 83]",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 40,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Partition Arena Classroom"
+      ]
+    },
+    {
+      "title": "Average Case: O(n log n)",
+      "description": "The Speed-O-Meter points to O(n log n)! Professor Richard explains: with good pivot choices, we divide the array roughly in half each time, giving log n levels. At each level, we do O(n) work to partition. Log n × n = n log n! The Recursion Depth Tracker shows a balanced tree. He demonstrates with a balanced partition tree. The students see why quick sort is usually very fast. Student Thoughtful Giggler giggles at the elegant efficiency.",
+      "textPanel": "Average case? O of N log N,\nQuick sort's speed is often seen!\nBalanced partitions, half and half,\nLog N levels - do the math!\n\nN work at each level done,\nMultiply them - look, we've won!\nN log N, so very fast,\nQuick sort's reputation built to last!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Average Case: O(n log n)\n\n# Good pivot → balanced partitions\n# Array of size n → two subarrays of size n/2\n\nimport math\nn = 16\nlevels = math.log2(n)  # 4 levels\nprint(f\"Balanced: {levels} recursion levels\")\n\n# At each level: O(n) work for partitioning\n# Total: log(n) levels × n work = O(n log n)\n\n# Example with good pivots:\n# [50, 20, 70, 10, 30, 60, 80, 5, ...]\n# Pivot 50 → [20,10,30,5,...] | 50 | [70,60,80,...]\n# Both sides ≈ n/2 → balanced!\n\n# Quick sort is often FASTEST in practice!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Partition Arena Classroom",
+        "Speed-O-Meter",
+        "Recursion Depth Tracker"
+      ]
+    },
+    {
+      "title": "Worst Case: O(n²) - The Danger",
+      "description": "Professor Richard's expression becomes serious. The Speed-O-Meter suddenly swings to O(n²)! He shows the worst case: an already-sorted array with last element as pivot. Each partition creates one empty side and one side with n-1 elements. The Recursion Depth Tracker shows a completely unbalanced tree - a straight line! It's n levels deep with n work at each level = n². The students gasp. But Professor Richard smiles - randomized pivot selection or median-of-three prevents this! Student Zippy Zapper's colors dim with concern, then brighten at the solution.",
+      "textPanel": "But wait! Beware the worst case trap,\nO of N squared - oh, what a gap!\nBad pivot choice, unbalanced split,\nOne side empty - that's not it!\n\nAlready sorted? Last pivot's bad,\nN levels deep - now that's sad!\nBut fear not, there's a clever fix,\nRandomize pivots - that's the trick!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Worst Case: O(n²) - AVOID THIS!\n\n# Already sorted array with bad pivot:\narr = [1, 2, 3, 4, 5, 6, 7, 8]\npivot = arr[-1]  # Always picks largest!\n\n# Partition results:\n# [1,2,3,4,5,6,7] | 8 | []\n# [1,2,3,4,5,6] | 7 | [] + [8]\n# [1,2,3,4,5] | 6 | [] + [7,8]\n# ... n levels! n work each! = O(n²)\n\n# SOLUTION: Randomize pivot!\nimport random\ndef better_partition(arr, low, high):\n    rand_pivot = random.randint(low, high)\n    arr[rand_pivot], arr[high] = arr[high], arr[rand_pivot]\n    # Now proceed normally...",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Partition Arena Classroom",
+        "Speed-O-Meter",
+        "Recursion Depth Tracker"
+      ]
+    },
+    {
+      "title": "In-Place Sorting: Space Efficiency",
+      "description": "Professor Richard highlights a major advantage: quick sort is in-place! It only needs O(log n) space for the recursion stack, much less than merge sort's O(n). The stage shows how elements swap positions without needing extra arrays. The Recursion Depth Tracker displays the small stack. This makes quick sort ideal when memory is limited. Student Quiet observer compares the space usage in their notebook, nodding approvingly.",
+      "textPanel": "Quick sort's space? O log N,\nJust for the stack, you'll see when!\nNo extra arrays needed here,\nIn-place sorting, crystal clear!\n\nMerge sort needs O of N space,\nQuick sort wins this memory race!\nSwap in place, no copies made,\nEfficient choice, skillfully played!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Space Complexity: O(log n)\n\n# Quick sort is IN-PLACE\n# No temporary arrays needed!\n\ndef quick_sort(arr, low, high):\n    if low < high:\n        pi = partition(arr, low, high)\n        quick_sort(arr, low, pi - 1)   # Stack space\n        quick_sort(arr, pi + 1, high)  # Stack space\n    # Only recursion stack: O(log n) average\n    # Worst case: O(n) stack if unbalanced\n\n# Compare to merge sort:\n# - Merge: O(n) space for temporary arrays\n# - Quick: O(log n) space for recursion stack\n\n# When memory matters, quick sort wins!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Partition Arena Classroom",
+        "Recursion Depth Tracker"
+      ]
+    },
+    {
+      "title": "Not Stable - The Trade-off",
+      "description": "Professor Richard shows a downside: quick sort is NOT stable. Equal elements may not maintain their relative order. He demonstrates with colored duplicates that swap positions during partitioning. For simple sorting, this doesn't matter. But for complex records with multiple keys, stability might be needed. The students see examples where stability matters and where it doesn't. Student Thoughtful Giggler giggles thoughtfully about the trade-off between speed and stability.",
+      "textPanel": "One trade-off, students, hear me say,\nQuick sort's not stable - elements may sway!\nEqual values might swap their place,\nOriginal order we can't trace!\n\nFor simple sorts, this matters not,\nBut complex records? Think a lot!\nNeed stability? Choose merge instead,\nQuick sort's fast, but this we dread!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# Quick sort is NOT STABLE\n\n# Example with duplicates:\ndata = [(\"Alice\", 85), (\"Bob\", 90),\n        (\"Carol\", 85), (\"Dave\", 90)]\n\n# After quick sort, 85s might be:\n# (\"Carol\", 85), (\"Alice\", 85)  ← Order changed!\n\n# Why? During partition, equal elements can swap:\nif arr[j] <= pivot:  # <= allows swaps of equals\n    arr[i], arr[j] = arr[j], arr[i]\n\n# When stability matters:\n# - Multi-key sorting\n# - Maintaining insertion order\n# → Use merge sort instead!\n\n# When stability doesn't matter:\n# - Simple value sorting → Quick sort is perfect!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Partition Arena Classroom"
+      ]
+    },
+    {
+      "title": "When to Use Quick Sort",
+      "description": "Professor Richard creates a comprehensive comparison chart. Quick sort excels when: average case is expected, memory is limited, cache efficiency matters (good locality of reference), and stability isn't required. It's the default choice for most practical sorting! The Speed-O-Meter shows quick sort as typically the fastest. Student Eager Noodler suggests sorting a large database - Professor Richard confirms quick sort is perfect for that! The chart compares all sorting algorithms learned so far.",
+      "textPanel": "When to use our quick sort friend?\nMost of the time, from start to end!\nGeneral-purpose, fast and true,\nQuick sort's the choice for me and you!\n\nMemory limited? Quick sort's great,\nCache-friendly too - first-rate!\nJust avoid the worst case trap,\nRandomize pivot - close that gap!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# When to use QUICK SORT:\n\n# ✓ General-purpose sorting (most common!)\n# ✓ Average O(n log n) performance\n# ✓ Limited memory (in-place)\n# ✓ Good cache locality\n# ✓ Stability not required\n# ✓ Large datasets\n\n# When NOT to use:\n# ✗ Need guaranteed O(n log n) (use merge sort)\n# ✗ Need stability (use merge sort)\n# ✗ Already sorted data with bad pivot choice\n\n# Quick sort vs others:\n# - Usually fastest in practice\n# - Default in many standard libraries\n# - Python's sorted() uses Timsort (hybrid)\n# - C's qsort() uses quick sort!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Partition Arena Classroom",
+        "Speed-O-Meter"
+      ]
+    },
+    {
+      "title": "Summary: The Quickest Sort",
+      "description": "Professor Richard stands with all students gathered as the Partition Arena displays one final, spectacular animation of quick sort in action - pivots chosen, partitions formed, recursion diving and returning, elements finding their final positions. He reviews: choose pivot, partition around it, recurse on both sides, O(n log n) average with O(log n) space, fastest in practice but not stable. All students understand why quick sort is called 'quick'! The Speed-O-Meter needle maxes out. Professor Richard's bow tie spins at maximum velocity. Confetti explodes as the final sorted array gleams!",
+      "textPanel": "Now you've learned quick sort complete,\nPartition magic, can't be beat!\nChoose a pivot, rearrange the rest,\nO of N log N - the best!\n\nFastest sort for most occasions,\nYou've mastered partition creations!\nIn-place and quick, you now understand,\nQuick sort is truly grand!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "# QUICK SORT SUMMARY\n# Time: O(n log n) average, O(n²) worst\n# Space: O(log n) - recursion stack\n# In-place: Yes!\n# Stable: No\n# Fastest in practice!\n\ndef quick_sort(arr, low, high):\n    if low < high:\n        pi = partition(arr, low, high)\n        quick_sort(arr, low, pi - 1)\n        quick_sort(arr, pi + 1, high)\n\n# Perfect for:\n# - General-purpose sorting\n# - Large datasets\n# - Limited memory\n# - Speed is priority\n# You've mastered the quickest sort!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 70,
+          "heightPercentage": 40,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Richard",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Partition Arena Classroom",
+        "Pivot Pedestal",
+        "Partition Dividers",
+        "Speed-O-Meter",
+        "Recursion Depth Tracker"
+      ]
+    }
+  ]
+}
+

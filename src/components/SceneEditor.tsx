@@ -31,7 +31,8 @@ import {
   Image as ImageIcon,
   ErrorOutline as ErrorIcon,
   Code as CodeIcon,
-  TextFields as TextFieldsIcon
+  TextFields as TextFieldsIcon,
+  DeleteSweep as ClearImagesIcon
 } from '@mui/icons-material';
 import type { Scene, Story } from '../types/Story';
 import type { Character } from '../models/Story'; // v4.1: New Character type with imageGallery
@@ -40,7 +41,7 @@ import { ImageGenerationService } from '../services/ImageGenerationService';
 import { FileSystemService } from '../services/FileSystemService';
 import { SettingsService } from '../services/SettingsService';
 import { ImageStorageService } from '../services/ImageStorageService';
-import { overlayTextOnImage } from '../services/OverlayService';
+import { applyAllOverlays } from '../services/OverlayService';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 import type { PanelConfig } from '../types/Book';
 import { formatBookStyleForPrompt } from '../types/BookStyle';
@@ -62,6 +63,11 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const [sceneTitle, setSceneTitle] = useState('');
   const [sceneDescription, setSceneDescription] = useState('');
   const [textPanel, setTextPanel] = useState('');
+  const [diagramType, setDiagramType] = useState<'mermaid' | 'math' | 'code' | 'markdown'>('mermaid');
+  const [diagramContent, setDiagramContent] = useState('');
+  const [diagramLanguage, setDiagramLanguage] = useState('javascript');
+  const [diagramPreviewOpen, setDiagramPreviewOpen] = useState(false);
+  const [diagramPreviewUrl, setDiagramPreviewUrl] = useState<string | null>(null);
   const [activeBook, setActiveBook] = useState<any>(null); // Book instance for book-level characters
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -88,8 +94,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const lastSelectedModel = useRef<string | null>(null);
 
   /**
-   * Load image from IndexedDB
-   * URLs are no longer stored in localStorage to avoid quota issues
+   * Load image from filesystem
+   * Images are stored on local disk for persistence
    */
   const loadImageWithFallback = async (scene: Scene): Promise<string | null> => {
     // Try most recent image from history first
@@ -104,15 +110,15 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     
     const { id, url } = mostRecentImage;
     
-    // ALWAYS try to load from IndexedDB first (URLs no longer reliably stored in localStorage)
+    // Load from filesystem
     try {
       const imageUrl = await ImageStorageService.getImage(id);
       if (imageUrl) {
-        console.log(`✓ Image loaded from IndexedDB: ${id}`);
+        console.log(`✓ Image loaded from filesystem: ${id}`);
         return imageUrl;
       }
     } catch (error) {
-      console.error('Failed to load image from IndexedDB:', error);
+      console.error('Failed to load image from filesystem:', error);
     }
     
     // Fallback: If URL exists and looks valid (legacy data or data URL)
@@ -158,10 +164,12 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
               setSceneTitle(freshScene.title);
               setSceneDescription(freshScene.description || '');
               setTextPanel(freshScene.textPanel || '');
-              // Load image with IndexedDB fallback
-              loadImageWithFallback(freshScene).then(imageUrl => {
-                setGeneratedImageUrl(imageUrl);
-              });
+              setDiagramType(freshScene.diagramPanel?.type as any || 'mermaid');
+              setDiagramContent(freshScene.diagramPanel?.content || '');
+              setDiagramLanguage(freshScene.diagramPanel?.language || 'javascript');
+              // Load image from filesystem (or null if no images)
+              const imageUrl = await loadImageWithFallback(freshScene);
+              setGeneratedImageUrl(imageUrl);
               return;
             }
           }
@@ -175,10 +183,12 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         setSceneTitle(selectedScene.title);
         setSceneDescription(selectedScene.description || '');
         setTextPanel(selectedScene.textPanel || '');
-        // Load image with IndexedDB fallback
-        loadImageWithFallback(selectedScene).then(imageUrl => {
-          setGeneratedImageUrl(imageUrl);
-        });
+        setDiagramType(selectedScene.diagramPanel?.type as any || 'mermaid');
+        setDiagramContent(selectedScene.diagramPanel?.content || '');
+        setDiagramLanguage(selectedScene.diagramPanel?.language || 'javascript');
+        // Load image from filesystem (or null if no images)
+        const imageUrl = await loadImageWithFallback(selectedScene);
+        setGeneratedImageUrl(imageUrl);
       } else {
         setCurrentScene(null);
         setSelectedCharacters([]);
@@ -190,7 +200,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       }
     };
     loadScene();
-  }, [selectedScene, story]);
+  }, [selectedScene, story, onStoryUpdate]);
 
   // Load active book to access book-level characters
   useEffect(() => {
@@ -264,7 +274,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     const newTextPanel = event.target.value;
     setTextPanel(newTextPanel);
     
-    // Auto-save the text panel
+    // Auto-save the text panel (but don't trigger full refresh)
     if (story && currentScene) {
       const activeBookData = await BookService.getActiveBookData();
       if (!activeBookData) return;
@@ -284,7 +294,99 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       
       const updatedData = { ...activeBookData, stories: updatedStories };
       await BookService.saveActiveBookData(updatedData);
-      onStoryUpdate();
+      // Don't call onStoryUpdate() here - it causes the scene to reload and clears the input
+    }
+  };
+
+  const handleDiagramPanelChange = async (content: string, type: string, language?: string) => {
+    setDiagramContent(content);
+    setDiagramType(type as any);
+    if (language) setDiagramLanguage(language);
+    
+    // Auto-save the diagram panel (but don't trigger full refresh)
+    if (story && currentScene) {
+      const activeBookData = await BookService.getActiveBookData();
+      if (!activeBookData) return;
+      
+      const diagramPanel = content.trim() ? {
+        type: type as any,
+        content: content,
+        language: type === 'code' ? language : undefined
+      } : undefined;
+      
+      const updatedStories = activeBookData.stories.map(s => {
+        if (s.id === story.id) {
+          const updatedScenes = s.scenes.map(scene => {
+            if (scene.id === currentScene.id) {
+              return { ...scene, diagramPanel, updatedAt: new Date() };
+            }
+            return scene;
+          });
+          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+        }
+        return s;
+      });
+      
+      const updatedData = { ...activeBookData, stories: updatedStories };
+      await BookService.saveActiveBookData(updatedData);
+      // Don't call onStoryUpdate() here - it causes the scene to reload and clears the input
+    }
+  };
+
+  const handlePreviewDiagram = async () => {
+    if (!story?.diagramStyle) {
+      setSnackbarMessage('Please configure diagram style for this story first (in Stories panel)');
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    // Use the current state values (what's in the TextField) for preview
+    // This ensures we preview what the user is currently seeing/editing
+    if (!diagramContent.trim()) {
+      setSnackbarMessage('Please enter diagram content first');
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    try {
+      // Import DiagramRenderService
+      const { overlayDiagramOnImage } = await import('../services/OverlayService');
+      
+      // Create a blank white canvas as base image
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      const blankImage = canvas.toDataURL('image/png');
+      
+      // Overlay the diagram using current TextField state
+      const diagramPanel = {
+        type: diagramType,
+        content: diagramContent,
+        language: diagramType === 'code' ? diagramLanguage : undefined
+      };
+      
+      console.log('Preview using current state:', diagramPanel);
+      
+      const resultUrl = await overlayDiagramOnImage(
+        blankImage,
+        diagramPanel,
+        story.diagramStyle
+      );
+      
+      setDiagramPreviewUrl(resultUrl);
+      setDiagramPreviewOpen(true);
+    } catch (error) {
+      console.error('Error previewing diagram:', error);
+      setSnackbarMessage('Failed to preview diagram: ' + (error as Error).message);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     }
   };
 
@@ -468,7 +570,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   };
 
   /**
-   * Load character reference images from IndexedDB for characters with selected images
+   * Load character reference images from filesystem for characters with selected images
    * Converts blob URLs to base64 data URLs for API compatibility
    */
   const loadCharacterImages = async (): Promise<string[]> => {
@@ -486,7 +588,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       const charWithImages = character as unknown as Character;
       if (charWithImages.selectedImageId) {
         try {
-          // Load image from IndexedDB (returns blob URL)
+          // Load image from filesystem (returns blob URL)
           const blobUrl = await ImageStorageService.getCharacterImage(
             story.id,
             character.name,
@@ -672,6 +774,72 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     setModelSelectionOpen(true);
   };
 
+  // Clear all images for the current scene
+  const handleClearSceneImages = async () => {
+    if (!currentScene) return;
+    
+    if (!window.confirm(`Clear all images from this scene? This will delete all generated images for "${currentScene.title}".`)) {
+      return;
+    }
+
+    try {
+      let deletedCount = 0;
+      
+      // Delete images from filesystem
+      if (currentScene.imageHistory && currentScene.imageHistory.length > 0) {
+        for (const image of currentScene.imageHistory) {
+          try {
+            await ImageStorageService.deleteImage(image.id, currentScene.id);
+            deletedCount++;
+          } catch (err) {
+            console.error(`Failed to delete image ${image.id}:`, err);
+          }
+        }
+      }
+      
+      // Clear imageHistory from scene
+      const activeBookData = await BookService.getActiveBookData();
+      if (activeBookData && story) {
+        const updatedStories = activeBookData.stories.map(s => {
+          if (s.id === story.id) {
+            const updatedScenes = s.scenes.map(scene => {
+              if (scene.id === currentScene.id) {
+                return {
+                  ...scene,
+                  imageHistory: [],
+                  updatedAt: new Date()
+                };
+              }
+              return scene;
+            });
+            return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+          }
+          return s;
+        });
+        
+        const updatedData = { ...activeBookData, stories: updatedStories };
+        await BookService.saveActiveBookData(updatedData);
+        
+        setSnackbarMessage(`Cleared ${deletedCount} image(s) from scene`);
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+        
+        // Clear UI state
+        setGeneratedImageUrl(null);
+        if (onImageStateChange) {
+          onImageStateChange(false, () => {});
+        }
+        
+        onStoryUpdate();
+      }
+    } catch (error) {
+      console.error('Failed to clear scene images:', error);
+      setSnackbarMessage(`Failed to clear images: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
   // Actually perform the image generation with the selected model
   const performImageGeneration = async (modelName: string) => {
     // Store the selected model for potential retry
@@ -733,41 +901,65 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       if (result.success && result.imageUrl) {
         let finalImageUrl = result.imageUrl;
         
-        // Apply text overlay if textPanel has content
-        if (textPanel && textPanel.trim()) {
+        // Calculate image dimensions based on aspect ratio
+        const imageDimensions = getImageDimensionsFromAspectRatio(aspectRatio);
+        
+        // Apply overlays (text and/or diagram) if present
+        const hasTextPanel = textPanel && textPanel.trim();
+        // Use current state for diagram, not saved scene data (which may be stale)
+        const hasDiagramPanel = diagramContent && diagramContent.trim();
+        
+        if (hasTextPanel || hasDiagramPanel) {
           try {
-            // Define macros for text panel replacement
-            const macros = {
-              'SceneDescription': currentScene?.description || ''
+            const overlayOptions: any = {
+              imageWidth: imageDimensions.width,
+              imageHeight: imageDimensions.height
             };
             
-            // Replace macros in the text panel
-            const panelText = replaceMacros(textPanel, macros);
+            // Add text panel if present
+            if (hasTextPanel) {
+              // Define macros for text panel replacement
+              const macros = {
+                'SceneDescription': currentScene?.description || ''
+              };
+              
+              // Replace macros in the text panel
+              const panelText = replaceMacros(textPanel, macros);
+              
+              // Get panel config from book or use defaults
+              const panelConfig = activeBook?.style?.panelConfig || DEFAULT_PANEL_CONFIG;
+              
+              overlayOptions.textPanel = {
+                text: panelText,
+                config: panelConfig
+              };
+            }
             
-            // Calculate image dimensions based on aspect ratio
-            const imageDimensions = getImageDimensionsFromAspectRatio(aspectRatio);
+            // Add diagram panel if present (use current state values)
+            if (hasDiagramPanel && story?.diagramStyle) {
+              overlayOptions.diagramPanel = {
+                panel: {
+                  type: diagramType,
+                  content: diagramContent,
+                  language: diagramType === 'code' ? diagramLanguage : undefined
+                },
+                style: story.diagramStyle
+              };
+            }
             
-            // Get panel config from book or use defaults
-            const panelConfig = activeBook?.style?.panelConfig || DEFAULT_PANEL_CONFIG;
-            
-            // Overlay text onto image with book's panel configuration
-            finalImageUrl = await overlayTextOnImage(
+            // Apply all overlays
+            finalImageUrl = await applyAllOverlays(
               result.imageUrl,
-              panelText,
-              imageDimensions.width,
-              imageDimensions.height,
-              panelConfig
+              overlayOptions
             );
           } catch (overlayError) {
-            console.error('Error overlaying text:', overlayError);
+            console.error('Error applying overlays:', overlayError);
             // Continue with original image if overlay fails
-            setSnackbarMessage('Warning: Text overlay failed, showing original image');
+            setSnackbarMessage('Warning: Overlay failed, showing original image');
             setSnackbarSeverity('error');
             setSnackbarOpen(true);
           }
         }
-        
-        setGeneratedImageUrl(finalImageUrl);
         
         // Save generated image to scene in local storage
         if (story && currentScene) {
@@ -775,7 +967,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           if (activeBookData) {
             // Create new GeneratedImage entry with the model that was used
             // NOTE: We do NOT store the URL in localStorage to avoid quota issues
-            // The URL is only stored in IndexedDB and loaded on demand
+            // The image is stored on filesystem and loaded on demand
             const imageId = crypto.randomUUID();
             const newGeneratedImage = {
               id: imageId,
@@ -784,16 +976,27 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
               timestamp: new Date()
             };
             
-            // Store image in IndexedDB for persistence
-            ImageStorageService.storeImage(
+            // Store image to filesystem for persistence
+            await ImageStorageService.storeImage(
               imageId,
               currentScene.id,
               finalImageUrl,
               modelName
             ).catch(error => {
-              console.error('Failed to store image in IndexedDB:', error);
-              // This is critical - without IndexedDB storage, image will be lost on refresh
+              console.error('Failed to store image to filesystem:', error);
+              // This is critical - without filesystem storage, image will be lost on refresh
+              throw error;
             });
+            
+            // Load the image back from filesystem to ensure we're displaying the persisted version
+            // This prevents issues with blob URLs becoming invalid
+            const persistedImageUrl = await ImageStorageService.getImage(imageId);
+            if (persistedImageUrl) {
+              setGeneratedImageUrl(persistedImageUrl);
+            } else {
+              console.warn('Failed to load newly stored image from filesystem, using original URL');
+              setGeneratedImageUrl(finalImageUrl);
+            }
             
             const updatedStories = activeBookData.stories.map(s => {
               if (s.id === story.id) {
@@ -826,7 +1029,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         }
         
         // Auto-save to file system if enabled and directory is configured
-        const autoSaveEnabled = SettingsService.isAutoSaveEnabled();
+        const autoSaveEnabled = await SettingsService.isAutoSaveEnabled();
         
         if (autoSaveEnabled && story && currentScene) {
           const activeBookId = await BookService.getActiveBookId();
@@ -998,6 +1201,15 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             >
               {isGeneratingImage ? 'Generating...' : 'Generate Image'}
             </Button>
+            <Button
+              variant="outlined"
+              color="warning"
+              startIcon={<ClearImagesIcon />}
+              onClick={handleClearSceneImages}
+              disabled={!currentScene?.imageHistory || currentScene.imageHistory.length === 0}
+            >
+              Clear Scene Images
+            </Button>
           </Box>
         </Box>
 
@@ -1059,6 +1271,91 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         />
       </Box>
 
+      {/* Diagram Panel Section */}
+      <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', bgcolor: 'grey.100' }}>
+        <Box display="flex" alignItems="center" gap={1} mb={1}>
+          <ImageIcon color="secondary" />
+          <Typography variant="h6">
+            Diagram Panel (optional blackboard/whiteboard overlay)
+          </Typography>
+        </Box>
+        
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+          Add a diagram, code block, math equation, or markdown text overlay on your image.
+        </Typography>
+
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>Diagram Type</InputLabel>
+          <Select
+            value={diagramType}
+            label="Diagram Type"
+            onChange={(e) => handleDiagramPanelChange(diagramContent, e.target.value, diagramLanguage)}
+          >
+            <MenuItem value="mermaid">Mermaid Diagram</MenuItem>
+            <MenuItem value="math">Math Equation (LaTeX)</MenuItem>
+            <MenuItem value="code">Code Block</MenuItem>
+            <MenuItem value="markdown">Markdown Text</MenuItem>
+          </Select>
+        </FormControl>
+
+        {diagramType === 'code' && (
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Programming Language</InputLabel>
+            <Select
+              value={diagramLanguage}
+              label="Programming Language"
+              onChange={(e) => handleDiagramPanelChange(diagramContent, diagramType, e.target.value)}
+            >
+              <MenuItem value="javascript">JavaScript</MenuItem>
+              <MenuItem value="python">Python</MenuItem>
+              <MenuItem value="java">Java</MenuItem>
+              <MenuItem value="typescript">TypeScript</MenuItem>
+              <MenuItem value="cpp">C++</MenuItem>
+              <MenuItem value="csharp">C#</MenuItem>
+            </Select>
+          </FormControl>
+        )}
+
+        <TextField
+          fullWidth
+          multiline
+          rows={6}
+          variant="outlined"
+          label={`${diagramType.charAt(0).toUpperCase() + diagramType.slice(1)} Content`}
+          placeholder={
+            diagramType === 'mermaid' ? 'graph TD\n    A[Start] --> B[Process]\n    B --> C[End]' :
+            diagramType === 'math' ? 'x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}' :
+            diagramType === 'code' ? 'function factorial(n) {\n  return n <= 1 ? 1 : n * factorial(n - 1);\n}' :
+            '# Title\n\n- **Bold** text\n- *Italic* text'
+          }
+          value={diagramContent}
+          onChange={(e) => handleDiagramPanelChange(e.target.value, diagramType, diagramLanguage)}
+          sx={{ 
+            bgcolor: 'white',
+            '& .MuiInputBase-root': {
+              fontFamily: 'monospace',
+              fontSize: '0.85rem'
+            }
+          }}
+        />
+        
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={handlePreviewDiagram}
+          sx={{ mt: 2 }}
+        >
+          Preview Diagram
+        </Button>
+        
+        {!story?.diagramStyle && (
+          <Alert severity="info" sx={{ mt: 2 }}>
+            Note: Diagram style (colors, position, board type) needs to be configured at the story level.
+            Click the ⚙️ icon next to the story in the Stories panel to configure it.
+          </Alert>
+        )}
+      </Box>
+
       {/* Scrollable Content */}
       <Box sx={{ 
         flex: 1, 
@@ -1099,11 +1396,11 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
               input={<OutlinedInput label="Select Characters" />}
               renderValue={(selected) => (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {selected.map((characterId) => {
-                    const character = availableCharacters.find(c => c.id === characterId);
+                  {selected.map((characterName) => {
+                    const character = availableCharacters.find(c => c.name === characterName);
                     return character ? (
                       <Chip 
-                        key={characterId} 
+                        key={characterName} 
                         label={character.name} 
                         size="small" 
                         color="primary"
@@ -1111,8 +1408,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
                       />
                     ) : (
                       <Chip 
-                        key={characterId} 
-                        label={`Unknown (${characterId.slice(0, 8)}...)`} 
+                        key={characterName} 
+                        label={`Unknown (${characterName})`} 
                         size="small" 
                         color="error"
                         variant="outlined"
@@ -1153,30 +1450,30 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
                 Selected Characters:
               </Typography>
               <Box display="flex" flexWrap="wrap" gap={1}>
-                {selectedCharacters.map((characterId) => {
-                  const character = availableCharacters.find(c => c.id === characterId);
+                {selectedCharacters.map((characterName) => {
+                  const character = availableCharacters.find(c => c.name === characterName);
                   return character ? (
                     <Chip
-                      key={characterId}
+                      key={characterName}
                       label={character.name}
                       size="small"
                       color="primary"
                       variant="outlined"
                       onDelete={() => {
-                        const newSelection = selectedCharacters.filter(id => id !== characterId);
+                        const newSelection = selectedCharacters.filter(name => name !== characterName);
                         setSelectedCharacters(newSelection);
                         updateSceneCharacterIds(newSelection);
                       }}
                     />
                   ) : (
                     <Chip
-                      key={characterId}
-                      label={`Unknown (${characterId.slice(0, 8)}...)`}
+                      key={characterName}
+                      label={`Unknown (${characterName})`}
                       size="small"
                       color="error"
                       variant="outlined"
                       onDelete={() => {
-                        const newSelection = selectedCharacters.filter(id => id !== characterId);
+                        const newSelection = selectedCharacters.filter(name => name !== characterName);
                         setSelectedCharacters(newSelection);
                         updateSceneCharacterIds(newSelection);
                       }}
@@ -1302,6 +1599,30 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           )}
         </AccordionDetails>
       </Accordion>
+
+      {/* Diagram Preview Dialog */}
+      <Dialog
+        open={diagramPreviewOpen}
+        onClose={() => setDiagramPreviewOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Diagram Preview</DialogTitle>
+        <DialogContent>
+          {diagramPreviewUrl && (
+            <Box sx={{ textAlign: 'center', p: 2 }}>
+              <img 
+                src={diagramPreviewUrl} 
+                alt="Diagram Preview" 
+                style={{ maxWidth: '100%', height: 'auto' }}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDiagramPreviewOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={snackbarOpen}
@@ -1459,10 +1780,10 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             Adjust Settings
           </Button>
           <Button
-            onClick={() => {
+            onClick={async () => {
               setTextFitDialogOpen(false);
               // Force generation with clipped text using last selected model or default
-              const modelToUse = lastSelectedModel.current || SettingsService.getImageGenerationModel();
+              const modelToUse = lastSelectedModel.current || await SettingsService.getImageGenerationModel();
               performImageGeneration(modelToUse);
             }}
             variant="contained"

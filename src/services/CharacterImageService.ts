@@ -2,7 +2,7 @@
  * CharacterImageService - Generate and manage character images
  * 
  * Handles character image generation with book/story context,
- * storage in IndexedDB, and retrieval for scene prompts.
+ * storage in filesystem, and retrieval for scene prompts.
  */
 
 import { v4 as uuidv4 } from 'uuid';
@@ -55,6 +55,7 @@ export class CharacterImageService {
 
   /**
    * Generate a character image
+   * @param referenceImage Optional base64 data URL of reference image to include in generation
    * @returns CharacterImage object with metadata (url will be loaded separately)
    */
   static async generateCharacterImage(
@@ -63,7 +64,8 @@ export class CharacterImageService {
     storyBackgroundSetup: string,
     book: Book,
     model: string,
-    aspectRatio: string = '1:1'
+    aspectRatio: string = '1:1',
+    referenceImage?: string | null
   ): Promise<CharacterImage> {
     // Build the prompt
     const prompt = this.buildCharacterPrompt(character, storyBackgroundSetup, book);
@@ -73,11 +75,15 @@ export class CharacterImageService {
       throw new Error('Failed to generate prompt: Character description is required');
     }
 
+    // Prepare reference images array if provided
+    const referenceImages = referenceImage ? [referenceImage] : undefined;
+
     // Generate the image
     const result = await ImageGenerationService.generateImage({
       prompt,
       model,
-      aspectRatio
+      aspectRatio,
+      referenceImages
     });
 
     // Check for errors
@@ -100,7 +106,7 @@ export class CharacterImageService {
 
     console.log('✓ Character image metadata created:', { id: imageId, model, urlPreview: result.imageUrl.substring(0, 50) });
 
-    // Store in IndexedDB
+    // Store to filesystem
     try {
       await ImageStorageService.storeCharacterImage(
         storyId,
@@ -109,9 +115,9 @@ export class CharacterImageService {
         result.imageUrl,
         model
       );
-      console.log('✓ Image stored in IndexedDB successfully');
+      console.log('✓ Image stored to filesystem successfully');
     } catch (error) {
-      console.error('✗ Failed to store image in IndexedDB:', error);
+      console.error('✗ Failed to store image to filesystem:', error);
       throw error;
     }
 
@@ -119,7 +125,10 @@ export class CharacterImageService {
   }
 
   /**
-   * Load a character image from IndexedDB
+   * Load a character image from filesystem
+   * @param storyId Story ID (or "book:{bookId}" for book-level characters)
+   * @param characterName Character name
+   * @param imageId Image ID
    * @returns Blob URL or null if not found
    */
   static async loadCharacterImage(
@@ -127,18 +136,61 @@ export class CharacterImageService {
     characterName: string,
     imageId: string
   ): Promise<string | null> {
-    return await ImageStorageService.getCharacterImage(storyId, characterName, imageId);
+    // Check if this is a book-level character (storyId starts with "book:")
+    if (storyId.startsWith('book:')) {
+      const bookId = storyId.replace('book:', '');
+      return await ImageStorageService.getBookCharacterImage(bookId, characterName, imageId);
+    } else {
+      return await ImageStorageService.getCharacterImage(storyId, characterName, imageId);
+    }
   }
 
   /**
    * Load all images for a character
+   * @param storyId Story ID (or "book:{bookId}" for book-level characters)
+   * @param characterName Character name
+   * @param character Character object (optional, used to get imageIds from imageGallery)
    * @returns Map of imageId -> blobUrl
    */
   static async loadCharacterGallery(
     storyId: string,
-    characterName: string
+    characterName: string,
+    character?: { imageGallery?: Array<{ id: string }> }
   ): Promise<Map<string, string>> {
-    return await ImageStorageService.getAllCharacterImages(storyId, characterName);
+    // Extract imageIds from character.imageGallery if available
+    const imageIds = character?.imageGallery?.map(img => img.id);
+    
+    // Check if this is a book-level character (storyId starts with "book:")
+    if (storyId.startsWith('book:')) {
+      const bookId = storyId.replace('book:', '');
+      const images = await ImageStorageService.getAllBookCharacterImages(bookId, characterName, imageIds);
+      
+      // Auto-cleanup stale references if character object provided
+      // Note: This modifies the character object in place - caller should save the book/story after
+      if (character && imageIds && imageIds.length > 0 && images.size < imageIds.length) {
+        // Some images are missing - clean up stale references
+        const removed = await this.cleanupStaleImageReferences(character as Character, storyId);
+        if (removed > 0) {
+          console.log(`⚠️ Auto-cleaned ${removed} stale image reference(s) for "${characterName}". Save the book/story to persist this change.`);
+        }
+      }
+      
+      return images;
+    } else {
+      const images = await ImageStorageService.getAllCharacterImages(storyId, characterName, imageIds);
+      
+      // Auto-cleanup stale references if character object provided
+      // Note: This modifies the character object in place - caller should save the book/story after
+      if (character && imageIds && imageIds.length > 0 && images.size < imageIds.length) {
+        // Some images are missing - clean up stale references
+        const removed = await this.cleanupStaleImageReferences(character as Character, storyId);
+        if (removed > 0) {
+          console.log(`⚠️ Auto-cleaned ${removed} stale image reference(s) for "${characterName}". Save the book/story to persist this change.`);
+        }
+      }
+      
+      return images;
+    }
   }
 
   /**
@@ -214,6 +266,53 @@ export class CharacterImageService {
   }
 
   /**
+   * Clean up stale image references from character's gallery
+   * Removes references to images that don't exist in filesystem
+   * @param character Character to update (will be modified in place)
+   * @param storyId Story ID (or "book:{bookId}" for book-level characters)
+   * @returns Number of stale references removed
+   */
+  static async cleanupStaleImageReferences(
+    character: Character,
+    storyId: string
+  ): Promise<number> {
+    if (!character.imageGallery || character.imageGallery.length === 0) {
+      return 0;
+    }
+
+    const beforeCount = character.imageGallery.length;
+    const imageIds = character.imageGallery.map(img => img.id);
+    
+    // Check filesystem directly for each image (don't use loadCharacterGallery to avoid recursion)
+    const existingImageIds = new Set<string>();
+    for (const imageId of imageIds) {
+      const exists = await this.loadCharacterImage(storyId, character.name, imageId);
+      if (exists) {
+        existingImageIds.add(imageId);
+      }
+    }
+    
+    // Filter out images that don't exist
+    character.imageGallery = character.imageGallery.filter(img => existingImageIds.has(img.id));
+    const removedCount = beforeCount - character.imageGallery.length;
+    
+    // Clear selection if selected image was removed
+    if (character.selectedImageId && !existingImageIds.has(character.selectedImageId)) {
+      // Select first available image, or clear selection
+      character.selectedImageId = character.imageGallery.length > 0 
+        ? character.imageGallery[0].id 
+        : undefined;
+    }
+    
+    if (removedCount > 0) {
+      console.log(`✓ Cleaned up ${removedCount} stale image reference(s) for character "${character.name}"`);
+      console.log(`  Remaining images: ${character.imageGallery.length}`);
+    }
+    
+    return removedCount;
+  }
+
+  /**
    * Get selected character image from gallery
    * @returns CharacterImage or undefined if no image selected
    */
@@ -226,7 +325,9 @@ export class CharacterImageService {
   }
 
   /**
-   * Load selected character image URL from IndexedDB
+   * Load selected character image URL from filesystem
+   * @param storyId Story ID (or "book:{bookId}" for book-level characters)
+   * @param character Character object
    * @returns Blob URL or null
    */
   static async loadSelectedCharacterImageUrl(

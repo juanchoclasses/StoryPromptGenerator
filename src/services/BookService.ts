@@ -145,11 +145,13 @@ export class BookService {
         title: story.title,
         description: story.description,
         backgroundSetup: story.backgroundSetup,
+        diagramStyle: story.diagramStyle, // Include diagram style
         scenes: story.scenes.map(scene => ({
           id: scene.id,
           title: scene.title,
           description: scene.description,
           textPanel: scene.textPanel,
+          diagramPanel: scene.diagramPanel, // Include diagram panel
           characters: scene.characters || [],
           elements: scene.elements || [],
           characterIds: scene.characters || [], // DEPRECATED: for backward compat
@@ -211,7 +213,7 @@ export class BookService {
     // Update stories from data with properly reconstructed scenes
     book.stories = data.stories.map(storyData => {
       // Convert plain scene objects to Scene instances
-      const sceneInstances = (storyData.scenes || []).map(sceneData => {
+      const sceneInstances = (storyData.scenes || []).map((sceneData) => {
         if (sceneData instanceof SceneClass) {
           return sceneData; // Already a Scene instance
         }
@@ -223,6 +225,7 @@ export class BookService {
         title: storyData.title,
         description: storyData.description,
         backgroundSetup: storyData.backgroundSetup,
+        diagramStyle: storyData.diagramStyle, // Include diagram style
         characters: storyData.characters || [],
         elements: storyData.elements || [],
         scenes: sceneInstances,
@@ -459,7 +462,9 @@ export class BookService {
 
       // Move character images from story to book level
       // Get all character images for this story character
-      const characterImages = await ImageStorageService.getAllCharacterImages(storyId, characterName);
+      // Extract imageIds from character.imageGallery if available
+      const imageIds = (character as any).imageGallery?.map((img: any) => img.id);
+      const characterImages = await ImageStorageService.getAllCharacterImages(storyId, characterName, imageIds);
       
       console.log(`Promoting character "${characterName}" from story "${story.title}" to book "${book.title}"`);
       console.log(`Found ${characterImages.size} character images to move`);

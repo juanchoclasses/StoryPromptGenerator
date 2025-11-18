@@ -27,6 +27,7 @@ import { VersionInfo } from './components/VersionInfo';
 import { AboutPanel } from './components/AboutPanel';
 import { SettingsDialog } from './components/SettingsDialog';
 import { ImagePanel } from './components/ImagePanel';
+import { OperationsPanel } from './components/OperationsPanel';
 import { ImageStorageService } from './services/ImageStorageService';
 import type { Scene, Story, GeneratedImage } from './types/Story';
 import type { StoryData } from './types/Story';
@@ -121,10 +122,10 @@ function App() {
     const updatedData = { ...activeBookData, stories: updatedStories };
     await BookService.saveActiveBookData(updatedData);
     
-    // Delete from IndexedDB
+    // Delete from filesystem
     ImageStorageService.deleteImage(imageId).catch(error => {
-      console.error('Failed to delete image from IndexedDB:', error);
-      // Continue anyway - image is already removed from localStorage
+      console.error('Failed to delete image from filesystem:', error);
+      // Continue anyway - image is already removed from metadata
     });
     
     // Update the imageHistory state immediately to refresh the UI
@@ -138,7 +139,7 @@ function App() {
     if (isDeletingCurrentImage || newHistory.length === 0) {
       // Either we deleted the current image, or we deleted the last image
       if (newHistory.length > 0) {
-        // Load the most recent remaining image from IndexedDB
+        // Load the most recent remaining image from filesystem
         const mostRecentImage = newHistory[newHistory.length - 1];
         ImageStorageService.getImage(mostRecentImage.id)
           .then(url => {
@@ -164,6 +165,43 @@ function App() {
     
     setRefreshKey(prev => prev + 1);
   }, [selectedStory, selectedScene, imageHistory, imageUrl]);
+
+  const handleCleanupMissingImages = useCallback(async (missingIds: string[]) => {
+    if (!selectedStory || !selectedScene || missingIds.length === 0) return;
+    
+    console.log('Cleaning up missing images:', missingIds);
+    
+    const activeBookData = await BookService.getActiveBookData();
+    if (!activeBookData) return;
+    
+    const updatedStories = activeBookData.stories.map(s => {
+      if (s.id === selectedStory.id) {
+        const updatedScenes = s.scenes.map(scene => {
+          if (scene.id === selectedScene.id) {
+            const updatedHistory = (scene.imageHistory || []).filter(img => !missingIds.includes(img.id));
+            return { 
+              ...scene, 
+              imageHistory: updatedHistory,
+              updatedAt: new Date() 
+            };
+          }
+          return scene;
+        });
+        return { ...s, scenes: updatedScenes, updatedAt: new Date() };
+      }
+      return s;
+    });
+    
+    const updatedData = { ...activeBookData, stories: updatedStories };
+    await BookService.saveActiveBookData(updatedData);
+    
+    // Update the imageHistory state immediately to refresh the UI
+    const newHistory = imageHistory.filter(img => !missingIds.includes(img.id));
+    setImageHistory(newHistory);
+    
+    console.log(`✓ Cleaned up ${missingIds.length} missing image references`);
+    setRefreshKey(prev => prev + 1);
+  }, [selectedStory, selectedScene, imageHistory]);
 
   const handleSaveSpecificImage = useCallback(async (imageUrl: string) => {
     if (!selectedStory || !selectedScene) return;
@@ -282,6 +320,13 @@ function App() {
     const loadData = async () => {
       const data = await BookService.getActiveBookData();
       setBookData(data);
+      
+      // Also load the active Book instance (not just StoryData format)
+      const activeBookId = await BookService.getActiveBookId();
+      if (activeBookId) {
+        const book = await BookService.getBook(activeBookId);
+        setActiveBook(book);
+      }
     };
     loadData();
   }, []);
@@ -339,6 +384,7 @@ function App() {
             <Tab label="Story Editor" disabled={!selectedStory} />
             <Tab label="Story Characters" disabled={!selectedStory} />
             <Tab label="Story Elements" disabled={!selectedStory} />
+            <Tab label="Operations" />
             <Tab label="About" />
           </Tabs>
         </Box>
@@ -448,6 +494,7 @@ function App() {
                   onClear={() => imageClearHandlerRef.current && imageClearHandlerRef.current()}
                   onDeleteImage={handleDeleteImage}
                   onSaveSpecificImage={handleSaveSpecificImage}
+                  onCleanupMissingImages={handleCleanupMissingImages}
                 />
               </Box>
             </Box>
@@ -473,6 +520,12 @@ function App() {
         )}
 
         {activeTab === 6 && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <OperationsPanel />
+          </Box>
+        )}
+
+        {activeTab === 7 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <AboutPanel />
           </Box>

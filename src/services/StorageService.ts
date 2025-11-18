@@ -1,4 +1,6 @@
 import { Book } from '../models/Book';
+import { FileSystemService } from './FileSystemService';
+import { bookCache } from './BookCache';
 
 /**
  * Version 4.0 storage format
@@ -11,349 +13,271 @@ export interface AppData {
 }
 
 /**
- * Storage key for localStorage
+ * StorageService - In-memory cache backed by filesystem
+ * 
+ * ARCHITECTURE (v5.0+):
+ * - Primary: BookCache (in-memory) + Filesystem (source of truth)
+ * - No localStorage dependency - filesystem-only storage
+ * 
+ * Benefits:
+ * - Faster: No JSON serialization on every operation
+ * - More reliable: Filesystem won't be evicted
+ * - Better performance: In-memory cache is instant
+ * - Easier debugging: All data visible in filesystem
  */
-const STORAGE_KEY = 'prompter-app-data-v4';
-const VERSION = '4.0.0';
+const VERSION = '5.0.0';
 
-/**
- * StorageService - Handles all localStorage operations for Version 4.0
- * Provides a clean abstraction over localStorage with proper error handling
- */
 export class StorageService {
   /**
-   * Load app data from localStorage
+   * Load app data from BookCache (which loads from filesystem)
+   * Filesystem-only - no localStorage fallback
    */
   static async load(): Promise<AppData> {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      // Ensure BookCache is loaded (loads from filesystem)
+      await bookCache.loadAll();
       
-      if (!stored) {
-        // Return empty data structure if nothing stored
-        return this.createEmptyData();
-      }
-
-      const parsed = JSON.parse(stored);
+      // Get books from cache
+      const books = bookCache.getAll();
+      const activeBookId = bookCache.getActiveBookId();
       
-      // Convert date strings back to Date objects
-      parsed.lastUpdated = new Date(parsed.lastUpdated);
-      
-      // Convert books (with nested dates and reconstruct model instances)
-      if (parsed.books) {
-        // Import model classes (safe here, not circular)
-        const { Story } = await import('../models/Story.js');
-        const { Scene } = await import('../models/Scene.js');
-        
-        parsed.books = parsed.books.map((bookData: any) => {
-          // Reconstruct Story model instances first
-          const reconstructedStories = bookData.stories ? bookData.stories.map((storyData: any) => {
-            // Reconstruct Scene model instances
-            const reconstructedScenes = storyData.scenes ? storyData.scenes.map((sceneData: any) => {
-              // Convert scene dates
-              sceneData.createdAt = new Date(sceneData.createdAt);
-              sceneData.updatedAt = new Date(sceneData.updatedAt);
-              
-              // Convert image history timestamps
-              if (sceneData.imageHistory) {
-                sceneData.imageHistory = sceneData.imageHistory.map((img: any) => ({
-                  ...img,
-                  timestamp: new Date(img.timestamp)
-                }));
-              }
-              
-              return new Scene(sceneData);
-            }) : [];
-            
-            // Convert story dates
-            storyData.createdAt = new Date(storyData.createdAt);
-            storyData.updatedAt = new Date(storyData.updatedAt);
-            storyData.scenes = reconstructedScenes;
-            
-            return new Story(storyData);
-          }) : [];
-          
-          // Create Book instance without stories (to avoid double-wrapping)
-          const { stories, ...bookDataWithoutStories } = bookData;
-          const book = new Book(bookDataWithoutStories);
-          
-          // Assign reconstructed stories directly
-          book.stories = reconstructedStories;
-          book.createdAt = new Date(bookData.createdAt);
-          book.updatedAt = new Date(bookData.updatedAt);
-          
-          return book;
-        });
-      }
-      
-      return parsed as AppData;
+      return {
+        version: VERSION,
+        books,
+        activeBookId,
+        lastUpdated: new Date()
+      };
     } catch (error) {
-      console.error('Failed to load app data from localStorage:', error);
+      console.error('Failed to load app data:', error);
       return this.createEmptyData();
     }
   }
 
-  /**
-   * Save app data to localStorage
-   */
-  static save(data: AppData): void {
-    try {
-      data.lastUpdated = new Date();
-      data.version = VERSION;
-      
-      // Custom serialization to handle nested model instances
-      const toSerialize = {
-        ...data,
-        books: data.books.map(book => ({
-          id: book.id,
-          title: book.title,
-          description: book.description,
-          backgroundSetup: book.backgroundSetup,
-          aspectRatio: book.aspectRatio,
-          style: book.style,
-          characters: book.characters, // Include book-level characters
-          stories: book.stories.map(story => ({
-            id: story.id,
-            title: story.title,
-            description: story.description,
-            backgroundSetup: story.backgroundSetup,
-            characters: story.characters,
-            elements: story.elements,
-            scenes: story.scenes.map(scene => ({
-              id: scene.id,
-              title: scene.title,
-              description: scene.description,
-              textPanel: scene.textPanel,
-              characters: scene.characters,
-              elements: scene.elements,
-              imageHistory: scene.imageHistory,
-              createdAt: scene.createdAt,
-              updatedAt: scene.updatedAt
-            })),
-            createdAt: story.createdAt,
-            updatedAt: story.updatedAt
-          })),
-          createdAt: book.createdAt,
-          updatedAt: book.updatedAt
-        }))
-      };
-      
-      const serialized = JSON.stringify(toSerialize);
-      localStorage.setItem(STORAGE_KEY, serialized);
-    } catch (error) {
-      console.error('Failed to save app data to localStorage:', error);
-      throw new Error('Failed to save data. Storage quota may be exceeded.');
-    }
-  }
 
   /**
-   * Get a book by ID
+   * Deserialize a book from JSON data (internal helper)
+   * Note: This is now only used internally by BookCache
    */
-  static async getBook(bookId: string): Promise<Book | null> {
-    console.log('📖 StorageService.getBook called for:', bookId);
-    const data = await this.load();
-    const bookData = data.books.find(b => b.id === bookId);
-    if (!bookData) {
-      console.log('   ❌ Book not found');
-      return null;
-    }
+  private static async deserializeBook(bookData: any): Promise<Book> {
+    // Import model classes (safe here, not circular)
+    const { Story } = await import('../models/Story.js');
+    const { Scene } = await import('../models/Scene.js');
     
-    console.log('   Raw bookData.characters from storage:', bookData.characters?.length || 0, bookData.characters?.map((c: any) => c.name) || []);
+    // Reconstruct Story model instances first
+    const reconstructedStories = bookData.stories ? bookData.stories.map((storyData: any) => {
+      // Reconstruct Scene model instances
+      const reconstructedScenes = storyData.scenes ? storyData.scenes.map((sceneData: any) => {
+        // Convert scene dates
+        sceneData.createdAt = new Date(sceneData.createdAt);
+        sceneData.updatedAt = new Date(sceneData.updatedAt);
+        
+        // Convert image history timestamps
+        if (sceneData.imageHistory) {
+          sceneData.imageHistory = sceneData.imageHistory.map((img: any) => ({
+            ...img,
+            timestamp: new Date(img.timestamp)
+          }));
+        }
+        
+        return new Scene(sceneData);
+      }) : [];
+      
+      // Convert story dates
+      storyData.createdAt = new Date(storyData.createdAt);
+      storyData.updatedAt = new Date(storyData.updatedAt);
+      storyData.scenes = reconstructedScenes;
+      
+      return new Story(storyData);
+    }) : [];
     
-    // Import Story class to properly instantiate stories
-    const { Story: StoryClass } = await import('../models/Story.js');
+    // Create Book instance without stories (to avoid double-wrapping)
+    const { stories, ...bookDataWithoutStories } = bookData;
+    const book = new Book(bookDataWithoutStories);
     
-    // Create a proper Book instance
-    const book = new Book({
-      id: bookData.id,
-      title: bookData.title,
-      description: bookData.description,
-      backgroundSetup: bookData.backgroundSetup,
-      aspectRatio: bookData.aspectRatio,
-      style: bookData.style,
-      characters: bookData.characters || [],
-      createdAt: bookData.createdAt,
-      updatedAt: bookData.updatedAt
-    });
-    
-    console.log('   Book instance created with', book.characters.length, 'characters:', book.characters.map(c => c.name));
-    
-    // Properly instantiate Story objects with all their data
-    if (bookData.stories) {
-      book.stories = (bookData.stories as any[]).map((storyData: any) => 
-        new StoryClass({
-          id: storyData.id,
-          title: storyData.title,
-          description: storyData.description,
-          backgroundSetup: storyData.backgroundSetup,
-          characters: storyData.characters || [],
-          elements: storyData.elements || [],
-          scenes: storyData.scenes || [],
-          createdAt: storyData.createdAt,
-          updatedAt: storyData.updatedAt
-        })
-      );
-    }
+    // Assign reconstructed stories directly
+    book.stories = reconstructedStories;
+    book.createdAt = new Date(bookData.createdAt);
+    book.updatedAt = new Date(bookData.updatedAt);
     
     return book;
   }
 
   /**
-   * Save a book (create or update)
+   * Serialize a book to JSON format (internal helper)
    */
-  static async saveBook(book: Book): Promise<void> {
-    console.log('💾 StorageService.saveBook called');
-    console.log('   Book ID:', book.id);
-    console.log('   Book title:', book.title);
-    console.log('   Book characters before save:', book.characters.length, book.characters.map(c => c.name));
-    console.log('   Book stories:', book.stories.length);
-    
-    const data = await this.load();
-    const index = data.books.findIndex(b => b.id === book.id);
-    
-    book.updatedAt = new Date();
-    
-    if (index >= 0) {
-      // Update existing book
-      console.log('   Updating existing book at index', index);
-      data.books[index] = book;
-      console.log('   After assignment, data.books[index].characters:', data.books[index].characters?.length || 0, data.books[index].characters?.map((c: any) => c.name) || []);
-    } else {
-      // Add new book
-      console.log('   Adding new book');
-      data.books.push(book);
-    }
-    
-    this.save(data);
-    console.log('   ✅ Book saved to localStorage');
-    
-    // Verify what was actually saved
-    const verifyData = await this.load();
-    const savedBook = verifyData.books.find(b => b.id === book.id);
-    console.log('   📋 VERIFICATION - Characters in storage:', savedBook?.characters?.length || 0, savedBook?.characters?.map((c: any) => c.name) || []);
+  private static serializeBook(book: Book): any {
+    return {
+      id: book.id,
+      title: book.title,
+      description: book.description,
+      backgroundSetup: book.backgroundSetup,
+      aspectRatio: book.aspectRatio,
+      style: book.style,
+      characters: book.characters,
+      stories: book.stories.map(story => ({
+        id: story.id,
+        title: story.title,
+        description: story.description,
+        backgroundSetup: story.backgroundSetup,
+        diagramStyle: story.diagramStyle,
+        characters: story.characters,
+        elements: story.elements,
+        scenes: story.scenes.map(scene => ({
+          id: scene.id,
+          title: scene.title,
+          description: scene.description,
+          textPanel: scene.textPanel,
+          diagramPanel: scene.diagramPanel,
+          characters: scene.characters,
+          elements: scene.elements,
+          imageHistory: scene.imageHistory,
+          createdAt: scene.createdAt,
+          updatedAt: scene.updatedAt
+        })),
+        createdAt: story.createdAt,
+        updatedAt: story.updatedAt
+      })),
+      createdAt: book.createdAt,
+      updatedAt: book.updatedAt
+    };
   }
 
   /**
-   * Delete a book by ID
+   * Save app data to BookCache (which saves to filesystem)
+   * No longer uses localStorage - filesystem is source of truth
    */
-  static async deleteBook(bookId: string): Promise<boolean> {
-    const data = await this.load();
-    const initialLength = data.books.length;
-    
-    data.books = data.books.filter(b => b.id !== bookId);
-    
-    if (data.books.length < initialLength) {
-      // If deleted book was active, clear active book
-      if (data.activeBookId === bookId) {
-        data.activeBookId = null;
+  static async save(data: AppData): Promise<void> {
+    try {
+      data.lastUpdated = new Date();
+      data.version = VERSION;
+      
+      // Update active book ID in cache
+      await bookCache.setActiveBookId(data.activeBookId);
+      
+      // Save all books to cache (which saves to filesystem)
+      // Note: Books are already in cache from individual saveBook() calls
+      // This method is mainly for syncing activeBookId
+      
+      // Ensure all books in data are in cache
+      for (const book of data.books) {
+        await bookCache.set(book);
       }
       
-      this.save(data);
-      return true;
+      console.log(`✓ App data saved: ${data.books.length} books, activeBookId: ${data.activeBookId}`);
+    } catch (error) {
+      console.error('Failed to save app data:', error);
+      throw new Error('Failed to save data.');
     }
-    
-    return false;
   }
 
   /**
-   * Get the active book
+   * Get a book by ID from cache
    */
-  static async getActiveBook(): Promise<Book | null> {
-    const data = await this.load();
+  static async getBook(bookId: string): Promise<Book | null> {
+    // Ensure cache is loaded
+    await bookCache.loadAll();
     
-    if (!data.activeBookId) {
-      return null;
+    // Get from cache
+    return bookCache.get(bookId);
+  }
+
+  /**
+   * Save a book (create or update) - saves to cache and filesystem
+   */
+  static async saveBook(book: Book): Promise<void> {
+    // Ensure cache is loaded
+    await bookCache.loadAll();
+    
+    // Save to cache (which saves to filesystem)
+    await bookCache.set(book);
+  }
+
+  /**
+   * Delete a book by ID - deletes from cache and filesystem
+   */
+  static async deleteBook(bookId: string): Promise<boolean> {
+    // Ensure cache is loaded
+    await bookCache.loadAll();
+    
+    // Check if book exists
+    const book = bookCache.get(bookId);
+    if (!book) {
+      return false;
     }
     
-    return data.books.find(b => b.id === data.activeBookId) || null;
+    // Delete from cache (which deletes from filesystem)
+    await bookCache.delete(bookId);
+    
+    return true;
+  }
+
+  /**
+   * Get the active book from cache
+   */
+  static async getActiveBook(): Promise<Book | null> {
+    // Ensure cache is loaded
+    await bookCache.loadAll();
+    
+    return bookCache.getActiveBook();
   }
 
   /**
    * Set the active book by ID
    */
   static async setActiveBook(bookId: string | null): Promise<void> {
-    const data = await this.load();
+    // Ensure cache is loaded
+    await bookCache.loadAll();
     
-    if (bookId && !data.books.find(b => b.id === bookId)) {
+    if (bookId && !bookCache.get(bookId)) {
       throw new Error(`Book with ID ${bookId} not found`);
     }
     
-    data.activeBookId = bookId;
-    this.save(data);
+    await bookCache.setActiveBookId(bookId);
   }
 
   /**
-   * Get all books
+   * Get all books from cache
    */
   static async getAllBooks(): Promise<Book[]> {
-    const data = await this.load();
-    // Import Story class
-    const { Story: StoryClass } = await import('../models/Story.js');
+    // Ensure cache is loaded
+    await bookCache.loadAll();
     
-    // Return proper Book instances with methods and properly instantiated stories
-    return data.books.map(bookData => {
-      const book = new Book({
-        id: bookData.id,
-        title: bookData.title,
-        description: bookData.description,
-        backgroundSetup: bookData.backgroundSetup,
-        aspectRatio: bookData.aspectRatio,
-        style: bookData.style,
-        characters: bookData.characters || [],
-        createdAt: bookData.createdAt,
-        updatedAt: bookData.updatedAt
-      });
-      
-      // Properly instantiate Story objects
-      if (bookData.stories) {
-        book.stories = (bookData.stories as any[]).map((storyData: any) => 
-          new StoryClass({
-            id: storyData.id,
-            title: storyData.title,
-            description: storyData.description,
-            backgroundSetup: storyData.backgroundSetup,
-            characters: storyData.characters || [],
-            elements: storyData.elements || [],
-            scenes: storyData.scenes || [],
-            createdAt: storyData.createdAt,
-            updatedAt: storyData.updatedAt
-          })
-        );
-      }
-      
-      return book;
-    });
+    return bookCache.getAll();
   }
 
   /**
-   * Get book count
+   * Get book count from cache
    */
   static async getBookCount(): Promise<number> {
-    const data = await this.load();
-    return data.books.length;
+    await bookCache.loadAll();
+    return bookCache.getAll().length;
   }
 
   /**
-   * Check if storage has been initialized (Version 4.0)
+   * Check if storage has been initialized
    */
-  static isInitialized(): boolean {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (!stored) {
-        return false;
-      }
-      
-      const parsed = JSON.parse(stored);
-      return parsed.version === VERSION;
-    } catch {
-      return false;
-    }
+  static async isInitialized(): Promise<boolean> {
+    await bookCache.loadAll();
+    return bookCache.isLoaded() && bookCache.getAll().length > 0;
   }
 
   /**
    * Clear all storage (dangerous!)
    */
-  static clearAll(): void {
-    localStorage.removeItem(STORAGE_KEY);
+  static async clearAll(): Promise<void> {
+    // Clear cache
+    bookCache.clear();
+    
+    // Clear filesystem (if configured)
+    const fsConfigured = await FileSystemService.isConfigured();
+    if (fsConfigured) {
+      // Delete all book files
+      const books = await FileSystemService.loadAllBooksMetadata();
+      for (const bookId of books.keys()) {
+        await FileSystemService.deleteBookMetadata(bookId);
+      }
+    }
+    
     console.log('⚠️ All app data cleared');
   }
 
@@ -375,27 +299,35 @@ export class StorageService {
     storageSize: number;
     version: string;
   }> {
-    const data = await this.load();
+    await bookCache.loadAll();
+    const books = bookCache.getAll();
     
     let totalStories = 0;
     let totalScenes = 0;
     
-    data.books.forEach(book => {
+    books.forEach(book => {
       totalStories += book.stories.length;
       book.stories.forEach(story => {
         totalScenes += story.scenes.length;
       });
     });
     
-    const stored = localStorage.getItem(STORAGE_KEY) || '';
-    const storageSize = new Blob([stored]).size;
+    // Calculate approximate storage size from filesystem
+    let storageSize = 0;
+    const fsConfigured = await FileSystemService.isConfigured();
+    if (fsConfigured) {
+      const fsBooks = await FileSystemService.loadAllBooksMetadata();
+      for (const bookJson of fsBooks.values()) {
+        storageSize += new Blob([bookJson]).size;
+      }
+    }
     
     return {
-      bookCount: data.books.length,
+      bookCount: books.length,
       totalStories,
       totalScenes,
       storageSize,
-      version: data.version
+      version: VERSION
     };
   }
 

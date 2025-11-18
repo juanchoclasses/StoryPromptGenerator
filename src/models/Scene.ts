@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { Story } from './Story';
 import type { ValidationResult } from './Book';
+import type { DiagramPanel } from '../types/Story';
 
 /**
  * Generated image metadata (URL stored in IndexedDB)
@@ -19,6 +20,7 @@ export interface SceneExchangeFormat {
   title: string;
   description: string;
   textPanel?: string;
+  diagramPanel?: DiagramPanel; // Optional diagram to overlay on image
   characters: string[];  // Character names (not IDs)
   elements: string[];    // Element names (not IDs)
   imageHistory?: GeneratedImage[]; // Generated images for this scene
@@ -34,6 +36,7 @@ export class Scene {
   title: string;
   description: string;
   textPanel?: string;
+  diagramPanel?: DiagramPanel;
   characters: string[];  // Character names
   elements: string[];    // Element names
   imageHistory?: GeneratedImage[];
@@ -45,6 +48,7 @@ export class Scene {
     this.title = data.title;
     this.description = data.description;
     this.textPanel = data.textPanel;
+    this.diagramPanel = data.diagramPanel;
     this.characters = data.characters || [];
     this.elements = data.elements || [];
     this.imageHistory = data.imageHistory || [];
@@ -195,6 +199,7 @@ export class Scene {
       title: this.title,
       description: this.description,
       textPanel: this.textPanel,
+      diagramPanel: this.diagramPanel,
       characters: [...this.characters],
       elements: [...this.elements],
       imageHistory: this.imageHistory ? [...this.imageHistory] : []
@@ -210,6 +215,7 @@ export class Scene {
       title: this.title,
       description: this.description,
       textPanel: this.textPanel,
+      diagramPanel: this.diagramPanel,
       characters: this.characters,
       elements: this.elements,
       imageHistory: this.imageHistory,
@@ -226,6 +232,7 @@ export class Scene {
       title: data.title,
       description: data.description,
       textPanel: data.textPanel,
+      diagramPanel: data.diagramPanel,
       characters: data.characters || [],
       elements: data.elements || [],
       imageHistory: data.imageHistory || []

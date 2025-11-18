@@ -1,4 +1,6 @@
 // overlay.ts
+import type { DiagramPanel, DiagramStyle } from '../types/Story';
+
 type PanelOptions = {
   width: number;            // panel width in pixels
   height: number;           // panel height in pixels
@@ -160,28 +162,74 @@ export async function composeImageWithPanel(
   panel: ImageBitmap,
   at: CompositeOptions,
   outputType: "image/png" | "image/jpeg" = "image/png",
-  quality?: number
+  quality?: number,
+  targetWidth?: number,
+  targetHeight?: number
 ): Promise<string> {
+  console.log('=== COMPOSITING TO FINAL IMAGE ===');
+  console.log('Base image size:', baseImg.naturalWidth, 'x', baseImg.naturalHeight);
+  console.log('Panel (ImageBitmap) size:', panel.width, 'x', panel.height);
+  console.log('Panel position:', at.x, ',', at.y);
+  
+  // Ensure image is fully decoded before drawing
+  if (baseImg.naturalWidth === 0 || baseImg.naturalHeight === 0) {
+    console.error('⚠️ Base image not loaded! Attempting to decode...');
+    try {
+      await baseImg.decode();
+      console.log('✓ Image decoded:', baseImg.naturalWidth, 'x', baseImg.naturalHeight);
+    } catch (err) {
+      console.error('✗ Failed to decode image:', err);
+      throw new Error('Base image failed to load/decode');
+    }
+  }
+  
+  if (baseImg.naturalWidth === 0 || baseImg.naturalHeight === 0) {
+    throw new Error('Base image has zero dimensions after decode attempt');
+  }
+  
   const canvas = document.createElement("canvas");
   canvas.width = baseImg.naturalWidth;
   canvas.height = baseImg.naturalHeight;
   const ctx = canvas.getContext("2d")!;
   ctx.drawImage(baseImg, 0, 0);
-  ctx.drawImage(panel, at.x, at.y);
+  
+  // If target dimensions are provided, scale the panel to fit them
+  // This handles the case where html2canvas renders at 2x scale for quality
+  if (targetWidth && targetHeight) {
+    console.log('Scaling panel from', panel.width, 'x', panel.height, 'to', targetWidth, 'x', targetHeight);
+    ctx.drawImage(panel, at.x, at.y, targetWidth, targetHeight);
+  } else {
+    // Draw at natural size
+    ctx.drawImage(panel, at.x, at.y);
+  }
+  
+  console.log('Final canvas size:', canvas.width, 'x', canvas.height);
 
   const blob = await new Promise<Blob | null>((res) =>
     canvas.toBlob(res, outputType, quality)
   );
-  if (!blob) throw new Error("Failed to export image.");
-  return URL.createObjectURL(blob);
+  if (!blob) {
+    console.error('✗ toBlob returned null!');
+    throw new Error("Failed to export image: toBlob returned null");
+  }
+  
+  if (blob.size === 0) {
+    console.error('✗ Blob has zero size!');
+    throw new Error("Failed to export image: Blob is empty");
+  }
+  
+  console.log('✓ Blob created:', blob.size, 'bytes, type:', blob.type);
+  const blobUrl = URL.createObjectURL(blob);
+  console.log('✓ Blob URL created:', blobUrl.substring(0, 50) + '...');
+  return blobUrl;
 }
 
 // Helper function to composite text panel onto an image data URL
 export async function overlayTextOnImage(
   imageDataUrl: string,
   text: string,
-  imageWidth: number,
-  imageHeight: number,
+  _imageWidth: number,
+  _imageHeight: number,
   config?: {
     fontFamily?: string;
     fontSize?: number;
@@ -309,6 +357,199 @@ export async function overlayTextOnImage(
   
   // Composite and return new image URL
   return await composeImageWithPanel(baseImg, panel, compositeOptions);
+}
+
+/**
+ * Overlay a diagram panel onto an image
+ * Similar to overlayTextOnImage but for diagrams (Mermaid, Math, Code, Markdown)
+ */
+export async function overlayDiagramOnImage(
+  imageDataUrl: string,
+  diagramPanel: DiagramPanel,
+  diagramStyle: DiagramStyle
+): Promise<string> {
+  // Load the base image first (needed for dimensions regardless of success/error)
+  const baseImg = await loadImage(imageDataUrl);
+  
+  // Use actual image dimensions
+  const actualImageWidth = baseImg.naturalWidth;
+  const actualImageHeight = baseImg.naturalHeight;
+  
+  // Calculate diagram panel dimensions based on ACTUAL image size
+  let panelWidth = Math.round(actualImageWidth * (diagramStyle.widthPercentage / 100));
+  let panelHeight = Math.round(actualImageHeight * (diagramStyle.heightPercentage / 100));
+  
+  let panel: ImageBitmap;
+  let scale = 1;
+  
+  try {
+    // Import DiagramRenderService (lazy load to avoid circular deps)
+    const { renderDiagramToCanvas, measureDiagramNaturalSize } = await import('./DiagramRenderService');
+    
+    // If autoScale is enabled, calculate optimal dimensions to fit content
+    if (diagramStyle.autoScale) {
+      console.log('=== AUTO-SCALING DIAGRAM ===');
+      const naturalSize = await measureDiagramNaturalSize(
+        diagramPanel,
+        diagramStyle,
+        panelWidth
+      );
+      console.log('Natural diagram size:', naturalSize.width, 'x', naturalSize.height);
+      
+      // Use the natural height (width is already constrained)
+      panelWidth = naturalSize.width;
+      panelHeight = naturalSize.height;
+      
+      // Ensure we don't exceed image bounds
+      const maxHeight = actualImageHeight - diagramStyle.gutterTop - diagramStyle.gutterBottom;
+      if (panelHeight > maxHeight) {
+        console.log('Diagram exceeds max height, capping at', maxHeight);
+        panelHeight = maxHeight;
+      }
+      
+      console.log('Final auto-scaled panel size:', panelWidth, 'x', panelHeight);
+    }
+    
+    // Render the diagram to canvas AT THE TARGET DIMENSIONS
+    const diagramCanvas = await renderDiagramToCanvas(
+      diagramPanel,
+      diagramStyle,
+      panelWidth,
+      panelHeight
+    );
+    
+    // Note: html2canvas renders at 2x scale for quality, so we need to scale back down
+    console.log('=== OVERLAY COMPOSITING ===');
+    console.log('Diagram canvas size:', diagramCanvas.width, 'x', diagramCanvas.height);
+    console.log('Expected panel size:', panelWidth, 'x', panelHeight);
+    
+    panel = await createImageBitmap(diagramCanvas);
+    console.log('ImageBitmap size:', panel.width, 'x', panel.height);
+    
+    // The canvas is 2x the intended size due to html2canvas scale parameter
+    scale = diagramCanvas.width / panelWidth;
+    console.log('Detected scale factor:', scale);
+    
+  } catch (error) {
+    // If diagram rendering fails, create an error panel instead
+    console.error('❌ Diagram rendering failed:', error);
+    console.log('🛠️ Creating error panel instead...');
+    
+    const errorMessage = `DIAGRAM ERROR\n\nType: ${diagramPanel.type}\n\n${error instanceof Error ? error.message : String(error)}\n\nCheck diagram syntax and try again.`;
+    
+    // Create a text-based error panel using the diagram's style
+    panel = await createTextPanel(errorMessage, {
+      width: panelWidth,
+      height: panelHeight,
+      bgColor: '#ff000033', // Semi-transparent red background
+      borderColor: '#ff0000', // Red border
+      borderWidth: diagramStyle.borderWidth,
+      borderRadius: 8,
+      padding: diagramStyle.padding,
+      fontFamily: 'monospace',
+      fontSize: Math.max(14, diagramStyle.fontSize - 4), // Slightly smaller for error text
+      fontColor: '#ffffff', // White text
+      textAlign: 'left'
+    });
+    
+    console.log('✓ Error panel created');
+  }
+  
+  // Get gutter values
+  const gutterTop = diagramStyle.gutterTop;
+  const gutterBottom = diagramStyle.gutterBottom;
+  const gutterLeft = diagramStyle.gutterLeft;
+  const gutterRight = diagramStyle.gutterRight;
+  
+  // Calculate position based on config using ACTUAL image dimensions
+  let x = 0;
+  let y = 0;
+  
+  // Horizontal positioning
+  if (diagramStyle.position.includes('left')) {
+    x = gutterLeft;
+  } else if (diagramStyle.position.includes('right')) {
+    x = actualImageWidth - panelWidth - gutterRight;
+  } else if (diagramStyle.position.includes('center')) {
+    x = gutterLeft + (actualImageWidth - panelWidth - gutterLeft - gutterRight) / 2;
+  }
+  
+  // Vertical positioning
+  if (diagramStyle.position.includes('top')) {
+    y = gutterTop;
+  } else if (diagramStyle.position.includes('bottom')) {
+    y = actualImageHeight - panelHeight - gutterBottom;
+  } else if (diagramStyle.position.includes('middle')) {
+    y = gutterTop + (actualImageHeight - panelHeight - gutterTop - gutterBottom) / 2;
+  }
+  
+  const compositeOptions: CompositeOptions = { x, y };
+  
+  // Composite and return new image URL
+  // Pass the intended dimensions to scale the high-res panel down
+  return await composeImageWithPanel(baseImg, panel, compositeOptions, "image/png", undefined, panelWidth, panelHeight);
+}
+
+/**
+ * Apply all overlays (text and/or diagram) to an image
+ * This is the main entry point for applying overlays during image generation
+ */
+export async function applyAllOverlays(
+  imageDataUrl: string,
+  options: {
+    textPanel?: {
+      text: string;
+      config?: {
+        fontFamily?: string;
+        fontSize?: number;
+        textAlign?: 'left' | 'center' | 'right';
+        widthPercentage?: number;
+        heightPercentage?: number;
+        autoHeight?: boolean;
+        position?: string;
+        backgroundColor?: string;
+        fontColor?: string;
+        borderColor?: string;
+        borderWidth?: number;
+        borderRadius?: number;
+        padding?: number;
+        gutterTop?: number;
+        gutterBottom?: number;
+        gutterLeft?: number;
+        gutterRight?: number;
+      };
+    };
+    diagramPanel?: {
+      panel: DiagramPanel;
+      style: DiagramStyle;
+    };
+    imageWidth: number;
+    imageHeight: number;
+  }
+): Promise<string> {
+  let currentImageUrl = imageDataUrl;
+  
+  // Apply text overlay first (if exists)
+  if (options.textPanel) {
+    currentImageUrl = await overlayTextOnImage(
+      currentImageUrl,
+      options.textPanel.text,
+      options.imageWidth,
+      options.imageHeight,
+      options.textPanel.config
+    );
+  }
+  
+  // Apply diagram overlay second (if exists)
+  if (options.diagramPanel) {
+    currentImageUrl = await overlayDiagramOnImage(
+      currentImageUrl,
+      options.diagramPanel.panel,
+      options.diagramPanel.style
+    );
+  }
+  
+  return currentImageUrl;
 }
 
 export type { PanelOptions, CompositeOptions };

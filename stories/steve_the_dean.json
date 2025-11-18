@@ -1,0 +1,209 @@
+{
+  "story": {
+    "title": "Steve the Dean: Keeper of the Campus",
+    "backgroundSetup": "The Administrative Tower of the Code Academy, where Steve the Dean orchestrates the daily operations of the entire campus. His office overlooks the grounds where professors teach, students learn, and knowledge flows. From early morning meetings with government officials to late evening rounds ensuring every classroom is ready, Steve keeps the entire institution running smoothly. The tower has meeting rooms at every level - the Grand Conference Hall for government mucky mucks, faculty lounges for professors, student commons for learners, and Steve's office at the top where he coordinates it all.",
+    "description": "A day in the life of Steve the Dean, the tireless administrator who keeps the Code Academy thriving"
+  },
+  "characters": [
+    {
+      "name": "Steve the Dean",
+      "description": "A distinguished, purposeful administrator with silver-streaked hair combed precisely to the side. He wears impeccably tailored suits with a different colored pocket square each day - today's is royal blue. His glasses are frameless and modern, and he carries a tablet that displays campus schedules, facility maps, and student enrollment data. Despite his formal appearance, his eyes are warm and he greets everyone by name. He moves with determined efficiency, his footsteps echoing purposefully through the halls. His office is organized but lived-in, with photos of graduating classes on every wall. He's always juggling multiple conversations - a phone in one hand, signing papers with the other, while giving instructions to assistants."
+    },
+    {
+      "name": "Professor Richard",
+      "description": "An energetic, theatrical professor with wild, Einstein-like hair that bounces as he moves. He wears a vest covered in ascending number sequences and carries a conductor's baton. He teaches sorting algorithms with dramatic flair in the Sorting Studio and Partition Arena."
+    },
+    {
+      "name": "Professor Ildar",
+      "description": "A wise, patient professor with a beard that flows like cascading code blocks. He wears a robe covered in question marks and exclamation points that glow when he explains conditions. His spectacles are shaped like parentheses. He teaches decision-making and conditionals in the Code Garden."
+    },
+    {
+      "name": "Student Eager Noodler",
+      "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously."
+    },
+    {
+      "name": "Senator Pompington",
+      "description": "A portly government official with a magnificent mustache that curls at the ends. He wears an expensive three-piece suit with a gold watch chain. His briefcase is embossed with official government seals. He speaks in a booming voice and gestures grandly, but beneath the pompous exterior, he genuinely cares about education funding and student success."
+    },
+    {
+      "name": "Chancellor Moneybags",
+      "description": "A tall, imposing figure from the Department of Education with wire-rimmed spectacles perched on a sharp nose. She carries a ledger full of budget numbers and constantly checks figures on a calculator. She's stern but fair, controlling the purse strings that keep the academy running. Her questions are pointed, her expectations high, but she respects competent administrators like Steve."
+    },
+    {
+      "name": "Facilities Manager Fixit",
+      "description": "A stout, practical person wearing coveralls with dozens of pockets full of tools. They carry a large ring of keys that jingles when they walk. Their tablet shows building diagrams, maintenance schedules, and repair requests. They're perpetually in motion, fixing things before they break and ensuring every classroom has what it needs."
+    }
+  ],
+  "elements": [
+    {
+      "name": "Administrative Tower",
+      "description": "A tall, modern building at the center of campus with glass walls showing the bustling activity inside. Each floor serves a different function - ground floor reception, meeting rooms on levels 2-4, faculty offices on 5-6, and Steve's office at the very top with panoramic views of the entire campus. Digital displays show class schedules and campus events.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Dean's Office",
+      "description": "A spacious corner office with floor-to-ceiling windows overlooking the campus. One wall is covered with photos of graduating classes. A large desk has three monitors showing schedules, budgets, and facility maps. A round conference table sits by the window for smaller meetings. Comfortable chairs for visitors, and a coffee maker that's always brewing.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Grand Conference Hall",
+      "description": "An impressive meeting room with a long mahogany table, high-backed leather chairs, and a wall-sized screen for presentations. This is where important meetings with government officials take place. The room has a serious, formal atmosphere with certificates and awards on the walls.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Faculty Lounge",
+      "description": "A comfortable common area for professors with armchairs, coffee stations, whiteboards for brainstorming, and cubbies for mail. Professors gather here to discuss curriculum, share teaching strategies, and collaborate. It has a warm, collegial atmosphere.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Student Commons",
+      "description": "A bright, modern space where students can study, socialize, and meet with administrators. Tables for group work, quiet nooks for individual study, a snack bar, and comfortable seating. Notice boards display campus events and opportunities.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Campus Master Schedule",
+      "description": "A large interactive display showing every class, every room, every professor, and every student's schedule. It updates in real-time and helps Steve coordinate the entire campus. Color-coded blocks show different subjects and availability.",
+      "category": "Machinery"
+    }
+  ],
+  "scenes": [
+    {
+      "title": "Dawn Breaks at the Academy",
+      "description": "The sun rises over the Code Academy campus. Steve the Dean arrives before anyone else, his car pulling into the parking lot as the morning light touches the Administrative Tower. He carries his tablet and a travel mug of coffee. Through the windows, we see the empty classrooms, quiet hallways, and sleeping computers - all waiting for the day to begin. Steve unlocks his office, powers on the monitors, and begins reviewing the day's schedule. The Campus Master Schedule glows to life, showing a full day of classes, meetings, and events.",
+      "textPanel": "Before the sun has fully risen high,\nSteve the Dean arrives, oh my!\nFirst one in, last one out each day,\nKeeping the campus running, come what may!\n\nClasses to schedule, rooms to prepare,\nStudents depending on his watchful care!\nProfessors need resources, space to teach,\nSteve makes certain all are within reach!",
+      "characters": [
+        "Steve the Dean"
+      ],
+      "elements": [
+        "Administrative Tower",
+        "Dean's Office",
+        "Campus Master Schedule"
+      ]
+    },
+    {
+      "title": "Morning Meeting with Government Officials",
+      "description": "The Grand Conference Hall fills with important visitors. Senator Pompington and Chancellor Moneybags sit at the head of the table with briefcases and ledgers spread before them. Steve presents a detailed report on student outcomes, enrollment numbers, and program effectiveness. Charts and graphs flash on the wall screen. The mucky mucks ask pointed questions about budgets and results. Steve answers confidently, showing how every dollar supports student learning. His passion for education shines through as he advocates for continued funding.",
+      "textPanel": "At eight AM, the mucky mucks appear,\nGovernment officials, stern and clear!\nSenator Pompington with mustache grand,\nChancellor Moneybags, ledger in hand!\n\n\"Show us results!\" they boom and demand,\n\"Prove that this academy's truly well-planned!\"\nSteve shows them data, student success,\nHow every resource helps learners progress!",
+      "characters": [
+        "Steve the Dean",
+        "Senator Pompington",
+        "Chancellor Moneybags"
+      ],
+      "elements": [
+        "Grand Conference Hall",
+        "Campus Master Schedule"
+      ]
+    },
+    {
+      "title": "Budget Review - Fighting for Resources",
+      "description": "Chancellor Moneybags scrutinizes every line item while Steve explains the needs. New computers for the coding labs, books for the library, supplies for the professors, and scholarships for deserving students. Each item represents real students and real learning. Steve's voice carries conviction as he describes Student Eager Noodler who needs equipment, the professors who require materials. The Chancellor's stern expression softens as she sees Steve's dedication. She approves the budget, knowing this administrator spends wisely.",
+      "textPanel": "\"These computers cost so very much!\"\nChancellor questions with a cutting touch.\n\"But students need them,\" Steve explains,\n\"To learn the skills that their future contains!\"\n\nEvery pencil, every book,\nEvery corner, every nook,\nSupports the students in their quest,\nSteve ensures they have the best!",
+      "characters": [
+        "Steve the Dean",
+        "Chancellor Moneybags"
+      ],
+      "elements": [
+        "Grand Conference Hall"
+      ]
+    },
+    {
+      "title": "Faculty Meeting - Supporting Professors",
+      "description": "In the Faculty Lounge, Professor Richard and Professor Ildar meet with Steve to discuss curriculum needs. Richard needs a larger space for his sorting demonstrations - students keep bumping into the bubble machines! Ildar needs better visualization tools for teaching conditionals. Steve listens carefully, taking notes on his tablet. He asks about their teaching challenges, what resources would help them serve students better. His questions show deep understanding of pedagogy. He promises to find solutions, coordinating with Facilities Manager Fixit who's already sketching room reconfigurations.",
+      "textPanel": "\"Professor Richard, what do you need?\"\nSteve listens closely, taking the lead.\n\"My sorting studio's too small, you see,\nStudents need more space to learn from me!\"\n\nProfessor Ildar adds his concerns too,\n\"Visualization tools - something new!\"\nSteve notes it all with thoughtful care,\nDetermined that these needs he'll share!",
+      "characters": [
+        "Steve the Dean",
+        "Professor Richard",
+        "Professor Ildar",
+        "Facilities Manager Fixit"
+      ],
+      "elements": [
+        "Faculty Lounge",
+        "Campus Master Schedule"
+      ]
+    },
+    {
+      "title": "Solving the Space Puzzle",
+      "description": "Back in his office, Steve and Facilities Manager Fixit huddle over the Campus Master Schedule and building diagrams. They're playing three-dimensional Tetris with classrooms, labs, and study spaces. If they move the morning algorithms class to the larger hall, and shift the evening sessions to the renovated wing, and convert the old storage room into a study nook... Yes! It works! Fixit's keys jingle as they nod approval. Steve updates the master schedule, and suddenly three problems are solved at once. His screens glow with the new arrangements.",
+      "textPanel": "Like a puzzle, complex and tight,\nSteve arranges rooms just right!\nThis class here, that lab there,\nStudy spaces everywhere!\n\nEvery room must serve its role,\nSupporting education's goal!\nFixit's keys jingle and chime,\n\"We'll have it ready right on time!\"",
+      "characters": [
+        "Steve the Dean",
+        "Facilities Manager Fixit"
+      ],
+      "elements": [
+        "Dean's Office",
+        "Campus Master Schedule"
+      ]
+    },
+    {
+      "title": "Student Concerns - Open Door Policy",
+      "description": "Student Eager Noodler appears at Steve's door, antennae drooping with worry. They need a quiet place to study - the dorms are too noisy. Steve immediately walks them to the newly designated study nook, showing the comfortable chairs, good lighting, and doors that close for silence. Noodler's antennae perk up with relief! Steve makes a note to create more such spaces. He remembers being a student once, understanding that learning environments matter. He promises to check on Noodler next week to ensure the space is working.",
+      "textPanel": "A knock upon the Dean's door comes,\nStudent Noodler, looking glum.\n\"I need a place to study well,\nWhere I can focus, truth to tell!\"\n\nSteve doesn't hesitate or wait,\nHe leads them to a space that's great!\n\"This room is yours, quiet and bright,\nStudy here from morn till night!\"",
+      "characters": [
+        "Steve the Dean",
+        "Student Eager Noodler"
+      ],
+      "elements": [
+        "Dean's Office",
+        "Student Commons"
+      ]
+    },
+    {
+      "title": "Evening Rounds - Checking Every Detail",
+      "description": "As evening falls, Steve walks through the campus with his tablet. He checks the Sorting Studio - are the bubble machines working? Yes! He tests the lights in the Code Garden - functioning perfectly. He ensures the study nooks are clean and welcoming. He checks the schedule for tomorrow - Professor Richard's class at 9 AM in the newly assigned larger space, Ildar's session at 2 PM with the new visualization equipment Fixit installed. Everything is ready. The hallways are quiet now, but tomorrow they'll buzz with learning.",
+      "textPanel": "When students head home, Steve's work's not done,\nHe walks the campus, every single one!\nChecking classrooms, testing lights,\nMaking sure tomorrow's bright!\n\nAre the labs all set to go?\nDo the study spaces flow?\nEvery detail matters much,\nSteve ensures the perfect touch!",
+      "characters": [
+        "Steve the Dean",
+        "Facilities Manager Fixit"
+      ],
+      "elements": [
+        "Administrative Tower",
+        "Campus Master Schedule"
+      ]
+    },
+    {
+      "title": "Late Night Planning - Tomorrow's Success",
+      "description": "Alone in his office, the campus dark below, Steve reviews tomorrow's schedule one more time. Seventy-three classes. Twelve hundred students. Twenty-five professors. One hundred fifteen rooms. All coordinated perfectly. He updates a few notes, sends encouraging emails to nervous new students, approves a last-minute room change request. His desk lamp casts a warm glow on the photos of past graduating classes - thousands of students who succeeded because someone ensured they had what they needed. Steve smiles, powers down his monitors, and finally heads home.",
+      "textPanel": "Long after others go to sleep,\nSteve reviews his schedule deep.\nEvery student, every class,\nEvery detail he must pass!\n\nTomorrow, students will arrive,\nHelping them to learn and thrive!\nProfessors teaching, students bright,\nAll because Steve planned it right!",
+      "characters": [
+        "Steve the Dean"
+      ],
+      "elements": [
+        "Dean's Office",
+        "Campus Master Schedule"
+      ]
+    },
+    {
+      "title": "The Impact - Why It Matters",
+      "description": "A montage scene shows the results of Steve's tireless work. Student Eager Noodler studying happily in the quiet nook. Professor Richard teaching in the spacious studio with students learning bubble sort, plenty of room to move. Professor Ildar using the new visualization tools, students' faces lighting up with understanding. The government officials reviewing positive reports. Everything works because Steve makes it work. The campus thrives because one person coordinates thousands of moving pieces with care and dedication.",
+      "textPanel": "Why does Steve work so very hard?\nWhy does he carefully stand guard?\nBecause each student deserves the chance,\nTo learn and grow, to advance!\n\nEvery classroom that's prepared,\nShows how much the Dean has cared.\nEvery resource, every space,\nHelps students win their learning race!\n\nGovernment sees results so clear,\nFunding flows from year to year!\nProfessors teach with tools they need,\nStudents learn and then succeed!",
+      "characters": [
+        "Steve the Dean",
+        "Student Eager Noodler",
+        "Professor Richard",
+        "Professor Ildar",
+        "Senator Pompington",
+        "Chancellor Moneybags"
+      ],
+      "elements": [
+        "Administrative Tower",
+        "Dean's Office",
+        "Faculty Lounge",
+        "Student Commons"
+      ]
+    },
+    {
+      "title": "The Unsung Hero",
+      "description": "As another successful day ends, Steve stands at his office window looking out over the campus. Lights glow in the buildings as evening classes meet. Students walk together discussing their lessons. Professors work late in their offices. The Code Academy thrives. Few people see the hundreds of decisions, meetings, and coordinations that make this possible. But Steve doesn't need recognition. He sees the students learning, the professors teaching, the campus functioning smoothly. That's his reward. Tomorrow, he'll do it all again. Because that's what deans do.",
+      "textPanel": "Not many see what Steve achieves,\nThe careful web that he so weaves.\nMeetings held from dawn to dark,\nEvery decision leaves its mark!\n\nGovernment officials come to call,\nSteve advocates for one and all.\nFaculty needs, student cares,\nFacilities, budgets, and repairs!\n\nHe's first to come and last to leave,\nThere's so much he must achieve!\nBut when students succeed and grow,\nSteve's reward begins to show!\n\nFor every class that's taught with care,\nFor every student who finds their share,\nOf knowledge, skill, and confidence bright,\nSteve the Dean has done it right!",
+      "characters": [
+        "Steve the Dean"
+      ],
+      "elements": [
+        "Dean's Office",
+        "Administrative Tower",
+        "Campus Master Schedule"
+      ]
+    }
+  ]
+}
+

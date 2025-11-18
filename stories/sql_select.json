@@ -1,0 +1,494 @@
+{
+  "story": {
+    "title": "SELECT in SQL: Querying the Data Library",
+    "backgroundSetup": "A warm, inviting library called The Data Library, filled with towering wooden filing cabinets and bookshelves that contain organized data. Each filing cabinet represents a database table, with drawers labeled by column names. A large, polished oak Query Desk sits in the center, where Professor Mario demonstrates SQL queries. The desk has a magical surface that displays query results in glowing tables. Behind the desk stands the Master Catalog, a tall board that shows the structure of tables. Soft library lighting creates a cozy atmosphere perfect for learning. IMPORTANT: All characters (Professor Mario and students) should be positioned in the BOTTOM HALF of the image, with the filing cabinets, Query Desk displays, and table results in the top half.",
+    "description": "A gentle journey through SQL SELECT statements, where Professor Mario guides students through the art of querying data with precision and clarity."
+  },
+  "characters": [
+    {
+      "name": "Professor Mario",
+      "description": "A distinguished gentleman in his early sixties with a warm, unassuming presence. He has a well-trimmed, tidy salt-and-pepper beard that frames his face perfectly, and his eyes crinkle at the corners when he flashes his characteristic cheeky smile. He wears comfortable cardigan sweaters in earth tones over neatly pressed button-up shirts, often with the sleeves rolled up to his elbows when he's deep in demonstration. His movements are deliberate and thoughtful, and he has a habit of adjusting his reading glasses when examining query results. He carries a worn leather notebook filled with example queries and always has a wooden pointer for indicating parts of tables on the Query Desk."
+    },
+    {
+      "name": "Student Eager Noodler",
+      "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes."
+    },
+    {
+      "name": "student Thoughtful Giggler",
+      "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet."
+    },
+    {
+      "name": "Student Zippy Zapper",
+      "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'"
+    },
+    {
+      "name": "Student Quiet observer",
+      "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook."
+    }
+  ],
+  "elements": [
+    {
+      "name": "The Data Library",
+      "description": "A magnificent library space with warm wooden furnishings and soft lighting. Tall filing cabinets line the walls, each representing a database table, with brass labels and drawer handles. The air smells of old books and possibility. Comfortable reading nooks are scattered around for students to practice queries.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Query Desk",
+      "description": "A large, polished oak desk in the center of the library with a magical surface that glows when queries are executed. The desktop displays SQL queries and their results in beautiful, illuminated tables. It has pull-out drawers containing query reference cards and a built-in quill holder for writing queries.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Students Filing Cabinet",
+      "description": "A prominent wooden filing cabinet with six drawers, labeled with column names: id, name, age, major, and gpa. Each drawer glows softly when referenced in a query. The cabinet has a brass plaque reading 'students table' and contains cards representing each row of data.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Master Catalog",
+      "description": "A large wooden board mounted on an elegant stand that displays the structure of database tables. It shows table schemas with column names, data types, and relationships. The catalog magically updates to highlight which columns are being queried.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Result Illuminator",
+      "description": "A brass device with multiple lenses that projects query results onto the Query Desk surface. When a query executes, it emits a soft golden glow and displays formatted tables with perfect alignment. It has dials for adjusting which columns to show and filters for narrowing results.",
+      "category": "Machinery"
+    }
+  ],
+  "scenes": [
+    {
+      "title": "Welcome to The Data Library",
+      "description": "Professor Mario stands beside the Query Desk in The Data Library, his cardigan unbuttoned and his cheeky smile welcoming the students. He gestures warmly toward the Students Filing Cabinet, explaining that databases are like organized libraries where data lives in tables. The Master Catalog glows softly behind him, showing empty schemas waiting to be explored. Student Eager Noodler's antennae twitch with anticipation while student Thoughtful Giggler's ears perk up with interest. Professor Mario adjusts his reading glasses and pulls out his wooden pointer, ready to begin their journey.",
+      "textPanel": "\"Welcome, dear students, to our library grand,\nWhere data lives organized, structured, and planned!\nEach table's a cabinet with drawers full of facts,\nAnd SELECT is the key to finding what we've stacked!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# What is a Database?\n\nA **database** is an organized collection of data.\n\n- **Tables** store data in rows and columns\n- **Rows** represent individual records\n- **Columns** represent attributes/fields\n- **SELECT** is how we query (ask questions about) the data\n\n---\n\n### Today's Focus: The `students` Table\n\nWe'll explore various ways to query student data!",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 28,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["The Data Library", "Query Desk", "Students Filing Cabinet", "Master Catalog"]
+    },
+    {
+      "title": "Meet Our Students Table",
+      "description": "Professor Mario opens all six drawers of the Students Filing Cabinet, revealing glowing data cards for each student record. The Result Illuminator projects the complete table onto the Query Desk, showing every row and column in perfect alignment. He points to each column with his wooden pointer, explaining that this table has six students with five pieces of information each. Student Quiet observer peers through their periscope at the data while Student Zippy Zapper's four arms point excitedly at different rows. Professor Mario's cheeky smile widens as he tells students they'll use this same data throughout the lesson.",
+      "textPanel": "\"Before we query, let's see what we've got,\nSix students with data—let's examine the lot!\nEach row is a student, each column a trait,\nThis table's our playground, isn't it great?\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# The `students` Table\n\nHere's ALL our data (6 rows, 5 columns):\n\n| id | name  | age | major              | gpa |\n|----|-------|-----|--------------------|-----|\n| 1  | Alice | 20  | Computer Science   | 3.8 |\n| 2  | Bob   | 22  | Mathematics        | 3.5 |\n| 3  | Carol | 19  | Computer Science   | 3.9 |\n| 4  | David | 21  | Physics            | 3.2 |\n| 5  | Eve   | 20  | Mathematics        | 3.7 |\n| 6  | Frank | 23  | Computer Science   | 3.4 |\n\n**This is our complete dataset!**",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Query Desk", "Students Filing Cabinet", "Result Illuminator", "Master Catalog"]
+    },
+    {
+      "title": "SELECT * - The Complete View",
+      "description": "Professor Mario writes his first query on the Query Desk with a flourish, using the asterisk symbol. He explains that the star means 'everything'—all columns from the table. The Result Illuminator glows brightly as it displays all six rows with all five columns, identical to what they just saw. He adjusts his reading glasses and points out that while this is useful for exploring, it's not always what we need. Student Eager Noodler scribbles furiously in their notes while student Thoughtful Giggler giggles at the simplicity of the query.",
+      "textPanel": "\"SELECT star means 'give me it all,'\nEvery column, every row, nothing too small.\nIt's perfect for browsing, seeing what's there,\nBut sometimes we need queries with more care!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Query: SELECT * FROM students;\n\nThe `*` means \"all columns\"\n\n### Result: All 6 rows, all 5 columns\n\n| id | name  | age | major              | gpa |\n|----|-------|-----|--------------------|-----|\n| 1  | Alice | 20  | Computer Science   | 3.8 |\n| 2  | Bob   | 22  | Mathematics        | 3.5 |\n| 3  | Carol | 19  | Computer Science   | 3.9 |\n| 4  | David | 21  | Physics            | 3.2 |\n| 5  | Eve   | 20  | Mathematics        | 3.7 |\n| 6  | Frank | 23  | Computer Science   | 3.4 |\n\n**Good for exploring, but can be overwhelming!**",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Query Desk", "Result Illuminator", "Students Filing Cabinet"]
+    },
+    {
+      "title": "Choosing Your Columns",
+      "description": "Professor Mario taps specific drawers on the Students Filing Cabinet—only the name and gpa drawers. The Master Catalog highlights these two columns while the others dim. He writes a more focused query on the Query Desk, and the Result Illuminator projects just two columns for all six students. He explains with his characteristic cheeky smile that being specific helps us focus on what matters. Student Zippy Zapper zings with understanding as they see the streamlined results. Professor Mario rolls up his cardigan sleeves, ready to show more variations.",
+      "textPanel": "\"But what if we only need name and grade?\nJust list the columns—see how simple it's made!\nBe specific, be clear, select what you need,\nYour queries will run with much greater speed!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Query: SELECT name, gpa FROM students;\n\nSpecify only the columns you need!\n\n### Result: All 6 rows, but only 2 columns\n\n| name  | gpa |\n|-------|-----|\n| Alice | 3.8 |\n| Bob   | 3.5 |\n| Carol | 3.9 |\n| David | 3.2 |\n| Eve   | 3.7 |\n| Frank | 3.4 |\n\n**More focused = clearer results!**\n\n*Note: The id, age, and major columns are not included.*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Query Desk", "Result Illuminator", "Students Filing Cabinet", "Master Catalog"]
+    },
+    {
+      "title": "WHERE Clause - Simple Filter",
+      "description": "Professor Mario pulls out a brass filter card from the Query Desk drawer and places it over the age column, setting it to 20. The Result Illuminator dims most of the student cards, leaving only Alice and Eve glowing brightly. He explains that WHERE is like a filter that only lets matching rows pass through. Student Quiet observer hums melodiously as they sketch the filtering process in their notebook. Professor Mario points out that four students were filtered out because their age wasn't exactly 20. The Query Desk glows with satisfaction at the precise results.",
+      "textPanel": "\"But six is too many when we want just some,\nWHERE is our filter—now watch what will come!\nWe'll ask for age twenty, and look what appears,\nJust Alice and Eve! The rest disappears!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Query: SELECT * FROM students WHERE age = 20;\n\nThe `WHERE` clause filters rows!\n\n### Result: Only 2 rows match (age = 20)\n\n| id | name  | age | major              | gpa |\n|----|-------|-----|--------------------|-----|\n| 1  | Alice | 20  | Computer Science   | 3.8 |\n| 5  | Eve   | 20  | Mathematics        | 3.7 |\n\n**Bob, Carol, David, and Frank are excluded**\n\n*WHERE checks each row and only keeps matches!*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Query Desk", "Result Illuminator", "Students Filing Cabinet"]
+    },
+    {
+      "title": "Comparison Operators",
+      "description": "Professor Mario adjusts his reading glasses and demonstrates different comparison operators by placing various filter cards on the gpa drawer. He starts with 'greater than 3.5' and the Result Illuminator highlights Alice, Carol, and Eve—the high achievers. He explains that we can use greater than, less than, greater than or equal to, and more. Student Thoughtful Giggler's ears perk up fully as they understand how flexible filtering can be. Professor Mario's cheeky smile suggests there's much more power in WHERE clauses than students might have initially thought.",
+      "textPanel": "\"WHERE isn't just equals—oh no, there's more!\nGreater than, less than—comparisons galore!\nWe'll find GPAs greater than three-point-five,\nAlice, Carol, and Eve—their grades really thrive!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Query: SELECT * FROM students WHERE gpa > 3.5;\n\nComparison operators: `>`, `<`, `>=`, `<=`, `!=`\n\n### Result: 3 rows with gpa > 3.5\n\n| id | name  | age | major              | gpa |\n|----|-------|-----|--------------------|-----|\n| 1  | Alice | 20  | Computer Science   | 3.8 |\n| 3  | Carol | 19  | Computer Science   | 3.9 |\n| 5  | Eve   | 20  | Mathematics        | 3.7 |\n\n**The high achievers!**\n\n*Bob (3.5), David (3.2), and Frank (3.4) don't meet the criteria.*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Query Desk", "Result Illuminator", "Students Filing Cabinet"]
+    },
+    {
+      "title": "AND, OR, NOT - Combining Conditions",
+      "description": "Professor Mario places two filter cards on the Query Desk—one on the major drawer set to 'Computer Science' and one on the gpa drawer set to 'greater than 3.5'. He connects them with a brass 'AND' connector. The Result Illuminator now shows only Alice and Carol, who meet both conditions. He explains that AND requires both conditions to be true, while OR requires at least one. Student Eager Noodler's antennae cross with concentration as they understand the logic. Professor Mario demonstrates how powerful combining conditions can be for finding exactly what you need.",
+      "textPanel": "\"Now let's combine filters with AND, OR, and NOT,\nFind Computer Science students whose grades are quite hot!\nAND means both must be true, OR means just one will do,\nAlice and Carol shine through with GPAs that flew!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Query:\n```sql\nSELECT * FROM students \nWHERE major = 'Computer Science' AND gpa > 3.5;\n```\n\n### Result: 2 rows (both conditions must be TRUE)\n\n| id | name  | age | major              | gpa |\n|----|-------|-----|--------------------|-----|\n| 1  | Alice | 20  | Computer Science   | 3.8 |\n| 3  | Carol | 19  | Computer Science   | 3.9 |\n\n**Both are CS majors AND have gpa > 3.5**\n\n*Frank is CS but gpa=3.4 (not > 3.5)*\n*Eve has gpa=3.7 but is Mathematics*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Query Desk", "Result Illuminator", "Students Filing Cabinet"]
+    },
+    {
+      "title": "ORDER BY - Sorting Your Results",
+      "description": "Professor Mario pulls a mechanical sorting mechanism from the Query Desk. He sets it to sort by GPA in descending order, and the Result Illuminator rearranges all six student cards like a deck being shuffled. Carol appears first with 3.9, then Alice with 3.8, all the way down to David with 3.2. He demonstrates that ORDER BY doesn't filter anything—it just changes the sequence. Student Zippy Zapper zings excitedly as the cards rearrange themselves. Professor Mario shows he can also sort ascending or by multiple columns, his cardigan sleeve falling back as he gestures.",
+      "textPanel": "\"Sometimes we need order, from highest to least,\nORDER BY sorts our data—a organizational feast!\nBy GPA descending, from Carol to Dave,\nThe sequence now shows us from best to okay!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Query: SELECT * FROM students ORDER BY gpa DESC;\n\n`ORDER BY` sorts results. `DESC` = descending (high to low)\n\n### Result: All 6 rows, sorted by gpa\n\n| id | name  | age | major              | gpa |\n|----|-------|-----|--------------------|-----|\n| 3  | Carol | 19  | Computer Science   | 3.9 |\n| 1  | Alice | 20  | Computer Science   | 3.8 |\n| 5  | Eve   | 20  | Mathematics        | 3.7 |\n| 2  | Bob   | 22  | Mathematics        | 3.5 |\n| 6  | Frank | 23  | Computer Science   | 3.4 |\n| 4  | David | 21  | Physics            | 3.2 |\n\n*Use `ASC` for ascending (low to high) - it's the default!*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Query Desk", "Result Illuminator", "Students Filing Cabinet"]
+    },
+    {
+      "title": "LIMIT - Controlling the Flow",
+      "description": "Professor Mario places a brass gate mechanism on the Query Desk that only allows three results to pass through. Combined with the ORDER BY from before, the Result Illuminator now shows only the top three students by GPA—Carol, Alice, and Eve. He explains that LIMIT is perfect for 'top N' queries or pagination. Student Quiet observer sketches the gate mechanism carefully, noting how it works after sorting. Professor Mario's cheeky smile appears as he notes this is how leaderboards and 'top 10' lists work in real applications.",
+      "textPanel": "\"What if we want just the top of the class?\nLIMIT lets us say how many should pass!\nSort by GPA, then limit to three,\nCarol, Alice, and Eve—the best we can see!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Query:\n```sql\nSELECT * FROM students \nORDER BY gpa DESC \nLIMIT 3;\n```\n\n### Result: Top 3 students by gpa\n\n| id | name  | age | major              | gpa |\n|----|-------|-----|--------------------|-----|\n| 3  | Carol | 19  | Computer Science   | 3.9 |\n| 1  | Alice | 20  | Computer Science   | 3.8 |\n| 5  | Eve   | 20  | Mathematics        | 3.7 |\n\n**LIMIT stops after 3 rows**\n\n*Great for \"top N\" queries and pagination!*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Query Desk", "Result Illuminator"]
+    },
+    {
+      "title": "DISTINCT - Removing Duplicates",
+      "description": "Professor Mario opens only the major drawer of the Students Filing Cabinet and points out that three students share Computer Science, two share Mathematics, and one studies Physics. He writes a DISTINCT query, and the Result Illuminator shows just three unique values—no repeats. He explains that DISTINCT is essential when you want to know 'what different values exist' rather than every occurrence. Student Thoughtful Giggler giggles as they realize how this eliminates redundancy. Professor Mario adjusts his reading glasses to emphasize this is perfect for finding unique categories.",
+      "textPanel": "\"Sometimes repeats aren't what we desire,\nDISTINCT gives us each value—just one from the choir!\nThree majors exist, though six students we see,\nDISTINCT shows us each one just once—clean and free!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Query: SELECT DISTINCT major FROM students;\n\n`DISTINCT` removes duplicate values\n\n### Result: Only unique majors (3 values)\n\n| major              |\n|--------------------|\n| Computer Science   |\n| Mathematics        |\n| Physics            |\n\n**Even though we have 6 students:**\n- 3 are Computer Science (Alice, Carol, Frank)\n- 2 are Mathematics (Bob, Eve)  \n- 1 is Physics (David)\n\n*DISTINCT collapses duplicates to show unique values only!*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Query Desk", "Result Illuminator", "Students Filing Cabinet"]
+    },
+    {
+      "title": "Counting and Summing",
+      "description": "Professor Mario pulls out a brass calculating device from his Query Desk and demonstrates aggregate functions. He shows COUNT to total the number of students, AVG to find the average GPA, MAX to find the highest GPA, and MIN for the lowest. The Result Illuminator displays these summary statistics as glowing numbers. Student Eager Noodler's antennae practically vibrate with excitement at seeing data summarized. Professor Mario explains these functions analyze all rows but return just one answer—perfect for statistics and reporting.",
+      "textPanel": "\"Now let's ask questions about the whole set,\nCOUNT, SUM, AVG—statistics we get!\nSix students total, average GPA is three-point-six,\nAggregate functions perform these tricks!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Aggregate Functions: Summarize Data\n\n```sql\nSELECT COUNT(*) AS total_students FROM students;\nSELECT AVG(gpa) AS average_gpa FROM students;\nSELECT MAX(gpa) AS highest_gpa FROM students;\nSELECT MIN(gpa) AS lowest_gpa FROM students;\n```\n\n### Results: Statistics from all 6 rows\n\n| Statistic      | Value |\n|----------------|-------|\n| Total Students | 6     |\n| Average GPA    | 3.58  |\n| Highest GPA    | 3.9   |\n| Lowest GPA     | 3.2   |\n\n*Aggregate functions return ONE value from many rows!*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Query Desk", "Result Illuminator"]
+    },
+    {
+      "title": "GROUP BY - Categories Matter",
+      "description": "Professor Mario arranges the student cards into three piles on the Query Desk based on their major—one pile for Computer Science, one for Mathematics, and one for Physics. He then uses his calculating device to count each pile separately. The Result Illuminator shows three rows, each showing a major and its count. He explains that GROUP BY creates categories and then applies aggregate functions to each category independently. Student Zippy Zapper's four arms sort imaginary cards along with the demonstration. This is perfect for 'per category' analysis.",
+      "textPanel": "\"GROUP BY gathers rows that share the same trait,\nThen counts or averages each group—isn't that great?\nThree CS majors, two Math, one Physics in sight,\nGROUP BY shows us categories done just right!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Query:\n```sql\nSELECT major, COUNT(*) AS num_students \nFROM students \nGROUP BY major;\n```\n\n### Result: Grouped counts\n\n| major              | num_students |\n|--------------------|-------------|\n| Computer Science   | 3           |\n| Mathematics        | 2           |\n| Physics            | 1           |\n\n**How it works:**\n1. GROUP BY creates groups (one per major)\n2. COUNT(*) counts rows in each group\n3. One result row per group\n\n*Perfect for \"per category\" analysis!*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Query Desk", "Result Illuminator", "Students Filing Cabinet"]
+    },
+    {
+      "title": "HAVING - Filtering Groups",
+      "description": "Professor Mario places a filter card over the grouped results from before, showing HAVING is like WHERE but for groups. He sets the filter to only show majors with more than one student. The Computer Science and Mathematics piles remain glowing, but the Physics pile dims since it only has one student. He explains that WHERE filters rows before grouping, but HAVING filters the groups themselves after aggregation. Student Quiet observer hums thoughtfully, understanding this subtle but important distinction. Professor Mario's cheeky smile suggests mastery of HAVING means true SQL fluency.",
+      "textPanel": "\"HAVING filters groups—it's WHERE for the bunch,\nShow me only majors with more than one in the crunch!\nCS and Math remain, Physics goes away,\nHAVING filters groups in its own special way!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Query:\n```sql\nSELECT major, COUNT(*) AS num_students \nFROM students \nGROUP BY major\nHAVING COUNT(*) > 1;\n```\n\n### Result: Only groups with more than 1 student\n\n| major              | num_students |\n|--------------------|-------------|\n| Computer Science   | 3           |\n| Mathematics        | 2           |\n\n**Physics is excluded (only 1 student)**\n\n- **WHERE** filters rows *before* grouping\n- **HAVING** filters groups *after* grouping",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Query Desk", "Result Illuminator"]
+    },
+    {
+      "title": "Combining Everything",
+      "description": "Professor Mario rolls up both cardigan sleeves dramatically and writes a complex query that uses multiple techniques together. He filters with WHERE, groups by major, calculates average GPA per group with AVG, filters groups with HAVING, and sorts with ORDER BY. The Result Illuminator displays Computer Science and Mathematics majors with their average GPAs, sorted by average descending. Student Thoughtful Giggler's ears stand fully erect with comprehension. Professor Mario explains this is real-world querying—combining tools to answer complex questions. The Query Desk glows with the satisfaction of a well-crafted query.",
+      "textPanel": "\"Now let's combine them all in one grand quest,\nFilter, group, aggregate, and sort—put SQL to the test!\nAverage GPA per major, but only age twenty-plus we seek,\nComplex queries showcase SQL at its peak!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Complex Query:\n```sql\nSELECT major, AVG(gpa) AS avg_gpa, COUNT(*) AS num\nFROM students\nWHERE age >= 20\nGROUP BY major\nHAVING COUNT(*) > 1\nORDER BY avg_gpa DESC;\n```\n\n### Result:\n\n| major              | avg_gpa | num |\n|--------------------|---------|-----|\n| Computer Science   | 3.60    | 2   |\n| Mathematics        | 3.60    | 2   |\n\n**What happened:** Filtered to age≥20 (4 students), grouped by major, kept only majors with >1 student, sorted by average GPA.",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Query Desk", "Result Illuminator"]
+    },
+    {
+      "title": "Best Practices and Summary",
+      "description": "Professor Mario gathers all the students around the Query Desk for a final lesson. He organizes all the query cards they've used, arranging them to show the logical order: SELECT columns, FROM table, WHERE filters, GROUP BY categories, HAVING group filters, ORDER BY sorting, LIMIT results. He shares wisdom about when to use each technique, emphasizing clarity, efficiency, and thinking about what question you're really asking. Student Eager Noodler's antennae glow with knowledge, student Thoughtful Giggler giggles with understanding, Student Zippy Zapper zings triumphantly, and Student Quiet observer hums a melody of comprehension. The Data Library around them shimmers with possibility, and Professor Mario's cheeky smile shows his pride in their learning journey.",
+      "textPanel": "\"Remember dear students, each query's a question,\nThink clearly about what you need—that's my suggestion!\nSELECT gets the columns, WHERE filters with care,\nGROUP BY and ORDER BY—powerful tools to share!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# SQL SELECT: Best Practices Summary\n\n### Query Structure (in order):\n```sql\nSELECT columns           -- What to show\nFROM table               -- Where data lives  \nWHERE conditions         -- Filter rows\nGROUP BY columns         -- Create categories\nHAVING conditions        -- Filter groups\nORDER BY columns         -- Sort results\nLIMIT number;            -- Limit output\n```\n\n### Tips:\n- Be specific with columns (avoid * in production)\n- Use WHERE to filter before grouping\n- DISTINCT removes duplicates\n- Always test complex queries on small data first!",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 68,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mario", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Query Desk", "The Data Library", "Master Catalog", "Students Filing Cabinet", "Result Illuminator"]
+    }
+  ]
+}
+

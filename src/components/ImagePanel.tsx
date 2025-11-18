@@ -31,6 +31,7 @@ interface ImagePanelProps {
   onClear: () => void;
   onDeleteImage: (imageId: string) => void;
   onSaveSpecificImage: (imageUrl: string) => void;
+  onCleanupMissingImages?: (missingIds: string[]) => void;
 }
 
 export const ImagePanel: React.FC<ImagePanelProps> = ({
@@ -39,7 +40,8 @@ export const ImagePanel: React.FC<ImagePanelProps> = ({
   onSave,
   onClear,
   onDeleteImage,
-  onSaveSpecificImage
+  onSaveSpecificImage,
+  onCleanupMissingImages
 }) => {
   const [fullScreenOpen, setFullScreenOpen] = useState(false);
   const [comparisonDialogOpen, setComparisonDialogOpen] = useState(false);
@@ -353,6 +355,7 @@ export const ImagePanel: React.FC<ImagePanelProps> = ({
         onDeleteImage={onDeleteImage}
         onSaveImage={onSaveSpecificImage}
         onCopyImage={handleCopyImage}
+        onCleanupMissingImages={onCleanupMissingImages}
       />
     </>
   );

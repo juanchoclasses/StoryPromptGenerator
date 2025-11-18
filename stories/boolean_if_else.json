@@ -1,0 +1,371 @@
+{
+  "story": {
+    "title": "If and If-Else: Making Choices",
+    "backgroundSetup": "The Code Garden, a magical classroom where programming concepts bloom like flowers. The room features floating code panels that display examples, decision trees that grow from the ground, and pathways that split into two directions based on conditions. The walls are covered in glowing binary symbols (true/false, yes/no) that pulse with the rhythm of logical thinking. Professor Ildar teaches here, using whimsical demonstrations where students follow different paths based on simple conditions.",
+    "description": "A whimsical introduction to if statements and if-else statements"
+  },
+  "characters": [
+    {
+      "name": "Professor Ildar",
+      "description": "A wise, patient professor with a beard that flows like cascading code blocks. He wears a robe covered in question marks and exclamation points that glow when he explains conditions. His spectacles are shaped like parentheses, and he carries a magical pointer that draws glowing paths in the air. His hat is a stack of nested if-statements, and his expression is always encouraging and thoughtful. He moves with deliberate, measured steps, pausing at decision points to let students think."
+    },
+    {
+      "name": "Student Eager Noodler",
+      "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes."
+    },
+    {
+      "name": "student Thoughtful Giggler",
+      "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet."
+    },
+    {
+      "name": "Student Zippy Zapper",
+      "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'"
+    },
+    {
+      "name": "Student Quiet observer",
+      "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook."
+    }
+  ],
+  "elements": [
+    {
+      "name": "Code Garden Classroom",
+      "description": "A whimsical classroom where code panels float in the air like leaves. The floor has pathways that split into two directions at decision points, marked with glowing true/false signs. Decision trees grow from the ground, their branches representing different code paths. The walls display examples of code that students can touch to see them execute. Floating question marks drift through the air, representing conditions waiting to be evaluated.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Decision Pathway",
+      "description": "A magical pathway that splits into two directions at a decision point. One path glows green (true) and leads to one outcome, the other glows red (false) and leads to another. Students can walk down these paths to experience how if-else statements work. The paths sometimes merge back together after the decision.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Condition Evaluator",
+      "description": "A whimsical machine shaped like a giant question mark that evaluates conditions. When a student presents a condition, it lights up either green (true) or red (false), and then points to the appropriate path or code block. It makes cheerful beeping sounds when evaluating.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Code Display Board",
+      "description": "A large, floating board that displays code examples. The code is written in glowing, colorful letters that students can read easily. When Professor Ildar explains a concept, the relevant parts of the code highlight and pulse. The board can show multiple code examples side by side.",
+      "category": "Machinery"
+    }
+  ],
+  "scenes": [
+    {
+      "title": "Welcome to Decisions",
+      "description": "Professor Ildar stands at the front of the Code Garden Classroom, welcoming the students. Behind him, a large Code Display Board shows a simple if statement. The students are gathered around, looking curious and excited. Decision Pathways are visible in the background, waiting to be explored. The Condition Evaluator sits to the side, glowing softly.",
+      "textPanel": "Welcome, students, to the Code Garden grand,\nWhere decisions grow like trees across the land!\nToday we'll learn to make choices in code,\nWith if and if-else, a powerful mode!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "if condition:\n    # Do something\n    pass",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 60,
+          "heightPercentage": 20,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 18,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Ildar",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Code Garden Classroom",
+        "Code Display Board"
+      ]
+    },
+    {
+      "title": "Simple If Statement",
+      "description": "Professor Ildar points to the Code Display Board showing a simple if statement. He demonstrates by checking if it's raining - the Condition Evaluator lights up green (true), and a student walks down the green Decision Pathway holding an umbrella. The other students watch, understanding that when the condition is true, the code inside the if block runs.",
+      "textPanel": "An if statement checks a condition true,\nIf it's true, then the code will run through!\nLike checking if it's raining outside,\nIf true, grab an umbrella and run to hide!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "is_raining = True\n\nif is_raining:\n    print('Grab an umbrella!')\n    # Student Eager Noodler grabs their umbrella",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 60,
+          "heightPercentage": 25,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 18,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Ildar",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Code Garden Classroom",
+        "Code Display Board",
+        "Condition Evaluator",
+        "Decision Pathway"
+      ]
+    },
+    {
+      "title": "When Condition is False",
+      "description": "Professor Ildar shows what happens when the condition is false. The Condition Evaluator lights up red (false), and nothing happens - no student walks down any path. The students look confused, and Professor Ildar smiles, explaining that sometimes we need an alternative path. The Code Display Board shows the same if statement, but this time with isRaining set to false.",
+      "textPanel": "But what if the condition is false, you see?\nThen nothing happens, as plain as can be!\nThe code inside the if block won't run,\nIt's skipped entirely, we're done!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "is_raining = False\n\nif is_raining:\n    print('Grab an umbrella!')\n    # Student Eager Noodler would grab umbrella\n# Nothing happens when False!\n# Student Quiet observer notes: condition was False",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 60,
+          "heightPercentage": 25,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 18,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Ildar",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Code Garden Classroom",
+        "Code Display Board",
+        "Condition Evaluator"
+      ]
+    },
+    {
+      "title": "Introducing If-Else",
+      "description": "Professor Ildar introduces the if-else statement. The Code Display Board now shows an if-else structure. He demonstrates with the rain example again - when true, a student takes the green path with an umbrella, when false, a different student takes the red path without an umbrella. The Decision Pathway clearly shows both branches splitting from the same point.",
+      "textPanel": "Now if-else gives us two paths to choose,\nOne for true, one for false - we can't lose!\nIf raining is true, grab that umbrella,\nElse go outside, be a happy fella!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "is_raining = True\n\nif is_raining:\n    print('Grab an umbrella!')\n    # Student Eager Noodler grabs umbrella\nelse:\n    print('Go outside and play!')\n    # Student Zippy Zapper runs outside excitedly",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 60,
+          "heightPercentage": 25,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 18,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Ildar",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Code Garden Classroom",
+        "Code Display Board",
+        "Condition Evaluator",
+        "Decision Pathway"
+      ]
+    },
+    {
+      "title": "Comparing Numbers",
+      "description": "Professor Ildar shows a practical example comparing numbers. The Code Display Board shows an if-else statement checking if a number is greater than 10. Student Eager Noodler holds up the number 15, and the Condition Evaluator lights up green. Student Thoughtful Giggler holds up the number 5, and it lights up red. Each student follows their respective path.",
+      "textPanel": "We can compare numbers, big and small,\nIf greater than ten, stand up tall!\nElse if it's smaller, sit down low,\nThe condition decides which way to go!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "number = 15  # Student Eager Noodler's number\n\nif number > 10:\n    print('Number is greater than 10!')\n    # Student Eager Noodler stands up tall!\nelse:\n    print('Number is 10 or less!')\n    # student Thoughtful Giggler sits down low",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 60,
+          "heightPercentage": 25,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 18,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Ildar",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Code Garden Classroom",
+        "Code Display Board",
+        "Condition Evaluator",
+        "Decision Pathway"
+      ]
+    },
+    {
+      "title": "Checking Equality",
+      "description": "Professor Ildar demonstrates checking if two values are equal. The Code Display Board shows an if-else statement using the equality operator (===). Student Zippy Zapper holds up two identical cards, and the Condition Evaluator lights up green. Then Student Quiet observer holds up two different cards, and it lights up red. The students understand that === checks if values match exactly.",
+      "textPanel": "We check if values match, equal and same,\nWith three equals signs, that's the name!\nIf they're equal, the first path we take,\nElse the other path, for goodness sake!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "password = 'secret123'\nuser_input = 'secret123'  # Student Zippy Zapper's input\n\nif password == user_input:\n    print('Access granted!')\n    # Student Zippy Zapper's cards match - green light!\nelse:\n    print('Wrong password!')\n    # Student Quiet observer's cards don't match - red light",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 60,
+          "heightPercentage": 25,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 18,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Ildar",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Code Garden Classroom",
+        "Code Display Board",
+        "Condition Evaluator",
+        "Decision Pathway"
+      ]
+    },
+    {
+      "title": "Multiple Conditions",
+      "description": "Professor Ildar shows how to combine conditions using logical operators. The Code Display Board shows an if statement with AND (&&) and OR (||) operators. He demonstrates checking if someone is both old enough AND has permission, or if it's either weekend OR holiday. Students walk down different Decision Pathways based on the combined conditions. The Condition Evaluator evaluates each part separately, then combines the results.",
+      "textPanel": "We can combine conditions, two or more,\nWith AND and OR, we open the door!\nIf this AND that, both must be true,\nIf this OR that, either will do!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "age = 16  # Student Eager Noodler's age\nhas_permission = True\n\nif age >= 13 and has_permission:\n    print('You can watch the movie!')\n    # Both conditions True - Student Eager Noodler can go!\nelse:\n    print('Sorry, not allowed!')\n    # One or both False - not allowed\n\n# OR example\nis_weekend = False\nis_holiday = True  # student Thoughtful Giggler checks calendar\n\nif is_weekend or is_holiday:\n    print('No school today!')\n    # Either True - Student Zippy Zapper celebrates!",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Ildar",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Code Garden Classroom",
+        "Code Display Board",
+        "Condition Evaluator",
+        "Decision Pathway"
+      ]
+    },
+    {
+      "title": "Putting It All Together",
+      "description": "Professor Ildar stands with all the students gathered around. The Code Display Board shows a complete example combining everything they've learned - multiple if-else statements checking different conditions. All the students are following different Decision Pathways based on their own conditions, demonstrating that each person's code can take different paths. The scene shows the power and flexibility of if-else statements. Professor Ildar smiles proudly as the students understand how to make their programs make decisions.",
+      "textPanel": "Now you know how to make choices in code,\nWith if and if-else, you're on the right road!\nCheck conditions, compare values too,\nYour programs will know just what to do!\n\nRemember: if true, take one path,\nElse take the other, do the math!\nDecisions in code make programs smart,\nNow you've learned this important art!",
+      "diagramPanel": {
+        "type": "code",
+        "content": "temperature = 75  # Professor Ildar checks the weather\nis_sunny = True\nhas_umbrella = False  # Student Eager Noodler forgot theirs\n\nif temperature > 70 and is_sunny:\n    print('Perfect day for the beach!')\n    # Student Zippy Zapper zooms to the beach!\nelif temperature < 50:\n    print('Stay inside, it's cold!')\n    # Student Quiet observer stays warm inside\nelif is_sunny and has_umbrella:\n    print('Nice day, but bring umbrella!')\n    # student Thoughtful Giggler prepares carefully\nelse:\n    print('Check the weather first!')\n    # Professor Ildar advises checking conditions",
+        "language": "python",
+        "style": {
+          "boardStyle": "blackboard",
+          "position": "top-center",
+          "widthPercentage": 65,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": [
+        "Professor Ildar",
+        "Student Eager Noodler",
+        "student Thoughtful Giggler",
+        "Student Zippy Zapper",
+        "Student Quiet observer"
+      ],
+      "elements": [
+        "Code Garden Classroom",
+        "Code Display Board",
+        "Condition Evaluator",
+        "Decision Pathway"
+      ]
+    }
+  ]
+}
+

@@ -37,7 +37,7 @@ import {
 } from '@mui/icons-material';
 import type { Scene, Story } from '../types/Story';
 import type { Character } from '../models/Story'; // v4.1: New Character type with imageGallery
-import type { SceneLayout } from '../models/Scene'; // Layout configuration
+import type { SceneLayout } from '../types/Story'; // Layout configuration
 import { BookService } from '../services/BookService';
 import { ImageGenerationService } from '../services/ImageGenerationService';
 import { FileSystemService } from '../services/FileSystemService';

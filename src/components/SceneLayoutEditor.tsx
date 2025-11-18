@@ -18,7 +18,7 @@ import {
   Select,
   MenuItem
 } from '@mui/material';
-import type { SceneLayout, LayoutElement } from '../models/Scene';
+import type { SceneLayout, LayoutElement } from '../types/Story';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import ViewDayIcon from '@mui/icons-material/ViewDay';
 import LayersIcon from '@mui/icons-material/Layers';

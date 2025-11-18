@@ -1,4 +1,4 @@
-import { SceneLayout } from '../models/Scene';
+import { SceneLayout } from '../types/Story';
 import { loadImage } from './OverlayService';
 
 /**

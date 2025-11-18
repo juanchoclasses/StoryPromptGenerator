@@ -1,0 +1,354 @@
+{
+  "story": {
+    "title": "Kafka: The Message Stream Garden",
+    "backgroundSetup": "A bustling, energetic plaza called The Stream Garden, where messages flow like water through interconnected channels and pools. Crystal-clear streams represent data flowing from producers to consumers, with a magnificent central Message Hub that buffers and organizes everything. Professor Sparkly Yvonne, ever-energetic in her tie-dyed shirts, teaches students how Kafka decouples systems by creating a buffering layer between services. Glowing message bubbles float through transparent pipes, waiting in shimmering pools before being consumed. The plaza has Topic Fountains that spray organized streams of data, and Consumer Stations where different services drink from the streams independently. IMPORTANT: All characters (Professor Sparkly Yvonne and students) should be positioned in the BOTTOM HALF of the image, with the message streams, Topic Fountains, Message Hub, and visual demonstrations in the top half.",
+    "description": "A dynamic journey through Apache Kafka, where Professor Sparkly Yvonne shows how message streaming creates breathing room between systems through smart buffering."
+  },
+  "characters": [
+    {
+      "name": "Professor Sparkly Yvonne",
+      "description": "A spirited woman in her sixties with an infectious energy that keeps her perpetually in motion. She wears colorful tie-dyed shirts in swirling patterns of purple, blue, and green, paired with comfortable denim shorts and well-worn hiking boots. Her silver-streaked hair is pulled back in a practical ponytail that bounces as she dashes from student to student. She always wears a vintage backpack covered in coding stickers and conference pins, and she gestures animatedly as she explains concepts. Her eyes sparkle with enthusiasm, and she often jogs in place while teaching, unable to contain her kinetic energy."
+    },
+    {
+      "name": "Student Eager Noodler",
+      "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes."
+    },
+    {
+      "name": "student Thoughtful Giggler",
+      "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet."
+    },
+    {
+      "name": "Student Zippy Zapper",
+      "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'"
+    },
+    {
+      "name": "Student Quiet observer",
+      "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook."
+    }
+  ],
+  "elements": [
+    {
+      "name": "The Stream Garden",
+      "description": "A magical plaza filled with flowing streams of glowing message bubbles. Crystal-clear channels carry data from producers to consumers, with pools and reservoirs that buffer messages. The space feels alive with constant, organized motion, like a perfectly choreographed dance of information.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Message Hub",
+      "description": "A magnificent central structure resembling a grand fountain combined with a sorting facility. Messages arrive from various producer pipes and are organized into labeled topic channels. The hub glows with activity, displaying metrics like message counts, throughput rates, and buffer levels. It has multiple levels representing partitions, each handling messages in parallel.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Topic Fountains",
+      "description": "Beautiful fountain-like structures that represent Kafka topics. Each fountain is labeled with a topic name like 'user-events' or 'order-updates'. Messages flow through these fountains in organized streams, separated into multiple spouts representing partitions. The fountains have transparent reservoirs showing buffered messages waiting to be consumed.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Producer Stations",
+      "description": "Workstations where services send messages into the Kafka system. Each station has a glowing console and a pipe that connects to the Message Hub. Messages appear as luminous bubbles that get stamped with metadata before floating into the system. Producer Stations can send messages at their own pace without waiting for consumers.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Consumer Stations",
+      "description": "Comfortable viewing platforms where consumer services read messages from topics. Each station has adjustable dials to control reading speed and position, allowing consumers to process messages at their own pace. Multiple Consumer Stations can read from the same topic independently. Screens show the current offset and messages being processed.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Buffer Pool Monitor",
+      "description": "A large transparent display showing the buffering capacity of Kafka. It visualizes how many messages are stored in each topic, how long they're retained, and how the buffer provides cushioning between fast producers and slow consumers. Glowing indicators show when the buffer is filling up or draining.",
+      "category": "Machinery"
+    }
+  ],
+  "scenes": [
+    {
+      "title": "The Problem: Tight Coupling",
+      "description": "Professor Sparkly Yvonne bounces into The Stream Garden, gesturing at a chaotic tangled web of direct connections between services. She explains how Service A directly calling Service B creates problems - if B is down, A fails; if A is fast and B is slow, A must wait. The students watch as she demonstrates the brittleness by unplugging one service, causing cascading failures. Student Eager Noodler's antennae droop with concern while student Thoughtful Giggler nervously giggles at the mess.",
+      "textPanel": "\"When systems talk directly, tight coupling's the norm,\nOne service goes down and you're caught in a storm!\nFast services wait for the slow ones to catch up,\nIt's time for a buffer—let's fill up that cup!\"",
+      "diagramPanel": {
+        "type": "mermaid",
+        "content": "graph LR\n    A[Order Service] -->|direct call| B[Inventory]\n    A -->|direct call| C[Email Service]\n    A -->|direct call| D[Analytics]\n    \n    style A fill:#ff6b6b\n    style B fill:#ffd93d\n    style C fill:#ffd93d\n    style D fill:#ffd93d\n    \n    E[\"❌ Problems:\"] -->|\"If B is down, A fails\"| F[\" \"]\n    E -->|\"If C is slow, A waits\"| F\n    E -->|\"No buffering\"| F\n    \n    style E fill:#ff6b6b\n    style F fill:none,stroke:none",
+        "language": "mermaid",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 28,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 16,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["The Stream Garden"]
+    },
+    {
+      "title": "Meet Kafka: The Message Hub",
+      "description": "Professor Yvonne sprints to the magnificent Message Hub at the center of the plaza, her backpack bouncing with enthusiasm. She gestures at the flowing streams and explains that Kafka sits between producers and consumers, buffering messages so systems can work independently. Glowing message bubbles flow into the hub and wait peacefully in organized channels. The Buffer Pool Monitor shows messages being stored safely. Student Zippy Zapper zings with excitement as they see the decoupling in action.",
+      "textPanel": "\"Enter Kafka, our hub in the middle so bright,\nIt buffers your messages, holds them just right!\nProducers send data, consumers receive,\nBut neither needs waiting—both can believe!\"",
+      "diagramPanel": {
+        "type": "mermaid",
+        "content": "graph LR\n    P1[Producer 1] -->|write| K[Kafka Topics<br/>Buffered Storage]\n    P2[Producer 2] -->|write| K\n    K -->|read| C1[Consumer 1]\n    K -->|read| C2[Consumer 2]\n    K -->|read| C3[Consumer 3]\n    \n    style K fill:#4ecdc4,stroke:#333,stroke-width:4px\n    style P1 fill:#95e1d3\n    style P2 fill:#95e1d3\n    style C1 fill:#f38181\n    style C2 fill:#f38181\n    style C3 fill:#f38181\n    \n    B[\"✓ Decoupled:<br/>Independent failures<br/>Different speeds<br/>Durable buffer\"]",
+        "language": "mermaid",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 30,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Message Hub", "The Stream Garden", "Buffer Pool Monitor"]
+    },
+    {
+      "title": "Producers: Sending Messages",
+      "description": "Professor Yvonne jogs over to a Producer Station and demonstrates sending messages. She types rapidly, and luminous message bubbles emerge from the station, floating into the Message Hub. She explains that producers can send messages as fast as they want without waiting for anyone to process them. The messages get stamped with timestamps and sequence numbers. Student Quiet observer peers through their periscope at the metadata being added to each message.",
+      "textPanel": "\"Producers create messages and send them away,\nNo waiting for consumers to process today!\nJust fire and forget—the buffer will hold,\nYour service keeps running, responsive and bold!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Kafka Producer: Sending Messages\n\n```python\nfrom kafka import KafkaProducer\nimport json\n\n# Create producer connection\nproducer = KafkaProducer(\n    bootstrap_servers=['localhost:9092'],\n    value_serializer=lambda v: json.dumps(v).encode('utf-8')\n)\n\n# Send message - non-blocking!\norder_data = {'order_id': 123, 'amount': 99.99}\nproducer.send('orders', value=order_data)\n```\n\n**Key Point:** Producer doesn't wait for consumers!  \nMessage is immediately buffered in Kafka.",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 32,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Producer Stations", "Message Hub"]
+    },
+    {
+      "title": "Topics: Organizing Message Streams",
+      "description": "Professor Yvonne runs between different Topic Fountains, pointing at their labels: 'user-events', 'orders', 'inventory-updates'. She explains that topics categorize messages by type, like different channels on TV. Each fountain has multiple spouts showing partitions that enable parallel processing. The students watch as messages flow into the correct topic automatically based on their category. Student Thoughtful Giggler's ears perk up as they understand the organization system.",
+      "textPanel": "\"Topics are categories, streams sorted by kind,\n'User events' here, 'orders' there—well-defined!\nEach topic's a channel, a labeled clear stream,\nOrganizing your data—part of Kafka's grand scheme!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Kafka Topics: Categorizing Messages\n\n**Topics organize messages by type:**\n\n| Topic | Message Types |\n|-------|---------------|\n| `user-events` | login, logout, click |\n| `orders` | created, paid, shipped |\n| `inventory` | updated, low-stock |\n\n```python\n# Producers send to specific topics\nproducer.send('user-events', {'action': 'login'})\nproducer.send('orders', {'order_id': 456})\n```\n\n**Consumers subscribe to topics they care about.**  \nEach topic is an independent stream!",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 32,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Topic Fountains", "Message Hub"]
+    },
+    {
+      "title": "The Buffer: Persistence and Storage",
+      "description": "Professor Yvonne bounds over to the Buffer Pool Monitor, which displays glowing reservoirs full of waiting messages. She enthusiastically explains that Kafka doesn't just hold messages in memory—it writes them to disk, creating a durable buffer. Messages stay available for hours or days, not milliseconds. She demonstrates how this allows consumers to go offline and catch up later. The transparent pools show messages waiting peacefully, organized and safe. Student Eager Noodler's antennae twitch excitedly at the reliability.",
+      "textPanel": "\"The buffer's the magic, the secret so grand,\nMessages persist, written safe to the land!\nNot just in memory, but disk storage too,\nConsumers can pause—the messages stay true!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Kafka's Persistent Buffer ⭐\n\n**Messages are written to DISK, not just memory!**\n\n```python\ntopic_config = {\n    'retention.ms': 604800000,      # 7 days\n    'retention.bytes': 1073741824   # 1 GB\n}\n```\n\n## Benefits of Buffering:\n\n✓ **Durability** - Survive crashes  \n✓ **Time decoupling** - Produce now, consume later  \n✓ **Replay** - Read old messages again  \n✓ **Speed mismatch** - Fast producer, slow consumer  \n\n---\n\n**The buffer absorbs speed differences!**",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Buffer Pool Monitor", "Topic Fountains", "Message Hub"]
+    },
+    {
+      "title": "Consumers: Reading at Your Pace",
+      "description": "Professor Yvonne sprints to a Consumer Station where a service is peacefully reading messages. She adjusts the dials to show how consumers control their reading speed—fast, slow, or paused—without affecting producers or other consumers. Multiple Consumer Stations show different services reading from the same topic independently. Student Zippy Zapper's four arms simultaneously point at different consumers working at different speeds. The Buffer Pool Monitor shows how the buffer cushions these speed differences.",
+      "textPanel": "\"Consumers read messages, each at their pace,\nSlow or fast, they won't lose the race!\nThe buffer holds all, no pressure to rush,\nDecoupled systems—no need to push!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Kafka Consumer: Reading at Your Pace\n\n```python\nfrom kafka import KafkaConsumer\n\n# Create consumer\nconsumer = KafkaConsumer(\n    'orders',\n    bootstrap_servers=['localhost:9092'],\n    auto_offset_reset='earliest'\n)\n\n# Read messages at your own pace\nfor message in consumer:\n    order = message.value\n    process_order(order)  # Take your time!\n```\n\n**Key Independence:**\n- Producer doesn't wait for this\n- Other consumers aren't affected\n- Read fast, slow, or pause - your choice!",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 32,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Consumer Stations", "Buffer Pool Monitor", "Topic Fountains"]
+    },
+    {
+      "title": "Decoupling in Action",
+      "description": "Professor Yvonne jogs around The Stream Garden, pulling virtual plugs to demonstrate decoupling. She disconnects a consumer—the producer keeps working, messages buffer safely. She disconnects a producer—consumers keep reading buffered messages. She shows how a slow consumer doesn't block the producer. The Message Hub continues orchestrating everything smoothly. Student Thoughtful Giggler giggles with delight as they see the independence. Student Quiet observer sketches the decoupled architecture in their notebook.",
+      "textPanel": "\"Now watch the magic of decoupling shine,\nProducer breaks? Consumer's just fine!\nConsumer's slow? Producer won't wait,\nThe buffer between them seals systems' fate!\"",
+      "diagramPanel": {
+        "type": "mermaid",
+        "content": "graph TD\n    subgraph S1[\"Scenario 1: Consumer Down\"]\n        direction LR\n        P1[Producer ✓] -->|still works| K1[Kafka Buffer]\n        K1 -.->|waiting| C1[Consumer ❌]\n    end\n    \n    S1 ~~~ S2\n    \n    subgraph S2[\"Scenario 2: Producer Down\"]\n        direction LR\n        P2[Producer ❌] -.-> K2[Kafka Buffer]\n        K2 -->|keeps reading| C2[Consumer ✓]\n    end\n    \n    S2 ~~~ S3\n    \n    subgraph S3[\"Scenario 3: Speed Mismatch\"]\n        direction LR\n        P3[Fast Producer<br/>1000 msg/sec] -->|buffered| K3[Kafka Buffer<br/>absorbs difference]\n        K3 -->|10 msg/sec| C3[Slow Consumer]\n    end\n    \n    style K1 fill:#4ecdc4\n    style K2 fill:#4ecdc4\n    style K3 fill:#4ecdc4\n    style C1 fill:#ff6b6b\n    style P2 fill:#ff6b6b",
+        "language": "mermaid",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Message Hub", "Producer Stations", "Consumer Stations", "Buffer Pool Monitor"]
+    },
+    {
+      "title": "Consumer Groups: Parallel Processing",
+      "description": "Professor Yvonne demonstrates how multiple consumers can work together in a consumer group. She shows how the Topic Fountains' different partition spouts feed different consumers in parallel, automatically balancing the load. Each consumer gets a subset of messages, enabling horizontal scaling. The students watch as adding more consumers increases processing speed. Student Zippy Zapper zings between the parallel consumers with excitement.",
+      "textPanel": "\"Need more speed? Add consumers as a team,\nConsumer groups split the processing stream!\nEach takes a partition, working side by side,\nParallel consumption—efficiency's pride!\"",
+      "diagramPanel": {
+        "type": "mermaid",
+        "content": "graph TB\n    T[\"Topic: 'orders'<br/>(4 partitions)\"]\n    \n    T -->|Partition 0| C1[Consumer 1<br/>group: order-processors]\n    T -->|Partition 1| C1\n    T -->|Partition 2| C2[Consumer 2<br/>group: order-processors]\n    T -->|Partition 3| C2\n    \n    style T fill:#4ecdc4,stroke:#333,stroke-width:3px\n    style C1 fill:#f38181\n    style C2 fill:#f38181\n    \n    A[\"Benefits:\"] -->|\"Each partition to one consumer\"| B\n    A -->|\"No duplicate processing\"| B\n    A -->|\"Add consumer = more speed\"| B\n    B[\" \"]\n    \n    style A fill:#95e1d3\n    style B fill:none,stroke:none",
+        "language": "mermaid",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Consumer Stations", "Topic Fountains", "Message Hub"]
+    },
+    {
+      "title": "Real-World Use Cases",
+      "description": "Professor Yvonne gathers the students around a demonstration showing real applications. She points to different streams representing activity logs, order processing, real-time analytics, and microservice communication. The Message Hub glows as it shows how Kafka powers these scenarios. She explains how companies use this for event sourcing, log aggregation, and stream processing. Student Eager Noodler's antennae glow with understanding as they see practical applications.",
+      "textPanel": "\"From logs to events to streaming data flows,\nKafka's used everywhere—that's how it goes!\nMicroservices chatting, analytics in flight,\nBuffered and decoupled—systems done right!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Real-World Kafka Use Cases\n\n## 1. Event Sourcing\nStore all state changes as events\n```python\nproducer.send('account-events', \n    {'type': 'deposit', 'amount': 100})\n```\n\n## 2. Log Aggregation\nCollect logs from all services\n```python\nproducer.send('app-logs', \n    {'service': 'api', 'level': 'error'})\n```\n\n## 3. Stream Processing\nReal-time analytics on message streams\n\n## 4. Microservice Communication\nServices publish events, others subscribe\n\n**The buffer enables all of this!**",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Message Hub", "The Stream Garden", "Topic Fountains"]
+    },
+    {
+      "title": "The Power of Buffering",
+      "description": "Professor Yvonne gathers all the students around The Stream Garden one last time, gesturing at the harmonious flow of messages through the system. She emphasizes how the buffering layer is Kafka's superpower—it absorbs speed differences, provides reliability through persistence, enables replay, and completely decouples producers from consumers. The Buffer Pool Monitor displays a beautiful visualization of balanced load. Student Eager Noodler's antennae reach toward each other forming a heart shape, student Thoughtful Giggler giggles contentedly, Student Zippy Zapper performs a celebratory zing, and Student Quiet observer hums a satisfied melody. The entire Stream Garden glows with the beauty of well-architected decoupling.",
+      "textPanel": "\"The buffer's the key—it's Kafka's true might,\nDecoupling systems, making architectures right!\nProduce when you want, consume at your pace,\nThe Stream Garden thrives—giving systems their space!\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Kafka: Decoupling Through Buffering\n\n```\nProducers          Kafka Cluster           Consumers\n(Write)            (Buffer Layer)          (Read)\n\nService A  ───┐                      ┌───> Service D\nService B  ───┼──> [Topic 1] ────────┼───> Service E  \nService C  ───┘    [Topic 2]         └───> Service F\n               [Topic 3]\n           (Persistent Storage)\n```\n\n## Key Concepts Summary:\n\n1. **Producers & Consumers are Independent** - No direct coupling\n2. **Persistent Buffer (Disk)** - Messages survive crashes  \n3. **Topics Organize Streams** - Categorized message channels\n4. **Time Decoupling** - Produce now, consume later\n5. **Speed Mismatch Handling** - Fast producers, slow consumers\n6. **Multiple Consumers** - Same stream, different readers\n7. **Scalable & Resilient** - Add capacity without downtime\n\n**Result: The buffer is the secret sauce! 🎯**",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Sparkly Yvonne", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["The Stream Garden", "Message Hub", "Topic Fountains", "Buffer Pool Monitor", "Producer Stations", "Consumer Stations"]
+    }
+  ]
+}
+

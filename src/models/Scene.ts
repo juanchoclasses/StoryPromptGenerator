@@ -14,6 +14,34 @@ export interface GeneratedImage {
 }
 
 /**
+ * Element position and size in the layout
+ */
+export interface LayoutElement {
+  x: number;        // pixels from left
+  y: number;        // pixels from top
+  width: number;    // pixels
+  height: number;   // pixels
+  zIndex: number;   // stacking order
+}
+
+/**
+ * Scene layout configuration for positioning image and panels
+ */
+export interface SceneLayout {
+  type: 'overlay' | 'comic-sidebyside' | 'comic-vertical' | 'custom';
+  canvas: {
+    width: number;       // total canvas width in pixels
+    height: number;      // total canvas height in pixels
+    aspectRatio: string; // e.g., "16:9", "3:4", "21:9"
+  };
+  elements: {
+    image: LayoutElement;
+    textPanel?: LayoutElement;
+    diagramPanel?: LayoutElement;
+  };
+}
+
+/**
  * Scene export format (for JSON import/export)
  */
 export interface SceneExchangeFormat {
@@ -21,6 +49,7 @@ export interface SceneExchangeFormat {
   description: string;
   textPanel?: string;
   diagramPanel?: DiagramPanel; // Optional diagram to overlay on image
+  layout?: SceneLayout; // Optional custom layout configuration
   characters: string[];  // Character names (not IDs)
   elements: string[];    // Element names (not IDs)
   imageHistory?: GeneratedImage[]; // Generated images for this scene
@@ -37,6 +66,7 @@ export class Scene {
   description: string;
   textPanel?: string;
   diagramPanel?: DiagramPanel;
+  layout?: SceneLayout;
   characters: string[];  // Character names
   elements: string[];    // Element names
   imageHistory?: GeneratedImage[];
@@ -49,6 +79,7 @@ export class Scene {
     this.description = data.description;
     this.textPanel = data.textPanel;
     this.diagramPanel = data.diagramPanel;
+    this.layout = data.layout;
     this.characters = data.characters || [];
     this.elements = data.elements || [];
     this.imageHistory = data.imageHistory || [];
@@ -200,6 +231,7 @@ export class Scene {
       description: this.description,
       textPanel: this.textPanel,
       diagramPanel: this.diagramPanel,
+      layout: this.layout,
       characters: [...this.characters],
       elements: [...this.elements],
       imageHistory: this.imageHistory ? [...this.imageHistory] : []
@@ -216,6 +248,7 @@ export class Scene {
       description: this.description,
       textPanel: this.textPanel,
       diagramPanel: this.diagramPanel,
+      layout: this.layout,
       characters: this.characters,
       elements: this.elements,
       imageHistory: this.imageHistory,
@@ -233,6 +266,7 @@ export class Scene {
       description: data.description,
       textPanel: data.textPanel,
       diagramPanel: data.diagramPanel,
+      layout: data.layout,
       characters: data.characters || [],
       elements: data.elements || [],
       imageHistory: data.imageHistory || []

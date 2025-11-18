@@ -32,10 +32,12 @@ import {
   ErrorOutline as ErrorIcon,
   Code as CodeIcon,
   TextFields as TextFieldsIcon,
-  DeleteSweep as ClearImagesIcon
+  DeleteSweep as ClearImagesIcon,
+  GridOn as LayoutIcon
 } from '@mui/icons-material';
 import type { Scene, Story } from '../types/Story';
 import type { Character } from '../models/Story'; // v4.1: New Character type with imageGallery
+import type { SceneLayout } from '../models/Scene'; // Layout configuration
 import { BookService } from '../services/BookService';
 import { ImageGenerationService } from '../services/ImageGenerationService';
 import { FileSystemService } from '../services/FileSystemService';
@@ -48,6 +50,7 @@ import { formatBookStyleForPrompt } from '../types/BookStyle';
 import { measureTextFit } from '../services/TextMeasurementService';
 import { ModelSelectionDialog } from './ModelSelectionDialog';
 import { PanelConfigDialog } from './PanelConfigDialog';
+import { SceneLayoutEditor } from './SceneLayoutEditor';
 
 interface SceneEditorProps {
   story: Story | null;
@@ -88,6 +91,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const [modelSelectionOpen, setModelSelectionOpen] = useState(false);
   const [panelConfigDialogOpen, setPanelConfigDialogOpen] = useState(false);
   const [editingPanelConfig, setEditingPanelConfig] = useState<PanelConfig>(DEFAULT_PANEL_CONFIG);
+  const [layoutEditorOpen, setLayoutEditorOpen] = useState(false);
   
   const textPanelFieldRef = React.useRef<HTMLTextAreaElement>(null);
   const lastNotifiedImageUrl = useRef<string | null>(null);
@@ -774,6 +778,29 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     setModelSelectionOpen(true);
   };
 
+  // Open layout editor
+  const handleEditLayout = () => {
+    setLayoutEditorOpen(true);
+  };
+
+  // Save layout configuration
+  const handleSaveLayout = async (layout: SceneLayout) => {
+    if (!currentScene || !activeBook) return;
+
+    // Update scene with new layout
+    currentScene.layout = layout;
+    currentScene.updatedAt = new Date();
+
+    // Save book
+    await BookService.saveBook(activeBook);
+    onStoryUpdate();
+    setLayoutEditorOpen(false);
+
+    setSnackbarMessage('Layout saved successfully');
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+  };
+
   // Clear all images for the current scene
   const handleClearSceneImages = async () => {
     if (!currentScene) return;
@@ -1201,6 +1228,16 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             >
               {isGeneratingImage ? 'Generating...' : 'Generate Image'}
             </Button>
+            <Tooltip title="Configure scene layout (comic book style, overlay, etc.)">
+              <Button
+                variant="outlined"
+                startIcon={<LayoutIcon />}
+                onClick={handleEditLayout}
+                disabled={!currentScene}
+              >
+                Layout
+              </Button>
+            </Tooltip>
             <Button
               variant="outlined"
               color="warning"
@@ -1820,6 +1857,14 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           }
           setPanelConfigDialogOpen(false);
         }}
+      />
+
+      {/* Scene Layout Editor Dialog */}
+      <SceneLayoutEditor
+        open={layoutEditorOpen}
+        currentLayout={currentScene?.layout}
+        onSave={handleSaveLayout}
+        onCancel={() => setLayoutEditorOpen(false)}
       />
       </Box>
     </Paper>

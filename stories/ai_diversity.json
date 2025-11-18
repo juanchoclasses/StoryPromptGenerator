@@ -1,0 +1,349 @@
+{
+  "story": {
+    "title": "AI Diversity: Beyond the Majority",
+    "backgroundSetup": "A sophisticated classroom called The Pattern Library, where massive data walls display flowing streams of information representing how AI learns from the world. Professor Bethany, sharp and professional in her tailored business suit with a distinctive purple-streaked bob, teaches students about the hidden biases in artificial intelligence. The room has elegant Display Screens showing training data sets, a central Pattern Recognition Engine that visualizes how AI finds commonalities, and a Diversity Monitor that highlights who gets included and excluded. Holographic projections show both successful and failed AI systems, demonstrating the real-world impact of biased training. IMPORTANT: All characters (Professor Bethany and students) should be positioned in the BOTTOM HALF of the image, with the data walls, Pattern Recognition Engine, Display Screens, and visual demonstrations in the top half.",
+    "description": "A critical examination of AI bias and the vital importance of diversity in machine learning, where Professor Bethany challenges students to think beyond the majority and build more inclusive technology."
+  },
+  "characters": [
+    {
+      "name": "Professor Bethany",
+      "description": "A sharp, professional woman with an air of serious authority balanced by a subtle cheeky wit that emerges when making important points. She wears impeccably tailored business suits in charcoal gray or navy blue, paired with crisp white blouses and elegant low heels. Her bob haircut is precisely cut, jet black with bold purple streaks on one side that hint at her creative thinking and willingness to challenge conventions. She adjusts her thin-framed glasses when examining data and gestures with controlled, purposeful movements. Her expression is thoughtful and penetrating, but a slight smirk plays at her lips when revealing surprising truths about AI systems."
+    },
+    {
+      "name": "Student Eager Noodler",
+      "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes."
+    },
+    {
+      "name": "student Thoughtful Giggler",
+      "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet."
+    },
+    {
+      "name": "Student Zippy Zapper",
+      "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'"
+    },
+    {
+      "name": "Student Quiet observer",
+      "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook."
+    }
+  ],
+  "elements": [
+    {
+      "name": "The Pattern Library",
+      "description": "A sleek, modern classroom with floor-to-ceiling data walls that shimmer with flowing information streams. The walls display training datasets, statistical distributions, and demographic representations. Elegant wooden shelves hold physical examples of biased AI outputs. The space has a professional, academic atmosphere with comfortable seating arranged in a semicircle facing the demonstration area.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Pattern Recognition Engine",
+      "description": "A sophisticated holographic display in the center of the room that visualizes how AI systems find patterns in data. It shows glowing nodes connecting common features, with bright lines indicating strong patterns and dim lines showing rare occurrences. The engine can highlight which patterns dominate and which get ignored, making bias visible to the eye.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Data Walls",
+      "description": "Massive vertical screens displaying flowing streams of training data. Each stream represents different demographic groups, use cases, and scenarios. Some streams are thick and bright, representing overrepresented data. Others are thin and faint, showing underrepresented populations. The walls can zoom in to show individual data points or zoom out to reveal systemic patterns.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Diversity Monitor",
+      "description": "A diagnostic display that measures the diversity of training data and AI outputs. It shows demographic breakdowns, representation percentages, and highlights gaps where certain groups are excluded. The monitor glows green when systems are inclusive and flashes red when bias is detected. It provides quantitative measures of fairness and representation.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Impact Gallery",
+      "description": "A wall displaying real-world examples of AI successes and failures. Success stories show inclusive AI that works for everyone. Failures show biased systems that harmed underrepresented groups—facial recognition that doesn't work for darker skin, voice assistants that don't understand accents, medical AI trained only on majority populations. Each example has annotations explaining what went wrong.",
+      "category": "Set Pieces"
+    }
+  ],
+  "scenes": [
+    {
+      "title": "Welcome: The Promise and Problem",
+      "description": "Professor Bethany stands before the Data Walls with her arms crossed, her purple-streaked bob catching the light from the flowing data streams. She adjusts her glasses and gestures at the Pattern Recognition Engine, which glows with interconnected nodes. Her expression is serious but her eyes have that characteristic glint of someone about to reveal an uncomfortable truth. Student Eager Noodler's antennae twitch nervously while student Thoughtful Giggler's smile fades into thoughtful concern. The Data Walls show AI being used everywhere—healthcare, hiring, lending, criminal justice—highlighting both promise and peril.",
+      "textPanel": "\"Welcome students to AI's grand domain,\nWhere patterns emerge from data's terrain.\nBut here's the truth that we must face today:\nProbability can lead our systems astray.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# AI/ML: Learning from Probability\n\n## How AI Works:\n\n**Training Process:**\n1. Collect data from the world\n2. Find patterns and correlations\n3. Learn what's most common\n4. Predict based on probability\n\n```python\n# AI learns the most probable outcome\nmodel.train(training_data)  # Learn patterns\nprediction = model.predict(new_data)  # What's most likely?\n```\n\n**The Core Issue:**\n> AI systems optimize for the **most common** patterns in their training data. Whatever appears most frequently becomes the \"right\" answer.\n\n*But most common ≠ universally applicable*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Bethany", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["The Pattern Library", "Pattern Recognition Engine", "Data Walls"]
+    },
+    {
+      "title": "Training Data: The Foundation",
+      "description": "Professor Bethany walks along the Data Walls, her heels clicking purposefully on the floor. She points at the flowing streams with a slight smirk, showing how some streams are thick and bright while others are barely visible threads. The Pattern Recognition Engine begins processing, and students watch as it gravitates toward the dominant patterns, almost ignoring the fainter streams. Student Quiet observer peers through their periscope at the neglected data. Professor Bethany's expression becomes more serious as she explains what the students are witnessing.",
+      "textPanel": "\"AI learns from data that we provide,\nBut ask yourself: whose stories does it hide?\nThe patterns strong become what AI knows best,\nWhile quieter voices fail the training test.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Training Data: What AI Learns From\n\n## The Problem Visualized:\n\n```\nTraining Dataset:\n═══════════════════════════════  Group A (80%)\n═══════════  Group B (15%)\n═══  Group C (5%)\n\nAI Learning:\n\"Group A patterns are MOST COMMON → This is NORMAL\"\n\"Group B patterns are rare → Edge cases\"\n\"Group C patterns barely exist → Ignore or error\"\n```\n\n**Result:**\n- AI optimizes for Group A\n- Works poorly for Groups B & C\n- Treats majority as universal truth\n\n## Real Impact:\n> If your training data is 80% one demographic, your AI will assume that demographic is \"normal\" and everyone else is an outlier.",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Bethany", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Data Walls", "Pattern Recognition Engine"]
+    },
+    {
+      "title": "The Majority Becomes Truth",
+      "description": "Professor Bethany stands before the Pattern Recognition Engine, which now clearly shows how dominant patterns overshadow minority patterns. She adjusts her glasses with a knowing look, her purple hair streak visible as she tilts her head. The Diversity Monitor beside her flashes yellow warnings. Student Zippy Zapper's zig-zag body vibrates with concern. Professor Bethany's cheeky side emerges as she delivers the uncomfortable truth: AI doesn't learn truth, it learns what's most common, and then treats that as truth.",
+      "textPanel": "\"Most common patterns become AI's truth,\nBut truth for whom? Here's the uncomfortable proof:\nWhen eighty percent defines what's 'right' and 'real',\nThe other twenty percent the system won't feel.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Most Common ≠ Universally True\n\n## The Statistical Trap:\n\n```python\n# AI learns statistical norms\ntraining_distribution = {\n    'majority_group': 0.80,    # Dominant pattern\n    'minority_group': 0.20     # Rare pattern\n}\n\n# Prediction favors majority\nif confidence > 0.80:\n    return \"NORMAL\"  # Majority pattern\nelse:\n    return \"ANOMALY\"  # Everything else\n```\n\n**The Dangerous Assumption:**\n\n| What AI Learns | What It Means |\n|----------------|---------------|\n| \"This is most common\" | → \"This is correct\" |\n| \"This is rare\" | → \"This is wrong/error\" |\n| \"This doesn't appear often\" | → \"This doesn't exist\" |\n\n*AI conflates statistical frequency with correctness*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Bethany", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Pattern Recognition Engine", "Diversity Monitor"]
+    },
+    {
+      "title": "Our Diverse World",
+      "description": "Professor Bethany sweeps her hand across the Data Walls, her business suit pristine and professional. The walls transform to show the incredible diversity of the real world—different ethnicities, cultures, languages, abilities, ages, gender identities, socioeconomic backgrounds. Her expression is earnest now, the cheeky smirk replaced by genuine concern. Student Thoughtful Giggler's ears perk up fully as they absorb the scope of human diversity. The contrast between this vibrant diversity and the narrow training data from before is stark and troubling.",
+      "textPanel": "\"The world is vast, diverse, and wonderfully wide,\nYet many voices sit on the outside.\nNot in the training sets, not in the code,\nInvisible to AI on its learning road.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# The World's True Diversity\n\n## Who Gets Excluded:\n\n**Demographics Often Underrepresented:**\n- Ethnic minorities in specific regions\n- Non-native language speakers\n- People with disabilities\n- LGBTQ+ individuals\n- Elderly populations\n- Rural communities\n- Low-income groups\n- Non-Western cultures\n\n**The Numbers:**\n```\nGlobal Population: 8 billion people\nBut AI Training Often Reflects:\n- 10-15% of global population\n- Primarily English speakers\n- Primarily urban populations\n- Primarily wealthier demographics\n```\n\n**Critical Question:**\n> Who is building the training data, and whose experiences are they most familiar with?\n\n*Builders' biases become AI biases*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Bethany", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Data Walls", "The Pattern Library"]
+    },
+    {
+      "title": "When AI Fails: Real Consequences",
+      "description": "Professor Bethany stands before the Impact Gallery, her expression grave. The gallery displays documented failures of biased AI systems—facial recognition that doesn't work for darker skin tones, voice assistants that don't understand accents, hiring algorithms that discriminate, medical diagnoses trained only on majority populations. She points at each example with controlled anger, her purple streak seeming to glow with intensity. Student Eager Noodler's antennae droop with sadness. These aren't theoretical problems—they're real harms to real people.",
+      "textPanel": "\"When systems fail those not in the majority set,\nThe consequences are real, filled with regret.\nJobs denied, faces unseen, voices unheard,\nAI's biased outputs cause harm—not just a word.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Real-World AI Failures\n\n## Documented Cases:\n\n### 1. Facial Recognition\n```\nAccuracy by demographic:\nLight-skinned males:    99% accurate\nDark-skinned females:   65% accurate\n\nResult: Misidentification, false arrests\n```\n\n### 2. Hiring Algorithms\n- Amazon's AI favored male candidates\n- Trained on historical hiring (mostly men)\n- Penalized résumés with word \"women's\"\n\n### 3. Healthcare AI\n- Algorithms underestimate Black patients' health needs\n- Trained primarily on white patient data\n- Results in reduced care recommendations\n\n### 4. Voice Assistants\n- Lower accuracy for non-native English speakers\n- Struggles with regional accents\n- Assumes Standard American/British English\n\n**The Cost:** Lives affected, opportunities denied, dignity diminished",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 13,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Bethany", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Impact Gallery", "The Pattern Library"]
+    },
+    {
+      "title": "The Homogeneous Future",
+      "description": "Professor Bethany paces thoughtfully, her professional demeanor tinged with urgency. The Data Walls now show a disturbing simulation—a future where AI continues to optimize for the majority, gradually erasing diversity from digital spaces, recommendations, opportunities, and even creative outputs. Everything becomes bland, uniform, optimized for the majority pattern. Her cheeky side emerges darkly: 'Efficiency at the cost of humanity.' Student Quiet observer hums a sad, dissonant note. The vision is dystopian—a world where difference is systematically eliminated by well-meaning algorithms.",
+      "textPanel": "\"If we don't fix this bias, here's what we face:\nA world where difference slowly leaves no trace.\nAI optimizes sameness, averages reign,\nAnd rich human diversity we won't maintain.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# The Homogeneous Society Risk\n\n## What Happens Without Intervention:\n\n### Content Recommendations\n```\nCurrent: Diverse perspectives available\n↓\nAI optimizes for majority preferences\n↓\nMinority voices get less visibility\n↓\nFeedback loop: Majority content dominates\n↓\nFuture: Homogeneous information diet\n```\n\n### Opportunity Systems\n- **Hiring:** AI learns from historical patterns → perpetuates existing inequities\n- **Lending:** Algorithms favor majority demographics → wealth gap widens\n- **Education:** Personalization optimizes for common learning styles → others left behind\n\n### Cultural Impact\n- Art and creativity optimized for \"average taste\"\n- Languages with less data representation fade from digital spaces\n- Regional and cultural differences smoothed away\n\n**The Ultimate Loss:** A society that *looks* efficient but has lost its richness, creativity, and humanity",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 13,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Bethany", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Data Walls", "Pattern Recognition Engine", "Diversity Monitor"]
+    },
+    {
+      "title": "Breaking the Pattern",
+      "description": "Professor Bethany's demeanor shifts from concern to determination. She straightens her suit jacket, adjusts her glasses with purpose, and her cheeky grin returns—this time with hope. The Diversity Monitor begins glowing green as she demonstrates interventions: diverse training data, fairness metrics, inclusive design teams, community feedback loops. Student Zippy Zapper zings with renewed energy. The Data Walls show examples of AI systems that actively work to include underrepresented groups. Professor Bethany makes it clear: this isn't impossible—it's a choice.",
+      "textPanel": "\"But here's the good news—we can break this chain,\nWith conscious effort, diverse data we can gain.\nInclude all voices in the training we provide,\nAnd build AI systems where everyone can thrive.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Solutions: Building Inclusive AI\n\n## 1. Diverse Training Data\n```python\n# Instead of this:\ntraining_data = collect_easily_available_data()\n\n# Do this:\ntraining_data = collect_data(\n    ensure_demographic_representation=True,\n    include_minority_groups=True,\n    oversample_underrepresented=True,\n    validate_diversity=True\n)\n```\n\n## 2. Fairness Metrics\n- Measure performance across demographic groups\n- Set minimum accuracy thresholds for all groups\n- Regular audits for bias\n\n## 3. Diverse Teams\n- Include people from underrepresented groups in design\n- Community input and feedback\n- Cultural consultants\n\n## 4. Transparency\n- Document training data demographics\n- Report performance by group\n- Allow appeals and corrections\n\n**The Key:** Actively working for inclusion, not just accepting majority patterns",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 13,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Bethany", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Diversity Monitor", "Data Walls", "Pattern Recognition Engine"]
+    },
+    {
+      "title": "Building Better Systems",
+      "description": "Professor Bethany brings up examples of success stories on the Impact Gallery. Her professional confidence is paired with genuine optimism now. She shows AI systems built with fairness as a primary goal: medical AI that works across demographics, voice recognition trained on diverse accents, recommendation systems that expose users to diverse perspectives rather than narrowing them. Student Thoughtful Giggler giggles with joy. The Diversity Monitor shows green across all metrics. Professor Bethany's purple streak catches the light—a visual reminder that difference is valuable.",
+      "textPanel": "\"When we design with fairness from the start,\nWhen diverse teams each play their crucial part,\nWe build AI that serves humanity's full range,\nAnd technology becomes a force for positive change.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Success Stories: Inclusive AI in Action\n\n## Examples That Work:\n\n### Medical Diagnostics AI\n- Trained on diverse patient populations\n- Equal accuracy across demographics\n- Identifies diseases in all skin tones\n- **Result:** Lives saved across all communities\n\n### Adaptive Voice Recognition\n- Trained on 100+ languages and dialects\n- Understands regional accents\n- Adapts to individual speech patterns\n- **Result:** Technology accessible to billions more people\n\n### Fair Lending Algorithms\n```python\n# Traditional: Historical patterns\nloan_decision = predict_from_past_loans()\n\n# Fair: Remove demographic bias\nloan_decision = predict_based_on_actual_ability(\n    remove_proxy_features=True,\n    ensure_equal_opportunity=True\n)\n```\n\n**The Pattern:** When we prioritize fairness, we build better systems for everyone",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Bethany", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Impact Gallery", "Diversity Monitor", "The Pattern Library"]
+    },
+    {
+      "title": "Our Shared Responsibility",
+      "description": "Professor Bethany stands at the center of the Pattern Library, surrounded by her students. Her expression is both serious and warm, her purple-streaked bob framing her face as she delivers the final lesson. She removes her glasses—a rare gesture—and speaks directly from the heart. The Data Walls, Pattern Recognition Engine, and Diversity Monitor all glow harmoniously, showing what's possible. Student Eager Noodler's antennae stand tall with determination. This isn't just a technical problem—it's a moral imperative. Professor Bethany's cheeky side emerges one last time: 'Build AI that sees everyone, or don't build it at all.'",
+      "textPanel": "\"This responsibility falls on all who create,\nTo build inclusive systems before it's too late.\nQuestion your data, challenge what seems 'normal' to you,\nFor AI's future depends on perspectives diverse and true.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Call to Action: Your Responsibility\n\n## For AI Developers:\n- [ ] Audit your training data for representation\n- [ ] Measure performance across demographic groups\n- [ ] Include diverse voices in your team\n- [ ] Document limitations and biases\n- [ ] Continuously monitor for fairness\n\n## For Everyone:\n- [ ] Question AI systems that seem biased\n- [ ] Demand transparency from AI companies\n- [ ] Support diverse teams in tech\n- [ ] Speak up when AI fails underrepresented groups\n- [ ] Remember: AI reflects human choices\n\n## The Bottom Line:\n\n> **AI doesn't have to perpetuate bias.** It's a choice. Every dataset curated, every model trained, every system deployed represents a decision—include everyone or optimize for the majority.\n\n**Choose inclusion. Choose diversity. Choose humanity.**",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Bethany", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["The Pattern Library", "Pattern Recognition Engine", "Data Walls", "Diversity Monitor"]
+    },
+    {
+      "title": "Conclusion: Beyond Probability",
+      "description": "Professor Bethany stands tall with her students gathered around her in The Pattern Library, now glowing with balanced, diverse data streams. Her purple-streaked bob seems to shimmer with possibility, her business suit immaculate, her glasses reflecting the harmonious displays. The Diversity Monitor shows green across all metrics. Each student has absorbed the lesson in their own way—Student Eager Noodler clutches notes, student Thoughtful Giggler's smile is genuine and hopeful, Student Zippy Zapper zings with purpose, Student Quiet observer has sketched a vision of inclusive AI. Professor Bethany delivers her final words with both her characteristic seriousness and her cheeky optimism: the future is unwritten, and it's up to them.",
+      "textPanel": "\"Remember dear students, as you leave this place:\nProbability shows what's common, not what's right for every case.\nOur world's diversity is not a bug to fix,\nIt's humanity's greatest strength—don't let algorithms nix.\n\nBuild systems that honor each voice, each face,\nWhere everyone belongs and has their space.\nFor AI's potential to truly shine bright,\nWe must include all people in its light.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# The Path Forward: Summary\n\n## What We Learned:\n\n1. **AI learns from probability** - most common patterns become truth\n2. **Training data has gaps** - many voices are underrepresented\n3. **Bias has real consequences** - people are harmed by biased systems\n4. **Homogeneity is a risk** - unchecked AI erases diversity\n5. **Solutions exist** - we can build inclusive systems\n6. **It's a choice** - fairness requires intentional work\n\n---\n\n## The Core Message:\n\n```\nMost Common    ≠    Universally True\nMajority Voice ≠    Only Voice\nHistorical Pattern ≠ Inevitable Future\n```\n\n**Diversity is not a problem to solve—**  \n**it's a reality to respect and include.**\n\n---\n\n*Build AI that sees everyone, or don't build it at all.*\n\n**— Professor Bethany**",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Bethany", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["The Pattern Library", "Pattern Recognition Engine", "Data Walls", "Diversity Monitor", "Impact Gallery"]
+    }
+  ]
+}
+

@@ -346,12 +346,12 @@ async function renderMarkdown(
   height: number
 ): Promise<HTMLCanvasElement> {
 
-  // Create temporary container
+  // Create temporary container - let it size naturally first
   const tempContainer = document.createElement('div');
   tempContainer.style.position = 'absolute';
   tempContainer.style.left = '-9999px';
   tempContainer.style.width = width + 'px';
-  tempContainer.style.height = height + 'px';
+  // Don't set height - let content determine it
   tempContainer.style.backgroundColor = style.backgroundColor;
   tempContainer.style.padding = style.padding + 'px';
   tempContainer.style.boxSizing = 'border-box';
@@ -360,7 +360,6 @@ async function renderMarkdown(
   tempContainer.style.fontSize = style.fontSize + 'px';
   tempContainer.style.fontFamily = 'Arial, sans-serif';
   tempContainer.style.lineHeight = '1.6';
-  tempContainer.style.overflow = 'auto';
 
   document.body.appendChild(tempContainer);
 
@@ -401,13 +400,28 @@ async function renderMarkdown(
       (el as HTMLElement).style.fontStyle = 'italic';
     });
     tempContainer.querySelectorAll('p').forEach(el => {
-      (el as HTMLElement).style.marginBottom = '15px';
+      (el as HTMLElement).style.marginTop = '0';
+      (el as HTMLElement).style.marginBottom = '12px';
     });
+    
+    // Remove bottom margin from the last child element to prevent excess space
+    const lastChild = tempContainer.lastElementChild;
+    if (lastChild) {
+      (lastChild as HTMLElement).style.marginBottom = '0';
+    }
 
-    // Convert to canvas
+    // Measure the actual content height after all styling
+    // Force a layout calculation
+    tempContainer.offsetHeight; // Trigger reflow
+    const contentHeight = tempContainer.getBoundingClientRect().height;
+    
+    // Use content height or minimum height, whichever is larger
+    const finalHeight = Math.max(contentHeight, height);
+
+    // Convert to canvas using actual content dimensions
     const canvas = await html2canvas(tempContainer, {
       width: width,
-      height: height,
+      height: finalHeight,
       backgroundColor: null,
       scale: 2
     });

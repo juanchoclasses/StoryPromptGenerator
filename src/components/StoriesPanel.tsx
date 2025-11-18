@@ -342,11 +342,26 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
     // Get book data
     const activeBookId = await BookService.getActiveBookId();
     const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
-    const aspectRatio = activeBook?.aspectRatio || '3:4';
+    
+    // Check if scene has custom layout - if so, calculate aspect ratio from canvas dimensions
+    let aspectRatio: string;
+    if (scene.layout) {
+      const canvasWidth = scene.layout.canvas.width;
+      const canvasHeight = scene.layout.canvas.height;
+      // Calculate GCD to get simplest ratio
+      const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b);
+      const divisor = gcd(canvasWidth, canvasHeight);
+      const ratioWidth = canvasWidth / divisor;
+      const ratioHeight = canvasHeight / divisor;
+      aspectRatio = `${ratioWidth}:${ratioHeight}`;
+      console.log(`   🎨 Using aspect ratio from layout canvas: ${canvasWidth}x${canvasHeight} = ${aspectRatio}`);
+    } else {
+      aspectRatio = activeBook?.aspectRatio || '3:4';
+      console.log(`   📐 Using book's default aspect ratio: ${aspectRatio}`);
+    }
     
     console.log(`   Book: ${activeBook?.title || 'N/A'}`);
     console.log(`   Model: ${modelName}`);
-    console.log(`   Aspect Ratio: ${aspectRatio}`);
     
     // Use the UNIFIED service to generate complete image with all overlays
     const { SceneImageGenerationService } = await import('../services/SceneImageGenerationService');

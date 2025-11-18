@@ -893,7 +893,24 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     // Get the active book to retrieve aspect ratio and panel config
     const activeBookId = await BookService.getActiveBookId();
     const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
-    const aspectRatio = activeBook?.aspectRatio || '3:4';
+    
+    // Check if scene has custom layout - if so, calculate aspect ratio from canvas dimensions
+    let aspectRatio: string;
+    if (currentScene?.layout) {
+      const canvasWidth = currentScene.layout.canvas.width;
+      const canvasHeight = currentScene.layout.canvas.height;
+      // Calculate GCD to get simplest ratio
+      const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b);
+      const divisor = gcd(canvasWidth, canvasHeight);
+      const ratioWidth = canvasWidth / divisor;
+      const ratioHeight = canvasHeight / divisor;
+      aspectRatio = `${ratioWidth}:${ratioHeight}`;
+      console.log(`🎨 Using aspect ratio from layout canvas: ${canvasWidth}x${canvasHeight} = ${aspectRatio}`);
+    } else {
+      aspectRatio = activeBook?.aspectRatio || '3:4';
+      console.log(`📐 Using book's default aspect ratio: ${aspectRatio}`);
+    }
+    
     const panelConfig = activeBook?.style?.panelConfig || DEFAULT_PANEL_CONFIG;
 
     // Pre-check text fit if textPanel has content and autoHeight is disabled
@@ -923,15 +940,6 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       }
     }
 
-    const prompt = await generatePrompt();
-    
-    // Load character reference images
-    console.log('Loading character reference images...');
-    const referenceImages = await loadCharacterImages();
-    if (referenceImages.length > 0) {
-      console.log(`✓ ${referenceImages.length} reference image(s) loaded`);
-    }
-    
     setIsGeneratingImage(true);
     setGeneratedImageUrl(null);
 

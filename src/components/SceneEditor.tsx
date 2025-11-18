@@ -39,11 +39,10 @@ import type { Scene, Story } from '../types/Story';
 import type { Character } from '../models/Story'; // v4.1: New Character type with imageGallery
 import type { SceneLayout } from '../types/Story'; // Layout configuration
 import { BookService } from '../services/BookService';
-import { ImageGenerationService } from '../services/ImageGenerationService';
+import { SceneImageGenerationService } from '../services/SceneImageGenerationService';
 import { FileSystemService } from '../services/FileSystemService';
 import { SettingsService } from '../services/SettingsService';
 import { ImageStorageService } from '../services/ImageStorageService';
-import { applyAllOverlays } from '../services/OverlayService';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 import type { PanelConfig } from '../types/Book';
 import { formatBookStyleForPrompt } from '../types/BookStyle';
@@ -938,8 +937,6 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
 
     try {
       // Use unified SceneImageGenerationService which handles layout detection
-      const { SceneImageGenerationService } = await import('../services/SceneImageGenerationService');
-      
       // Update currentScene with current UI state before generating
       if (currentScene && story) {
         currentScene.textPanel = textPanel;

@@ -26,9 +26,11 @@ import { FileManager } from './components/FileManager';
 import { VersionInfo } from './components/VersionInfo';
 import { AboutPanel } from './components/AboutPanel';
 import { SettingsDialog } from './components/SettingsDialog';
+import { DirectoryReconnectDialog } from './components/DirectoryReconnectDialog';
 import { ImagePanel } from './components/ImagePanel';
 import { OperationsPanel } from './components/OperationsPanel';
 import { ImageStorageService } from './services/ImageStorageService';
+import { FileSystemService } from './services/FileSystemService';
 import type { Scene, Story, GeneratedImage } from './types/Story';
 import type { StoryData } from './types/Story';
 import { BookService } from './services/BookService';
@@ -59,6 +61,33 @@ function App() {
   const [bookData, setBookData] = useState<StoryData | null>(null);
   const [activeBook, setActiveBook] = useState<Book | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [reconnectDialogOpen, setReconnectDialogOpen] = useState(false);
+  const hasCheckedDirectory = useRef(false);
+
+  // Check if directory handle is available on startup
+  useEffect(() => {
+    const checkDirectoryOnStartup = async () => {
+      // Only check once on mount
+      if (hasCheckedDirectory.current) return;
+      hasCheckedDirectory.current = true;
+
+      try {
+        const handle = await FileSystemService.getDirectoryHandle();
+        
+        if (!handle) {
+          console.warn('⚠️  No directory handle found on startup - prompting user to reconnect');
+          setReconnectDialogOpen(true);
+        } else {
+          console.log('✓ Directory handle found on startup');
+        }
+      } catch (error) {
+        console.error('Error checking directory on startup:', error);
+        setReconnectDialogOpen(true);
+      }
+    };
+
+    checkDirectoryOnStartup();
+  }, []); // Empty deps - only run once on mount
 
   const handleStorySelect = (story: Story | null) => {
     setSelectedStory(story);
@@ -241,6 +270,18 @@ function App() {
     }
   };
 
+  const handleDirectoryReconnect = () => {
+    console.log('📁 Directory reconnected - reloading data...');
+    setReconnectDialogOpen(false);
+    // Trigger a full refresh to reload books from the reconnected directory
+    setRefreshKey(prev => prev + 1);
+  };
+
+  const handleSkipReconnect = () => {
+    console.log('⏭️  User skipped directory reconnection');
+    setReconnectDialogOpen(false);
+  };
+
   const handleStoryTitleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = event.target.value;
     setStoryTitle(newTitle);
@@ -373,6 +414,12 @@ function App() {
       <SettingsDialog 
         open={settingsOpen} 
         onClose={() => setSettingsOpen(false)} 
+      />
+      
+      <DirectoryReconnectDialog
+        open={reconnectDialogOpen}
+        onReconnect={handleDirectoryReconnect}
+        onCancel={handleSkipReconnect}
       />
       
       <Container maxWidth="xl" sx={{ mt: 4, mb: 4, height: 'calc(100vh - 100px)' }}>

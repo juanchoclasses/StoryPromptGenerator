@@ -373,6 +373,20 @@ export class SceneImageGenerationService {
         const panelText = this.replaceMacros(scene.textPanel!, macros);
         const panelConfig: PanelConfig = book?.style?.panelConfig || DEFAULT_PANEL_CONFIG;
         
+        console.log('📝 Text Panel Configuration:');
+        console.log('  Book has style?', !!book?.style);
+        console.log('  Book has panelConfig?', !!book?.style?.panelConfig);
+        console.log('  Using config:', {
+          fontFamily: panelConfig.fontFamily,
+          fontSize: panelConfig.fontSize,
+          textAlign: panelConfig.textAlign,
+          widthPercentage: panelConfig.widthPercentage,
+          heightPercentage: panelConfig.heightPercentage,
+          position: panelConfig.position,
+          backgroundColor: panelConfig.backgroundColor,
+          fontColor: panelConfig.fontColor
+        });
+        
         overlayOptions.textPanel = {
           text: panelText,
           config: panelConfig

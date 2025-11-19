@@ -539,8 +539,29 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
           </Button>
         </Paper>
       ) : (
-        <Box display="flex" flexDirection="column" gap={2}>
-          {stories.map((story) => {
+        <Box 
+          sx={{ 
+            maxHeight: 'calc(100vh - 300px)', // Adjust based on header/tabs height
+            overflowY: 'auto',
+            pr: 1, // Padding right for scrollbar spacing
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              background: '#f1f1f1',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: '#c1c1c1',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              background: '#a8a8a8',
+            },
+          }}
+        >
+          <Box display="flex" flexDirection="column" gap={2}>
+            {stories.map((story) => {
             if (!story || !story.id) return null;
             
             const stats = getStoryStats(story);
@@ -659,6 +680,7 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
               </Paper>
             );
           })}
+          </Box>
         </Box>
       )}
 

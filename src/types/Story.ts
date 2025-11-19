@@ -49,12 +49,14 @@ export interface DiagramStyle {
 
 /**
  * Element position and size in the layout
+ * All values are percentages (0-100) of the canvas dimensions
+ * This allows layouts to scale properly with different image sizes
  */
 export interface LayoutElement {
-  x: number;        // pixels from left
-  y: number;        // pixels from top
-  width: number;    // pixels
-  height: number;   // pixels
+  x: number;        // percentage from left (0-100)
+  y: number;        // percentage from top (0-100)
+  width: number;    // percentage of canvas width (0-100)
+  height: number;   // percentage of canvas height (0-100)
   zIndex: number;   // stacking order
 }
 

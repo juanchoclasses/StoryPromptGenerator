@@ -110,10 +110,27 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
   // Calculate canvas dimensions from book's aspect ratio
   const canvasDimensions = getCanvasDimensionsFromAspectRatio(bookAspectRatio);
   
+  // Helper functions to convert between percentages and preview pixels
+  const PREVIEW_WIDTH = 800;
+  const scale = PREVIEW_WIDTH / canvasDimensions.width;
+  const previewHeight = canvasDimensions.height * scale;
+  
+  const percentToPreview = (percentValue: number, dimension: 'width' | 'height'): number => {
+    const canvasSize = dimension === 'width' ? canvasDimensions.width : canvasDimensions.height;
+    const pixels = (percentValue / 100) * canvasSize;
+    return Math.round(pixels * scale);
+  };
+  
+  const previewToPercent = (previewPixels: number, dimension: 'width' | 'height'): number => {
+    const actualPixels = previewPixels / scale;
+    const canvasSize = dimension === 'width' ? canvasDimensions.width : canvasDimensions.height;
+    return (actualPixels / canvasSize) * 100;
+  };
+  
   // Initialize layout with book's aspect ratio if no current layout exists
   const getInitialLayout = (): SceneLayout => {
     if (currentLayout) {
-      // If layout exists, update its canvas dimensions to match book's aspect ratio
+      // If layout exists, just update canvas dimensions (percentages stay the same)
       return {
         ...currentLayout,
         canvas: {
@@ -122,21 +139,16 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
           height: canvasDimensions.height,
           aspectRatio: bookAspectRatio
         },
-        // Scale element positions/sizes proportionally if canvas size changed
+        // Keep existing percentage-based elements
         elements: {
-          image: currentLayout.elements.image
-            ? {
-                ...currentLayout.elements.image,
-                width: canvasDimensions.width,
-                height: canvasDimensions.height
-              }
-            : { x: 0, y: 0, width: canvasDimensions.width, height: canvasDimensions.height, zIndex: 1 },
+          image: currentLayout.elements.image || { x: 0, y: 0, width: 100, height: 100, zIndex: 1 },
           textPanel: currentLayout.elements.textPanel,
           diagramPanel: currentLayout.elements.diagramPanel
         }
       };
     } else {
       // Create new overlay layout with book's aspect ratio
+      // All values are percentages (0-100)
       return {
         type: 'overlay',
         canvas: {
@@ -145,19 +157,19 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
           aspectRatio: bookAspectRatio
         },
         elements: {
-          image: { x: 0, y: 0, width: canvasDimensions.width, height: canvasDimensions.height, zIndex: 1 },
+          image: { x: 0, y: 0, width: 100, height: 100, zIndex: 1 },
           textPanel: { 
-            x: Math.round(canvasDimensions.width * 0.05),
-            y: Math.round(canvasDimensions.height * 0.78),
-            width: Math.round(canvasDimensions.width * 0.9),
-            height: Math.round(canvasDimensions.height * 0.17),
+            x: 5,
+            y: 78,
+            width: 90,
+            height: 17,
             zIndex: 2
           },
           diagramPanel: {
-            x: Math.round(canvasDimensions.width * 0.05),
-            y: Math.round(canvasDimensions.height * 0.05),
-            width: Math.round(canvasDimensions.width * 0.6),
-            height: Math.round(canvasDimensions.height * 0.4),
+            x: 5,
+            y: 5,
+            width: 60,
+            height: 40,
             zIndex: 3
           }
         }
@@ -171,11 +183,6 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
   const [resizing, setResizing] = useState<ResizingState | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  // Calculate scale factor for preview
-  const PREVIEW_WIDTH = 800;
-  const scale = PREVIEW_WIDTH / layout.canvas.width;
-  const previewHeight = layout.canvas.height * scale;
-
   // Update layout when currentLayout or bookAspectRatio changes
   useEffect(() => {
     setLayout(getInitialLayout());
@@ -184,49 +191,34 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
   const applyPreset = (presetName: string) => {
     const preset = PRESET_LAYOUTS[presetName];
     if (preset) {
-      // Deep copy preset and adapt to book's aspect ratio
-      const adaptedPreset = JSON.parse(JSON.stringify(preset)) as SceneLayout;
-      adaptedPreset.canvas = {
-        width: canvasDimensions.width,
-        height: canvasDimensions.height,
-        aspectRatio: bookAspectRatio
-      };
+      // Convert preset from absolute pixels to percentages
+      const convertToPercentages = (el: LayoutElement, canvasW: number, canvasH: number): LayoutElement => ({
+        x: (el.x / canvasW) * 100,
+        y: (el.y / canvasH) * 100,
+        width: (el.width / canvasW) * 100,
+        height: (el.height / canvasH) * 100,
+        zIndex: el.zIndex
+      });
       
-      // Scale all element positions and sizes proportionally
-      const scaleX = canvasDimensions.width / preset.canvas.width;
-      const scaleY = canvasDimensions.height / preset.canvas.height;
-      
-      if (adaptedPreset.elements.image) {
-        adaptedPreset.elements.image = {
-          x: 0,
-          y: 0,
+      const adaptedPreset: SceneLayout = {
+        type: preset.type,
+        canvas: {
           width: canvasDimensions.width,
           height: canvasDimensions.height,
-          zIndex: 1
-        };
-      }
-      
-      if (adaptedPreset.elements.textPanel) {
-        const tp = preset.elements.textPanel!;
-        adaptedPreset.elements.textPanel = {
-          x: Math.round(tp.x * scaleX),
-          y: Math.round(tp.y * scaleY),
-          width: Math.round(tp.width * scaleX),
-          height: Math.round(tp.height * scaleY),
-          zIndex: tp.zIndex
-        };
-      }
-      
-      if (adaptedPreset.elements.diagramPanel) {
-        const dp = preset.elements.diagramPanel!;
-        adaptedPreset.elements.diagramPanel = {
-          x: Math.round(dp.x * scaleX),
-          y: Math.round(dp.y * scaleY),
-          width: Math.round(dp.width * scaleX),
-          height: Math.round(dp.height * scaleY),
-          zIndex: dp.zIndex
-        };
-      }
+          aspectRatio: bookAspectRatio
+        },
+        elements: {
+          image: preset.elements.image 
+            ? convertToPercentages(preset.elements.image, preset.canvas.width, preset.canvas.height)
+            : { x: 0, y: 0, width: 100, height: 100, zIndex: 1 },
+          textPanel: preset.elements.textPanel
+            ? convertToPercentages(preset.elements.textPanel, preset.canvas.width, preset.canvas.height)
+            : undefined,
+          diagramPanel: preset.elements.diagramPanel
+            ? convertToPercentages(preset.elements.diagramPanel, preset.canvas.width, preset.canvas.height)
+            : undefined
+        }
+      };
       
       setLayout(adaptedPreset);
       setSelectedElement(null);
@@ -253,12 +245,12 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
         setSelectedElement(null);
       }
     } else {
-      // Add element with default position
+      // Add element with default position (percentages)
       const defaultElement: LayoutElement = {
-        x: 100,
-        y: 100,
-        width: 400,
-        height: 300,
+        x: type === 'textPanel' ? 5 : 10,
+        y: type === 'textPanel' ? 78 : 10,
+        width: type === 'textPanel' ? 90 : 40,
+        height: type === 'textPanel' ? 17 : 30,
         zIndex: type === 'textPanel' ? 2 : 3
       };
       setLayout(prev => ({
@@ -310,15 +302,25 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (dragging) {
-        const dx = (e.clientX - dragging.startX) / scale;
-        const dy = (e.clientY - dragging.startY) / scale;
-        updateElement(dragging.type, {
-          x: Math.max(0, Math.min(layout.canvas.width - (layout.elements[dragging.type]?.width || 0), dragging.startElementX + dx)),
-          y: Math.max(0, Math.min(layout.canvas.height - (layout.elements[dragging.type]?.height || 0), dragging.startElementY + dy))
-        });
+        // Convert preview pixel movement to percentage movement
+        const dxPreview = e.clientX - dragging.startX;
+        const dyPreview = e.clientY - dragging.startY;
+        const dxPercent = previewToPercent(dxPreview, 'width');
+        const dyPercent = previewToPercent(dyPreview, 'height');
+        
+        const el = layout.elements[dragging.type];
+        if (!el) return;
+        
+        const newX = Math.max(0, Math.min(100 - el.width, dragging.startElementX + dxPercent));
+        const newY = Math.max(0, Math.min(100 - el.height, dragging.startElementY + dyPercent));
+        
+        updateElement(dragging.type, { x: newX, y: newY });
       } else if (resizing) {
-        const dx = (e.clientX - resizing.startX) / scale;
-        const dy = (e.clientY - resizing.startY) / scale;
+        // Convert preview pixel movement to percentage movement
+        const dxPreview = e.clientX - resizing.startX;
+        const dyPreview = e.clientY - resizing.startY;
+        const dxPercent = previewToPercent(dxPreview, 'width');
+        const dyPercent = previewToPercent(dyPreview, 'height');
         
         let newX = resizing.startElementX;
         let newY = resizing.startElementY;
@@ -327,24 +329,25 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
 
         // Update based on corner
         if (resizing.corner.includes('w')) {
-          newX = resizing.startElementX + dx;
-          newWidth = resizing.startElementWidth - dx;
+          newX = resizing.startElementX + dxPercent;
+          newWidth = resizing.startElementWidth - dxPercent;
         } else if (resizing.corner.includes('e')) {
-          newWidth = resizing.startElementWidth + dx;
+          newWidth = resizing.startElementWidth + dxPercent;
         }
 
         if (resizing.corner.includes('n')) {
-          newY = resizing.startElementY + dy;
-          newHeight = resizing.startElementHeight - dy;
+          newY = resizing.startElementY + dyPercent;
+          newHeight = resizing.startElementHeight - dyPercent;
         } else if (resizing.corner.includes('s')) {
-          newHeight = resizing.startElementHeight + dy;
+          newHeight = resizing.startElementHeight + dyPercent;
         }
 
-        // Constraints
-        newWidth = Math.max(50, newWidth);
-        newHeight = Math.max(50, newHeight);
-        newX = Math.max(0, Math.min(layout.canvas.width - newWidth, newX));
-        newY = Math.max(0, Math.min(layout.canvas.height - newHeight, newY));
+        // Constraints (in percentages)
+        const minSizePercent = 5; // minimum 5% of canvas
+        newWidth = Math.max(minSizePercent, newWidth);
+        newHeight = Math.max(minSizePercent, newHeight);
+        newX = Math.max(0, Math.min(100 - newWidth, newX));
+        newY = Math.max(0, Math.min(100 - newHeight, newY));
 
         updateElement(resizing.type, {
           x: newX,
@@ -375,6 +378,12 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
     if (!element) return null;
 
     const isSelected = selectedElement === type;
+    
+    // Convert percentages to preview pixels for display
+    const leftPx = percentToPreview(element.x, 'width');
+    const topPx = percentToPreview(element.y, 'height');
+    const widthPx = percentToPreview(element.width, 'width');
+    const heightPx = percentToPreview(element.height, 'height');
 
     return (
       <Box
@@ -382,10 +391,10 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
         onMouseDown={(e) => handleMouseDown(e, type)}
         sx={{
           position: 'absolute',
-          left: element.x * scale,
-          top: element.y * scale,
-          width: element.width * scale,
-          height: element.height * scale,
+          left: leftPx,
+          top: topPx,
+          width: widthPx,
+          height: heightPx,
           backgroundColor: color,
           border: isSelected ? '2px solid #1976d2' : '1px solid #666',
           borderRadius: '4px',
@@ -536,49 +545,60 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
                       : 'Diagram Panel'}{' '}
                     Properties
                   </Typography>
+                  <Typography variant="caption" color="text.secondary" gutterBottom display="block">
+                    All values are percentages (0-100) of canvas dimensions
+                  </Typography>
                   <TextField
-                    label="X"
+                    label="X (%)"
                     type="number"
-                    value={Math.round(layout.elements[selectedElement]!.x)}
-                    onChange={(e) =>
-                      updateElement(selectedElement, { x: parseInt(e.target.value) || 0 })
-                    }
+                    value={Math.round(layout.elements[selectedElement]!.x * 10) / 10}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 0;
+                      updateElement(selectedElement, { x: Math.max(0, Math.min(100, val)) });
+                    }}
                     fullWidth
                     margin="dense"
                     size="small"
+                    inputProps={{ min: 0, max: 100, step: 0.1 }}
                   />
                   <TextField
-                    label="Y"
+                    label="Y (%)"
                     type="number"
-                    value={Math.round(layout.elements[selectedElement]!.y)}
-                    onChange={(e) =>
-                      updateElement(selectedElement, { y: parseInt(e.target.value) || 0 })
-                    }
+                    value={Math.round(layout.elements[selectedElement]!.y * 10) / 10}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 0;
+                      updateElement(selectedElement, { y: Math.max(0, Math.min(100, val)) });
+                    }}
                     fullWidth
                     margin="dense"
                     size="small"
+                    inputProps={{ min: 0, max: 100, step: 0.1 }}
                   />
                   <TextField
-                    label="Width"
+                    label="Width (%)"
                     type="number"
-                    value={Math.round(layout.elements[selectedElement]!.width)}
-                    onChange={(e) =>
-                      updateElement(selectedElement, { width: parseInt(e.target.value) || 50 })
-                    }
+                    value={Math.round(layout.elements[selectedElement]!.width * 10) / 10}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 5;
+                      updateElement(selectedElement, { width: Math.max(5, Math.min(100, val)) });
+                    }}
                     fullWidth
                     margin="dense"
                     size="small"
+                    inputProps={{ min: 5, max: 100, step: 0.1 }}
                   />
                   <TextField
-                    label="Height"
+                    label="Height (%)"
                     type="number"
-                    value={Math.round(layout.elements[selectedElement]!.height)}
-                    onChange={(e) =>
-                      updateElement(selectedElement, { height: parseInt(e.target.value) || 50 })
-                    }
+                    value={Math.round(layout.elements[selectedElement]!.height * 10) / 10}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 5;
+                      updateElement(selectedElement, { height: Math.max(5, Math.min(100, val)) });
+                    }}
                     fullWidth
                     margin="dense"
                     size="small"
+                    inputProps={{ min: 5, max: 100, step: 0.1 }}
                   />
                 </>
               )}

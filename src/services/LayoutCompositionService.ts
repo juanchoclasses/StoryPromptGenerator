@@ -45,7 +45,15 @@ export async function composeSceneWithLayout(
   for (const element of elements) {
     if (!element.img || !element.config) continue;
     
-    console.log(`  Drawing ${element.type} at (${element.config.x}, ${element.config.y}) with size ${element.config.width}x${element.config.height}`);
+    // Convert percentage-based positions to actual pixels
+    const x = Math.round((element.config.x / 100) * canvas.width);
+    const y = Math.round((element.config.y / 100) * canvas.height);
+    const width = Math.round((element.config.width / 100) * canvas.width);
+    const height = Math.round((element.config.height / 100) * canvas.height);
+    
+    console.log(`  Drawing ${element.type}:`);
+    console.log(`    Percentage: (${element.config.x}%, ${element.config.y}%) size ${element.config.width}%x${element.config.height}%`);
+    console.log(`    Pixels: (${x}px, ${y}px) size ${width}x${height}px`);
     
     // Ensure image is fully loaded
     await element.img.decode();
@@ -53,10 +61,10 @@ export async function composeSceneWithLayout(
     // Draw and scale the image to fit the layout dimensions
     ctx.drawImage(
       element.img,
-      element.config.x,
-      element.config.y,
-      element.config.width,
-      element.config.height
+      x,
+      y,
+      width,
+      height
     );
   }
 

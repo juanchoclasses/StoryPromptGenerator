@@ -114,6 +114,16 @@ export async function createTextPanel(
     textAlign = "left",
   } = opts;
 
+  console.log('📝 createTextPanel called with:');
+  console.log('  textAlign:', textAlign);
+  console.log('  width:', width);
+  console.log('  height:', height);
+  console.log('  padding:', padding);
+  console.log('  fontFamily:', fontFamily);
+  console.log('  fontSize:', fontSize);
+  console.log('  fontColor:', fontColor);
+  console.log('  bgColor:', bgColor);
+
   const c = document.createElement("canvas");
   c.width = width;
   c.height = height;
@@ -140,6 +150,12 @@ export async function createTextPanel(
   const innerY = padding;
   const innerW = width - padding * 2;
   const lines = wrapText(ctx, text, innerW);
+  
+  console.log('  innerX:', innerX);
+  console.log('  innerY:', innerY);
+  console.log('  innerW:', innerW);
+  console.log('  lines count:', lines.length);
+  
   let y = innerY;
 
   for (const line of lines) {
@@ -147,6 +163,7 @@ export async function createTextPanel(
     let x = innerX;
     if (textAlign === "center") x = innerX + (innerW - lineWidth) / 2;
     if (textAlign === "right") x = innerX + innerW - lineWidth;
+    console.log(`  Line "${line.substring(0, 30)}..." → x: ${x}, lineWidth: ${lineWidth}`);
     ctx.fillText(line, x, y);
     y += lineHeight;
     if (y + lineHeight > height - padding) break; // clip if overflow
@@ -250,6 +267,10 @@ export async function overlayTextOnImage(
     gutterRight?: number;
   }
 ): Promise<string> {
+  console.log('🎨 overlayTextOnImage called');
+  console.log('  Incoming config:', config);
+  console.log('  Text length:', text.length);
+  
   // Load the base image
   const baseImg = await loadImage(imageDataUrl);
   
@@ -257,14 +278,20 @@ export async function overlayTextOnImage(
   const actualImageWidth = baseImg.naturalWidth;
   const actualImageHeight = baseImg.naturalHeight;
   
+  console.log('  Image dimensions:', actualImageWidth, 'x', actualImageHeight);
+  
   // Use provided config or defaults
   const widthPercent = config?.widthPercentage ?? 100;
   const heightPercent = config?.heightPercentage ?? 15;
   const position = config?.position ?? 'bottom-center';
   
+  console.log('  widthPercent:', widthPercent, 'heightPercent:', heightPercent, 'position:', position);
+  
   // Calculate panel dimensions based on ACTUAL image size
   const panelWidth = Math.round(actualImageWidth * (widthPercent / 100));
   let panelHeight = Math.round(actualImageHeight * (heightPercent / 100));
+  
+  console.log('  Calculated panelWidth:', panelWidth, 'panelHeight:', panelHeight);
   
   // If autoHeight is enabled, calculate optimal height to fit all text
   if (config?.autoHeight) {
@@ -308,6 +335,9 @@ export async function overlayTextOnImage(
   }
   
   // Create text panel with provided or default styling
+  const textAlignValue = (config?.textAlign as CanvasTextAlign) ?? "center";
+  console.log('  About to call createTextPanel with textAlign:', textAlignValue);
+  
   const panel = await createTextPanel(text, {
     width: panelWidth,
     height: panelHeight,
@@ -320,7 +350,7 @@ export async function overlayTextOnImage(
     fontSize: config?.fontSize ?? Math.round(panelHeight / 6),
     fontColor: config?.fontColor ?? "#ffffff",
     lineHeight: config?.fontSize ? Math.round(config.fontSize * 1.3) : Math.round(panelHeight / 5),
-    textAlign: (config?.textAlign as CanvasTextAlign) ?? "center"
+    textAlign: textAlignValue
   });
   
   // Get gutter values (default to 0)

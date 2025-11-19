@@ -70,6 +70,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const [diagramLanguage, setDiagramLanguage] = useState('javascript');
   const [diagramPreviewOpen, setDiagramPreviewOpen] = useState(false);
   const [diagramPreviewUrl, setDiagramPreviewUrl] = useState<string | null>(null);
+  const [textPanelPreviewOpen, setTextPanelPreviewOpen] = useState(false);
+  const [textPanelPreviewUrl, setTextPanelPreviewUrl] = useState<string | null>(null);
   const [activeBook, setActiveBook] = useState<any>(null); // Book instance for book-level characters
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -388,6 +390,61 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     } catch (error) {
       console.error('Error previewing diagram:', error);
       setSnackbarMessage('Failed to preview diagram: ' + (error as Error).message);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
+  const handlePreviewTextPanel = async () => {
+    if (!textPanel.trim()) {
+      setSnackbarMessage('Please enter text panel content first');
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    try {
+      const { overlayTextOnImage } = await import('../services/OverlayService');
+      const { DEFAULT_PANEL_CONFIG } = await import('../types/Book');
+      
+      // Create a blank gray canvas as base image
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#e0e0e0';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      const blankImage = canvas.toDataURL('image/png');
+
+      // Get panel config from book or use defaults
+      const panelConfig = activeBook?.style?.panelConfig || DEFAULT_PANEL_CONFIG;
+      
+      console.log('🔍 PREVIEW Text Panel Config:', JSON.stringify(panelConfig, null, 2));
+
+      // Replace macros
+      const macros = { 'SceneDescription': currentScene?.description || 'Scene description here' };
+      let previewText = textPanel;
+      Object.entries(macros).forEach(([key, value]) => {
+        const regex = new RegExp(`\\{${key}\\}`, 'g');
+        previewText = previewText.replace(regex, value);
+      });
+
+      // Preview with current config
+      const resultUrl = await overlayTextOnImage(
+        blankImage,
+        previewText,
+        canvas.width,
+        canvas.height,
+        panelConfig
+      );
+      
+      setTextPanelPreviewUrl(resultUrl);
+      setTextPanelPreviewOpen(true);
+    } catch (error) {
+      console.error('Error previewing text panel:', error);
+      setSnackbarMessage('Failed to preview text panel: ' + (error as Error).message);
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
@@ -1280,6 +1337,15 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             }
           }}
         />
+        
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={handlePreviewTextPanel}
+          sx={{ mt: 2 }}
+        >
+          Preview Text Panel
+        </Button>
       </Box>
 
       {/* Diagram Panel Section */}
@@ -1841,6 +1907,54 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         onSave={handleSaveLayout}
         onCancel={() => setLayoutEditorOpen(false)}
       />
+
+      {/* Text Panel Preview Dialog */}
+      <Dialog
+        open={textPanelPreviewOpen}
+        onClose={() => setTextPanelPreviewOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Text Panel Preview</DialogTitle>
+        <DialogContent>
+          {textPanelPreviewUrl && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+              <img
+                src={textPanelPreviewUrl}
+                alt="Text Panel Preview"
+                style={{ maxWidth: '100%', height: 'auto' }}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTextPanelPreviewOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Diagram Panel Preview Dialog */}
+      <Dialog
+        open={diagramPreviewOpen}
+        onClose={() => setDiagramPreviewOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Diagram Panel Preview</DialogTitle>
+        <DialogContent>
+          {diagramPreviewUrl && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+              <img
+                src={diagramPreviewUrl}
+                alt="Diagram Panel Preview"
+                style={{ maxWidth: '100%', height: 'auto' }}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDiagramPreviewOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
       </Box>
     </Paper>
   );

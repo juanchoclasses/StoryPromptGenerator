@@ -143,7 +143,9 @@ export async function createTextPanel(
   // Text
   ctx.font = `${fontSize}px ${fontFamily}`;
   ctx.fillStyle = fontColor;
-  ctx.textAlign = textAlign;
+  // IMPORTANT: Always use "left" because we manually calculate x positions
+  // If we set textAlign to "center", canvas treats x as center point, breaking our calculations
+  ctx.textAlign = "left";
   ctx.textBaseline = "top";
 
   const innerX = padding;
@@ -155,6 +157,7 @@ export async function createTextPanel(
   console.log('  innerY:', innerY);
   console.log('  innerW:', innerW);
   console.log('  lines count:', lines.length);
+  console.log('  User requested textAlign:', textAlign, '(but using "left" on canvas + manual x calc)');
   
   let y = innerY;
 
@@ -163,7 +166,7 @@ export async function createTextPanel(
     let x = innerX;
     if (textAlign === "center") x = innerX + (innerW - lineWidth) / 2;
     if (textAlign === "right") x = innerX + innerW - lineWidth;
-    console.log(`  Line "${line.substring(0, 30)}..." → x: ${x}, lineWidth: ${lineWidth}`);
+    console.log(`  Line "${line.substring(0, 30)}..." → x: ${x}, lineWidth: ${lineWidth}, align: ${textAlign}`);
     ctx.fillText(line, x, y);
     y += lineHeight;
     if (y + lineHeight > height - padding) break; // clip if overflow

@@ -89,6 +89,7 @@ export class BookCache {
     // Import model classes (safe here, not circular)
     const { Story } = await import('../models/Story.js');
     const { Scene } = await import('../models/Scene.js');
+    const { DEFAULT_PANEL_CONFIG } = await import('../types/Book.js');
     
     // Reconstruct Story model instances first
     const reconstructedStories = bookData.stories ? bookData.stories.map((storyData: any) => {
@@ -124,6 +125,21 @@ export class BookCache {
     
     // Create Book instance without stories (to avoid double-wrapping)
     const { stories, ...bookDataWithoutStories } = bookData;
+    
+    // CRITICAL FIX: Ensure panelConfig is properly merged with defaults
+    // When loading from JSON, the style object exists but may be missing nested defaults
+    if (bookDataWithoutStories.style) {
+      // Deep merge: ensure panelConfig has all default values
+      bookDataWithoutStories.style = {
+        ...bookDataWithoutStories.style,
+        panelConfig: {
+          ...DEFAULT_PANEL_CONFIG,
+          ...(bookDataWithoutStories.style.panelConfig || {})
+        }
+      };
+      console.log(`📘 Book style loaded with panelConfig:`, bookDataWithoutStories.style.panelConfig);
+    }
+    
     const book = new Book(bookDataWithoutStories);
     
     // Assign reconstructed stories directly

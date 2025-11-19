@@ -437,7 +437,7 @@
       "textPanel": "\"Now let's combine them all in one grand quest,\nFilter, group, aggregate, and sort—put SQL to the test!\nAverage GPA per major, but only age twenty-plus we seek,\nComplex queries showcase SQL at its peak!\"",
       "diagramPanel": {
         "type": "markdown",
-        "content": "# Complex Query:\n```sql\nSELECT major, AVG(gpa) AS avg_gpa, COUNT(*) AS num\nFROM students\nWHERE age >= 20\nGROUP BY major\nHAVING COUNT(*) > 1\nORDER BY avg_gpa DESC;\n```\n\n### Result:\n\n| major              | avg_gpa | num |\n|--------------------|---------|-----|\n| Computer Science   | 3.60    | 2   |\n| Mathematics        | 3.60    | 2   |\n\n**What happened:** Filtered to age≥20 (4 students), grouped by major, kept only majors with >1 student, sorted by average GPA.",
+        "content": "# Complex Query:\n```sql\nSELECT major, AVG(gpa) AS avg_gpa, COUNT(*) AS num\nFROM students\nWHERE age >= 20\nGROUP BY major\nHAVING COUNT(*) > 1\nORDER BY avg_gpa DESC, major ASC;\n```\n\n### Result:\n\n| major              | avg_gpa | num |\n|--------------------|---------|-----|\n| Computer Science   | 3.60    | 2   |\n| Mathematics        | 3.60    | 2   |\n\n**What happened:** Filtered to age≥20 (4 students), grouped by major, kept only majors with >1 student, sorted by average GPA (then alphabetically by major).",
         "language": "markdown",
         "style": {
           "boardStyle": "blackboard",

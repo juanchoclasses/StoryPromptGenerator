@@ -29,6 +29,7 @@ import { SettingsDialog } from './components/SettingsDialog';
 import { DirectoryReconnectDialog } from './components/DirectoryReconnectDialog';
 import { ImagePanel } from './components/ImagePanel';
 import { OperationsPanel } from './components/OperationsPanel';
+import { ExperimentPanel } from './components/ExperimentPanel';
 import { ImageStorageService } from './services/ImageStorageService';
 import { FileSystemService } from './services/FileSystemService';
 import type { Scene, Story, GeneratedImage } from './types/Story';
@@ -431,6 +432,7 @@ function App() {
             <Tab label="Story Editor" disabled={!selectedStory} />
             <Tab label="Story Characters" disabled={!selectedStory} />
             <Tab label="Story Elements" disabled={!selectedStory} />
+            <Tab label="Experiments" />
             <Tab label="Operations" />
             <Tab label="About" />
           </Tabs>
@@ -568,11 +570,17 @@ function App() {
 
         {activeTab === 6 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <OperationsPanel />
+            <ExperimentPanel />
           </Box>
         )}
 
         {activeTab === 7 && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <OperationsPanel />
+          </Box>
+        )}
+
+        {activeTab === 8 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <AboutPanel />
           </Box>

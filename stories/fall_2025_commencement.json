@@ -1,0 +1,124 @@
+{
+  "book": {
+    "title": "Fall 2025: 5500 Students Make a Difference",
+    "description": "A celebration of 5500 students showcasing educational projects for K-7 health education, supporting learners with diverse challenges",
+    "backgroundSetup": "A grand auditorium stage with simple, clean lines in XKCD stick-figure style. The stage features a podium in the center, rows of chairs for students, project display boards showcasing K-7 health education work, and a large banner overhead reading 'Fall 2025 Project Showcase'. The setting is minimalist but celebratory, with confetti in the air and simple geometric shapes representing the crowd. The style should be clean black line drawings on white background, characteristic of XKCD comics - simple stick figures, hand-drawn aesthetic, minimal details but maximum expressiveness. This celebrates students' work in creating accessible health education for diverse learners. IMPORTANT: Keep the visual style simple and sketch-like with thin black lines.",
+    "aspectRatio": "4:3",
+    "style": {
+      "colorPalette": "Black and white with minimal grayscale - XKCD comic style",
+      "visualTheme": "XKCD stick-figure comic style: simple, clean black lines on white background, minimalist but expressive",
+      "characterStyle": "Simple XKCD stick figures with circle heads, dot eyes, stick bodies and limbs, maximum expression through pose and minimal lines",
+      "environmentStyle": "Clean geometric shapes, hand-drawn aesthetic, minimal details, thin black outlines",
+      "artStyle": "comic-book",
+      "panelConfig": {
+        "fontFamily": "xkcd",
+        "fontSize": 18,
+        "textAlign": "left",
+        "widthPercentage": 90,
+        "heightPercentage": 15,
+        "autoHeight": true,
+        "position": "bottom-center",
+        "backgroundColor": "#ffffff",
+        "fontColor": "#000000",
+        "borderColor": "#000000",
+        "borderWidth": 2,
+        "borderRadius": 5,
+        "padding": 15,
+        "gutterTop": 0,
+        "gutterBottom": 0,
+        "gutterLeft": 0,
+        "gutterRight": 0
+      }
+    }
+  },
+  "stories": [
+    {
+      "story": {
+        "title": "5500 Students, One Mission: Health Education for All",
+        "backgroundSetup": "A grand auditorium stage with simple, clean lines in XKCD stick-figure style. The stage features a podium in the center, rows of chairs for students, and a large banner overhead reading 'Fall 2025 Project Showcase'. Display boards showing K-7 health education projects are visible. The setting is minimalist but celebratory, with confetti in the air and simple geometric shapes representing the crowd. The style should be clean black line drawings on white background, characteristic of XKCD comics - simple stick figures, hand-drawn aesthetic, minimal details but maximum expressiveness. IMPORTANT: Keep the visual style simple and sketch-like with thin black lines.",
+        "description": "A celebration of 5500 students showcasing their K-7 health education projects, created under teacher guidance to support students with diverse learning challenges."
+      },
+      "characters": [
+        {
+          "name": "Teacher Leader",
+          "description": "A simple XKCD-style stick figure standing at a podium with confident, welcoming posture. Arms are simple straight lines, often gesturing to the students or display boards. The face is a circle with two dots for eyes and a warm curved smile. May wear simple glasses represented by two small circles. Very minimalist, clean black lines on white, characteristic of XKCD style. This is the local teacher who guided the students."
+        },
+        {
+          "name": "Student Group 1",
+          "description": "A cluster of 5-6 XKCD stick figure students sitting in chairs. Each is a simple circle head with dots for eyes, stick body, stick arms and legs. Some have arms raised in celebration, others sit attentively. Some hold simple rectangular project boards or papers. Pure XKCD style - minimal, expressive through pose rather than detail. These are the student creators showcasing their health education projects."
+        },
+        {
+          "name": "Student Group 2",
+          "description": "Another cluster of 5-6 XKCD stick figure students, similar to Group 1 but with different poses. Some are standing, some sitting, some with arms around each other in celebration. One figure holds up what looks like a project display board (simple rectangle with sketched lines). All rendered in clean, simple black lines, very XKCD-style stick figures. These students are proud of their accessible learning tools."
+        },
+        {
+          "name": "Celebrating Student",
+          "description": "A single enthusiastic XKCD stick figure with arms raised high in a 'V' shape, jumping with excitement. Simple circle head with wide dots for eyes and a big curved smile. Motion lines around the figure to show jumping. Pure XKCD minimalist style - maximal expression with minimal lines. This student represents the joy of creating something meaningful for others."
+        }
+      ],
+      "elements": [
+        {
+          "name": "Project Showcase Stage",
+          "description": "A simple rectangular platform drawn with clean black lines. A podium in the center represented by a simple rectangular stand. Minimal perspective lines to show depth. XKCD style - no shading, just clean outlines.",
+          "category": "Rooms"
+        },
+        {
+          "name": "Fall 2025 Banner",
+          "description": "A large horizontal banner hanging above the stage with text 'Fall 2025 Project Showcase - Health Education for All' in simple hand-drawn letters. The banner is held by simple curved lines representing ropes or poles. Pure XKCD style - looks hand-lettered and sketchy.",
+          "category": "Set Pieces"
+        },
+        {
+          "name": "Project Display Boards",
+          "description": "Several simple rectangular boards on stands showing K-7 health education projects. Each board is drawn with basic lines and contains simple sketches and text representing student work. XKCD minimalist style - just enough detail to convey 'educational project display'.",
+          "category": "Set Pieces"
+        },
+        {
+          "name": "Student Seating",
+          "description": "Rows of simple rectangular chairs drawn with minimal lines. Some chairs have stick figure students sitting in them. Very simplified, XKCD-style furniture - just enough lines to convey 'chair'.",
+          "category": "Set Pieces"
+        },
+        {
+          "name": "Confetti",
+          "description": "Small simple shapes floating in the air - squares, triangles, circles, and curved lines representing falling confetti. Scattered throughout the scene. Drawn with simple black outlines, some filled, some not. Classic XKCD simplicity.",
+          "category": "Set Pieces"
+        },
+        {
+          "name": "Recognition Certificates",
+          "description": "A neat stack of simple rectangles on a table near the podium, representing certificates of recognition for the student projects. Just basic geometric shapes with minimal detail, XKCD style.",
+          "category": "Set Pieces"
+        }
+      ],
+      "scenes": [
+        {
+          "title": "5500 Students Making Health Education Accessible",
+          "description": "The stage is set for the Fall 2025 Project Showcase. Teacher Leader stands at the podium with arms spread wide in welcome, a broad smile on their stick-figure face. Student Group 1 and Student Group 2 are seated and standing in celebration poses around the stage, some holding project display boards. Celebrating Student is mid-jump with arms raised high in pure joy, confetti falling around them. The Fall 2025 Banner hangs proudly overhead. Project Display Boards show examples of the innovative K-7 health education work. The scene captures the joy and accomplishment of 5500 students showcasing their projects designed to support learners with diverse challenges. Everything is rendered in clean, simple XKCD stick-figure style - minimal lines, maximum expression, hand-drawn aesthetic with thin black lines on white background.",
+          "textPanel": "Five thousand five hundred hearts unite,\nCreating tools to make learning bright!\nFor K through seven, health lessons to share,\nEach learning challenge met with thoughtful care!",
+          "diagramPanel": {
+            "type": "markdown",
+            "content": "# Fall 2025 Project Showcase\n\n## 5,500 Students Creating Accessible Health Education\n\n**Making a Difference**: Under the guidance of dedicated local teachers, 5,500 students have developed innovative educational projects to transform K-7 health education.\n\n---\n\n### Mission & Purpose\n\n**Target Audience**: K through 7th grade students  \n**Focus Area**: Health Education  \n**Special Emphasis**: Supporting students with diverse learning challenges\n\n- Visual learners\n- Auditory learners\n- Kinesthetic learners\n- Students with attention challenges\n- Students with reading differences\n- English language learners\n- And many more...\n\n---\n\n### Project Impact\n\n- **5,500 Student Creators**: Each bringing unique perspective\n- **Local Teacher Guidance**: Expert mentorship and support\n- **Inclusive Design**: Projects built for ALL learners\n- **Real-World Application**: Tools ready for classroom use\n\n---\n\n**[Placeholder text - adjust as needed]**\n\n*Together, we're proving that every student can learn health education when given the right tools and support.*",
+            "language": "markdown",
+            "style": {
+              "boardStyle": "whiteboard",
+              "position": "top-center",
+              "widthPercentage": 70,
+              "heightPercentage": 45,
+              "autoScale": true,
+              "backgroundColor": "#ffffff",
+              "foregroundColor": "#000000",
+              "borderColor": "#333333",
+              "borderWidth": 2,
+              "padding": 20,
+              "fontSize": 15,
+              "gutterTop": 15,
+              "gutterBottom": 0,
+              "gutterLeft": 0,
+              "gutterRight": 0
+            }
+          },
+          "characters": ["Teacher Leader", "Student Group 1", "Student Group 2", "Celebrating Student"],
+          "elements": ["Project Showcase Stage", "Fall 2025 Banner", "Student Seating", "Confetti", "Recognition Certificates", "Project Display Boards"]
+        }
+      ]
+    }
+  ]
+}

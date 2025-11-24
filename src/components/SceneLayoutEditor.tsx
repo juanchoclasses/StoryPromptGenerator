@@ -58,6 +58,14 @@ interface ResizingState {
 }
 
 /**
+ * Parse aspect ratio string to numeric ratio (width/height)
+ */
+const parseAspectRatio = (aspectRatio: string): number => {
+  const [widthRatio, heightRatio] = aspectRatio.split(':').map(Number);
+  return widthRatio / heightRatio;
+};
+
+/**
  * Convert aspect ratio string to canvas dimensions
  * Returns standard dimensions based on the aspect ratio
  */
@@ -78,35 +86,8 @@ const getCanvasDimensionsFromAspectRatio = (aspectRatio: string): { width: numbe
   }
 };
 
-const PRESET_LAYOUTS: Record<string, SceneLayout> = {
-  overlay: {
-    type: 'overlay',
-    canvas: { width: 1920, height: 1080, aspectRatio: '16:9' },
-    elements: {
-      image: { x: 0, y: 0, width: 1920, height: 1080, zIndex: 1 },
-      textPanel: { x: 100, y: 850, width: 1720, height: 180, zIndex: 2 },
-      diagramPanel: { x: 100, y: 50, width: 1200, height: 400, zIndex: 3 }
-    }
-  },
-  'comic-sidebyside': {
-    type: 'comic-sidebyside',
-    canvas: { width: 1920, height: 1080, aspectRatio: '16:9' },
-    elements: {
-      image: { x: 0, y: 0, width: 960, height: 1080, zIndex: 1 },
-      textPanel: { x: 980, y: 540, width: 920, height: 520, zIndex: 2 },
-      diagramPanel: { x: 980, y: 20, width: 920, height: 500, zIndex: 3 }
-    }
-  },
-  'comic-vertical': {
-    type: 'comic-vertical',
-    canvas: { width: 1080, height: 1920, aspectRatio: '9:16' },
-    elements: {
-      image: { x: 0, y: 0, width: 1080, height: 960, zIndex: 1 },
-      textPanel: { x: 20, y: 1440, width: 1040, height: 460, zIndex: 2 },
-      diagramPanel: { x: 20, y: 980, width: 1040, height: 440, zIndex: 3 }
-    }
-  }
-};
+// Preset layouts removed - they don't properly respect aspect ratios
+// Users should manually configure layouts using the visual editor
 
 export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
   open,
@@ -197,42 +178,7 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
     setLayout(getInitialLayout());
   }, [currentLayout, bookAspectRatio]);
 
-  const applyPreset = (presetName: string) => {
-    const preset = PRESET_LAYOUTS[presetName];
-    if (preset) {
-      // Convert preset from absolute pixels to percentages
-      const convertToPercentages = (el: LayoutElement, canvasW: number, canvasH: number): LayoutElement => ({
-        x: (el.x / canvasW) * 100,
-        y: (el.y / canvasH) * 100,
-        width: (el.width / canvasW) * 100,
-        height: (el.height / canvasH) * 100,
-        zIndex: el.zIndex
-      });
-      
-      const adaptedPreset: SceneLayout = {
-        type: preset.type,
-        canvas: {
-          width: canvasDimensions.width,
-          height: canvasDimensions.height,
-          aspectRatio: bookAspectRatio
-        },
-        elements: {
-          image: preset.elements.image 
-            ? convertToPercentages(preset.elements.image, preset.canvas.width, preset.canvas.height)
-            : { x: 0, y: 0, width: 100, height: 100, zIndex: 1 },
-          textPanel: preset.elements.textPanel
-            ? convertToPercentages(preset.elements.textPanel, preset.canvas.width, preset.canvas.height)
-            : undefined,
-          diagramPanel: preset.elements.diagramPanel
-            ? convertToPercentages(preset.elements.diagramPanel, preset.canvas.width, preset.canvas.height)
-            : undefined
-        }
-      };
-      
-      setLayout(adaptedPreset);
-      setSelectedElement(null);
-    }
-  };
+  // Preset layouts removed - users should manually configure using the visual editor
 
   const updateElement = (type: ElementType, updates: Partial<LayoutElement>) => {
     setLayout(prev => ({
@@ -336,19 +282,70 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
         let newWidth = resizing.startElementWidth;
         let newHeight = resizing.startElementHeight;
 
-        // Update based on corner
-        if (resizing.corner.includes('w')) {
-          newX = resizing.startElementX + dxPercent;
-          newWidth = resizing.startElementWidth - dxPercent;
-        } else if (resizing.corner.includes('e')) {
-          newWidth = resizing.startElementWidth + dxPercent;
+        // For 'image' element, ALWAYS preserve aspect ratio during resize
+        const isImageElement = resizing.type === 'image';
+        let imageAspectRatio: number | null = null;
+        
+        if (isImageElement) {
+          // Use forced aspect ratio if set, otherwise use book's default aspect ratio
+          const aspectRatioStr = layout.elements.image.aspectRatio || bookAspectRatio;
+          imageAspectRatio = parseAspectRatio(aspectRatioStr);
         }
 
-        if (resizing.corner.includes('n')) {
-          newY = resizing.startElementY + dyPercent;
-          newHeight = resizing.startElementHeight - dyPercent;
-        } else if (resizing.corner.includes('s')) {
-          newHeight = resizing.startElementHeight + dyPercent;
+        if (isImageElement && imageAspectRatio) {
+          // Calculate new dimensions based on the corner being dragged
+          // Use the dominant axis (larger change) to determine scale
+          const absWidthChange = Math.abs(dxPercent);
+          const absHeightChange = Math.abs(dyPercent);
+          
+          if (absWidthChange > absHeightChange) {
+            // Width is dominant - calculate height from width
+            if (resizing.corner.includes('w')) {
+              newX = resizing.startElementX + dxPercent;
+              newWidth = resizing.startElementWidth - dxPercent;
+            } else if (resizing.corner.includes('e')) {
+              newWidth = resizing.startElementWidth + dxPercent;
+            }
+            // Calculate height to maintain aspect ratio
+            newHeight = newWidth / imageAspectRatio;
+            
+            // Adjust Y position if resizing from top
+            if (resizing.corner.includes('n')) {
+              const heightDiff = newHeight - resizing.startElementHeight;
+              newY = resizing.startElementY - heightDiff;
+            }
+          } else {
+            // Height is dominant - calculate width from height
+            if (resizing.corner.includes('n')) {
+              newY = resizing.startElementY + dyPercent;
+              newHeight = resizing.startElementHeight - dyPercent;
+            } else if (resizing.corner.includes('s')) {
+              newHeight = resizing.startElementHeight + dyPercent;
+            }
+            // Calculate width to maintain aspect ratio
+            newWidth = newHeight * imageAspectRatio;
+            
+            // Adjust X position if resizing from left
+            if (resizing.corner.includes('w')) {
+              const widthDiff = newWidth - resizing.startElementWidth;
+              newX = resizing.startElementX - widthDiff;
+            }
+          }
+        } else {
+          // For non-image elements or images without forced aspect ratio, allow free resize
+          if (resizing.corner.includes('w')) {
+            newX = resizing.startElementX + dxPercent;
+            newWidth = resizing.startElementWidth - dxPercent;
+          } else if (resizing.corner.includes('e')) {
+            newWidth = resizing.startElementWidth + dxPercent;
+          }
+
+          if (resizing.corner.includes('n')) {
+            newY = resizing.startElementY + dyPercent;
+            newHeight = resizing.startElementHeight - dyPercent;
+          } else if (resizing.corner.includes('s')) {
+            newHeight = resizing.startElementHeight + dyPercent;
+          }
         }
 
         // Constraints (in percentages)
@@ -486,34 +483,6 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
           {/* Left Panel - Presets and Controls */}
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Presets
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Button
-                  startIcon={<LayersIcon />}
-                  variant={layout.type === 'overlay' ? 'contained' : 'outlined'}
-                  onClick={() => applyPreset('overlay')}
-                >
-                  Overlay (Current Style)
-                </Button>
-                <Button
-                  startIcon={<ViewModuleIcon />}
-                  variant={layout.type === 'comic-sidebyside' ? 'contained' : 'outlined'}
-                  onClick={() => applyPreset('comic-sidebyside')}
-                >
-                  Comic Side-by-Side
-                </Button>
-                <Button
-                  startIcon={<ViewDayIcon />}
-                  variant={layout.type === 'comic-vertical' ? 'contained' : 'outlined'}
-                  onClick={() => applyPreset('comic-vertical')}
-                >
-                  Comic Vertical
-                </Button>
-              </Box>
-
-              <Divider sx={{ my: 2 }} />
 
               <Typography variant="h6" gutterBottom>
                 Canvas Settings

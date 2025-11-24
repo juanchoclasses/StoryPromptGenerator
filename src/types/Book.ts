@@ -36,6 +36,7 @@ export interface Book {
   backgroundSetup?: string; // Overall world/style description that applies to all stories in this book
   aspectRatio?: string; // e.g., "3:4", "16:9", "1:1"
   panelConfig?: PanelConfig;
+  defaultLayout?: any; // SceneLayout - Default layout for all scenes in this book (using any to avoid circular dependency)
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,6 +48,7 @@ export interface BookMetadata {
   backgroundSetup?: string; // Overall world/style description that applies to all stories in this book
   aspectRatio?: string; // e.g., "3:4", "16:9", "1:1"
   panelConfig?: PanelConfig;
+  defaultLayout?: any; // SceneLayout - Default layout for all scenes in this book
   createdAt: Date;
   updatedAt: Date;
   storyCount: number;

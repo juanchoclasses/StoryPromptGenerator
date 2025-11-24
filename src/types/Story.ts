@@ -103,6 +103,7 @@ export interface Story {
   description?: string; // Optional for backward compatibility
   backgroundSetup: string;
   diagramStyle?: DiagramStyle; // Optional diagram style configuration for all scenes in this story
+  layout?: SceneLayout; // Optional default layout for all scenes in this story
   characters: Character[]; // Characters specific to this story
   elements: StoryElement[]; // Elements specific to this story
   scenes: Scene[];

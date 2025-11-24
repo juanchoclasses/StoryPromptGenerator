@@ -220,19 +220,28 @@ export class BookCache {
         diagramStyle: story.diagramStyle,
         characters: story.characters,
         elements: story.elements,
-        scenes: story.scenes.map(scene => ({
-          id: scene.id,
-          title: scene.title,
-          description: scene.description,
-          textPanel: scene.textPanel,
-          diagramPanel: scene.diagramPanel,
-          layout: scene.layout, // Custom layout configuration
-          characters: scene.characters,
-          elements: scene.elements,
-          imageHistory: scene.imageHistory,
-          createdAt: scene.createdAt,
-          updatedAt: scene.updatedAt
-        })),
+        scenes: story.scenes.map(scene => {
+          // Debug: Check if scene has layout
+          if (scene.layout) {
+            console.log(`📐 Serializing scene "${scene.title}" WITH layout:`, scene.layout.type);
+          } else {
+            console.log(`⚠️  Serializing scene "${scene.title}" WITHOUT layout`);
+          }
+          
+          return {
+            id: scene.id,
+            title: scene.title,
+            description: scene.description,
+            textPanel: scene.textPanel,
+            diagramPanel: scene.diagramPanel,
+            layout: scene.layout, // Custom layout configuration
+            characters: scene.characters,
+            elements: scene.elements,
+            imageHistory: scene.imageHistory,
+            createdAt: scene.createdAt,
+            updatedAt: scene.updatedAt
+          };
+        }),
         createdAt: story.createdAt,
         updatedAt: story.updatedAt
       })),

@@ -152,6 +152,7 @@ export class BookService {
           description: scene.description,
           textPanel: scene.textPanel,
           diagramPanel: scene.diagramPanel, // Include diagram panel
+          layout: scene.layout, // Include custom layout configuration
           characters: scene.characters || [],
           elements: scene.elements || [],
           characterIds: scene.characters || [], // DEPRECATED: for backward compat

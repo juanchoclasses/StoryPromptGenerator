@@ -51,6 +51,59 @@ import { ModelSelectionDialog } from './ModelSelectionDialog';
 import { PanelConfigDialog } from './PanelConfigDialog';
 import { SceneLayoutEditor } from './SceneLayoutEditor';
 
+/**
+ * Calculate the minimum height needed for a text panel based on content
+ */
+function calculateTextPanelHeight(
+  text: string,
+  width: number,
+  panelConfig: PanelConfig
+): number {
+  const fontSize = panelConfig.fontSize || 24;
+  const lineHeight = Math.round(fontSize * 1.3);
+  const padding = panelConfig.padding || 20;
+  
+  // Create a temporary canvas to measure text
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d')!;
+  ctx.font = `${fontSize}px ${panelConfig.fontFamily || 'Arial'}`;
+  
+  // Calculate available width for text
+  const innerWidth = width - (padding * 2);
+  
+  // Word-wrap text to count lines
+  const lines: string[] = [];
+  const paragraphs = text.split(/\r?\n/);
+  
+  for (const paragraph of paragraphs) {
+    if (!paragraph.trim()) {
+      lines.push("");
+      continue;
+    }
+    
+    const words = paragraph.split(/\s+/);
+    let line = "";
+    
+    for (const word of words) {
+      const test = line ? line + " " + word : word;
+      const w = ctx.measureText(test).width;
+      if (w <= innerWidth) {
+        line = test;
+      } else {
+        if (line) lines.push(line);
+        line = word;
+      }
+    }
+    if (line) lines.push(line);
+  }
+  
+  // Calculate total height needed
+  const textHeight = lines.length * lineHeight;
+  const totalHeight = textHeight + (padding * 2);
+  
+  return Math.ceil(totalHeight);
+}
+
 interface SceneEditorProps {
   story: Story | null;
   selectedScene: Scene | null;
@@ -72,6 +125,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const [diagramPreviewUrl, setDiagramPreviewUrl] = useState<string | null>(null);
   const [textPanelPreviewOpen, setTextPanelPreviewOpen] = useState(false);
   const [textPanelPreviewUrl, setTextPanelPreviewUrl] = useState<string | null>(null);
+  const [layoutTestPreviewOpen, setLayoutTestPreviewOpen] = useState(false);
+  const [layoutTestPreviewUrl, setLayoutTestPreviewUrl] = useState<string | null>(null);
   const [activeBook, setActiveBook] = useState<any>(null); // Book instance for book-level characters
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -844,29 +899,58 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     if (!currentScene || !activeBook || !story) return;
 
     console.log('💾 Saving layout configuration:', layout);
+    console.log('  Current scene ID:', currentScene.id);
+    console.log('  Story ID:', story.id);
+    console.log('  Active book ID:', activeBook.id);
 
     // Find the actual scene in the book's story array and update it
     const storyInBook = activeBook.stories.find(s => s.id === story.id);
     if (!storyInBook) {
-      console.error('Story not found in book');
+      console.error('❌ Story not found in book');
       return;
     }
 
+    console.log('  ✓ Found story in book, scenes count:', storyInBook.scenes.length);
+
     const sceneInStory = storyInBook.scenes.find(s => s.id === currentScene.id);
     if (!sceneInStory) {
-      console.error('Scene not found in story');
+      console.error('❌ Scene not found in story');
       return;
     }
+
+    console.log('  ✓ Found scene in story');
+    console.log('  Scene before update:', { 
+      id: sceneInStory.id, 
+      title: sceneInStory.title,
+      hasLayout: !!sceneInStory.layout 
+    });
 
     // Update the scene in the book's data structure
     sceneInStory.layout = layout;
     sceneInStory.updatedAt = new Date();
 
-    console.log('✓ Layout assigned to scene in book');
+    console.log('  ✓ Layout assigned to scene');
+    console.log('  Scene after update:', { 
+      id: sceneInStory.id, 
+      title: sceneInStory.title,
+      hasLayout: !!sceneInStory.layout,
+      layoutType: sceneInStory.layout?.type 
+    });
 
     // Save book
     await BookService.saveBook(activeBook);
     console.log('✓ Book saved to filesystem');
+    
+    // Verify the layout was saved by reloading
+    const reloadedBook = await BookService.getActiveBookData();
+    if (reloadedBook) {
+      const reloadedStory = reloadedBook.stories.find(s => s.id === story.id);
+      const reloadedScene = reloadedStory?.scenes.find(s => s.id === currentScene.id);
+      console.log('  Verification - Scene after reload:', {
+        hasLayout: !!reloadedScene?.layout,
+        layoutType: reloadedScene?.layout?.type
+      });
+    }
     
     onStoryUpdate();
     setLayoutEditorOpen(false);
@@ -874,6 +958,155 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     setSnackbarMessage('Layout saved successfully');
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
+  };
+
+  // Test layout with placeholder image
+  const handleTestLayout = async () => {
+    if (!currentScene || !activeBook || !story) {
+      setSnackbarMessage('Please select a scene first');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    setSnackbarMessage('Generating layout test preview...');
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+
+    try {
+      console.log('🧪 Testing layout with placeholder image');
+
+      // Get layout or use default
+      const defaultAspectRatio = activeBook.aspectRatio || '3:4';
+      const layout = currentScene.layout || {
+        type: 'overlay',
+        canvas: {
+          width: 1080,
+          height: 1440,
+          aspectRatio: defaultAspectRatio
+        },
+        elements: {
+          image: { x: 0, y: 0, width: 100, height: 100, zIndex: 1 },
+          textPanel: { x: 5, y: 78, width: 90, height: 17, zIndex: 2 },
+          diagramPanel: { x: 5, y: 5, width: 60, height: 40, zIndex: 3 }
+        }
+      };
+
+      // Create placeholder image (solid color)
+      const placeholderCanvas = document.createElement('canvas');
+      placeholderCanvas.width = layout.canvas.width;
+      placeholderCanvas.height = layout.canvas.height;
+      const ctx = placeholderCanvas.getContext('2d');
+      
+      if (ctx) {
+        // Fill with a gradient
+        const gradient = ctx.createLinearGradient(0, 0, layout.canvas.width, layout.canvas.height);
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(1, '#764ba2');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, layout.canvas.width, layout.canvas.height);
+        
+        // Add "PLACEHOLDER" text
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.font = 'bold 48px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('AI IMAGE PLACEHOLDER', layout.canvas.width / 2, layout.canvas.height / 2);
+      }
+      
+      const placeholderImageUrl = placeholderCanvas.toDataURL('image/png');
+
+      // Import services
+      const { createTextPanel } = await import('../services/OverlayService');
+      const { renderDiagramToCanvas } = await import('../services/DiagramRenderService');
+      const { composeSceneWithLayout } = await import('../services/LayoutCompositionService');
+      const { DEFAULT_PANEL_CONFIG } = await import('../types/Book');
+
+      let textPanelDataUrl: string | null = null;
+      let diagramPanelDataUrl: string | null = null;
+
+      // Render text panel if present
+      if (currentScene.textPanel && layout.elements.textPanel) {
+        console.log('  Rendering text panel...');
+        const panelConfig = activeBook.style?.panelConfig || DEFAULT_PANEL_CONFIG;
+        
+        const textPanelWidth = Math.round((layout.elements.textPanel.width / 100) * layout.canvas.width);
+        
+        // Calculate the actual height needed for the text content
+        const textPanelHeight = calculateTextPanelHeight(currentScene.textPanel, textPanelWidth, panelConfig);
+        console.log(`  Text panel auto-calculated height: ${textPanelHeight}px`);
+        
+        const textPanelBitmap = await createTextPanel(currentScene.textPanel, {
+          width: textPanelWidth,
+          height: textPanelHeight,
+          bgColor: panelConfig.backgroundColor,
+          borderColor: panelConfig.borderColor,
+          borderWidth: panelConfig.borderWidth,
+          borderRadius: panelConfig.borderRadius,
+          padding: panelConfig.padding,
+          fontFamily: panelConfig.fontFamily,
+          fontSize: panelConfig.fontSize,
+          fontColor: panelConfig.fontColor,
+          textAlign: panelConfig.textAlign as CanvasTextAlign
+        });
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = textPanelBitmap.width;
+        canvas.height = textPanelBitmap.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(textPanelBitmap, 0, 0);
+          textPanelDataUrl = canvas.toDataURL('image/png');
+        }
+      }
+
+      // Render diagram panel if present
+      if (currentScene.diagramPanel && layout.elements.diagramPanel) {
+        console.log('  Rendering diagram panel...');
+        const diagramStyle = story.diagramStyle;
+        
+        if (diagramStyle) {
+          const diagramPanelWidth = Math.round((layout.elements.diagramPanel.width / 100) * layout.canvas.width);
+          const diagramPanelHeight = Math.round((layout.elements.diagramPanel.height / 100) * layout.canvas.height);
+          
+          const diagramCanvas = await renderDiagramToCanvas(
+            currentScene.diagramPanel,
+            diagramStyle,
+            diagramPanelWidth,
+            diagramPanelHeight
+          );
+          
+          diagramPanelDataUrl = diagramCanvas.toDataURL('image/png');
+        }
+      }
+
+      // Compose the final image
+      console.log('  Composing layout test image...');
+      const composedImageUrl = await composeSceneWithLayout(
+        placeholderImageUrl,
+        textPanelDataUrl,
+        diagramPanelDataUrl,
+        layout
+      );
+      console.log('  ✓ Layout test preview created');
+
+      // Set preview URL and open dialog
+      setLayoutTestPreviewUrl(composedImageUrl);
+      setLayoutTestPreviewOpen(true);
+      
+      setSnackbarMessage('Layout test preview ready!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+
+    } catch (error) {
+      console.error('Error testing layout:', error);
+      setSnackbarMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setIsGeneratingImage(false);
+    }
   };
 
   // Clear all images for the current scene
@@ -1267,6 +1500,16 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
                 disabled={!currentScene}
               >
                 Layout
+              </Button>
+            </Tooltip>
+            <Tooltip title="Test layout with placeholder image (no AI generation)">
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={handleTestLayout}
+                disabled={!currentScene || isGeneratingImage}
+              >
+                Test Layout
               </Button>
             </Tooltip>
             <Button
@@ -1953,6 +2196,30 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDiagramPreviewOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Layout Test Preview Dialog */}
+      <Dialog
+        open={layoutTestPreviewOpen}
+        onClose={() => setLayoutTestPreviewOpen(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>Layout Test Preview</DialogTitle>
+        <DialogContent>
+          {layoutTestPreviewUrl && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2, backgroundColor: '#f5f5f5' }}>
+              <img
+                src={layoutTestPreviewUrl}
+                alt="Layout Test Preview"
+                style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setLayoutTestPreviewOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
       </Box>

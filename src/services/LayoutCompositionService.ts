@@ -58,14 +58,64 @@ export async function composeSceneWithLayout(
     // Ensure image is fully loaded
     await element.img.decode();
     
-    // Draw and scale the image to fit the layout dimensions
-    ctx.drawImage(
-      element.img,
-      x,
-      y,
-      width,
-      height
-    );
+    if (element.type === 'image') {
+      // ALWAYS preserve the AI-generated image's aspect ratio (NEVER stretch)
+      // The image will be fit (contain) within the target bounding box (x,y,width,height)
+      // while respecting its natural aspect ratio, centering it within the box.
+      
+      // 1. Get the actual aspect ratio of the AI-generated image
+      const imageAspectRatio = element.img.width / element.img.height;
+      
+      // 2. Calculate constrained dimensions to fit within the bounding box
+      // Start with full width
+      let drawWidth = width;
+      let drawHeight = width / imageAspectRatio;
+      
+      // If height is too big, scale down based on height
+      if (drawHeight > height) {
+        drawHeight = height;
+        drawWidth = height * imageAspectRatio;
+      }
+      
+      // 3. Center within the bounding box
+      const xOffset = (width - drawWidth) / 2;
+      const yOffset = (height - drawHeight) / 2;
+      
+      const drawX = x + xOffset;
+      const drawY = y + yOffset;
+      
+      console.log(`    🙏 Preserving Sacred Aspect Ratio for ${element.type}`);
+      console.log(`    Original image: ${element.img.width}x${element.img.height} (ratio: ${imageAspectRatio.toFixed(3)})`);
+      console.log(`    Bounding box: ${width}x${height}`);
+      console.log(`    Final size: ${Math.round(drawWidth)}x${Math.round(drawHeight)} at (${Math.round(drawX)}, ${Math.round(drawY)})`);
+      
+      ctx.drawImage(
+        element.img,
+        drawX,
+        drawY,
+        drawWidth,
+        drawHeight
+      );
+    } else {
+      // For panels (text/diagram), scale uniformly to fit the target width
+      // This preserves aspect ratio while fitting within the layout's width constraint
+      const panelAspectRatio = element.img.width / element.img.height;
+      const targetWidth = width; // Use layout's width percentage
+      const targetHeight = targetWidth / panelAspectRatio; // Calculate proportional height
+      
+      console.log(`    📏 Scaling ${element.type} uniformly to fit width`);
+      console.log(`    Natural size: ${element.img.width}x${element.img.height}`);
+      console.log(`    Target width: ${targetWidth}px`);
+      console.log(`    Scaled size: ${Math.round(targetWidth)}x${Math.round(targetHeight)}`);
+      
+      ctx.drawImage(
+        element.img,
+        x,
+        y,
+        targetWidth,
+        targetHeight
+      );
+    }
   }
 
   // Convert to data URL

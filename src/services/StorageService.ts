@@ -128,6 +128,7 @@ export class StorageService {
           description: scene.description,
           textPanel: scene.textPanel,
           diagramPanel: scene.diagramPanel,
+          layout: scene.layout, // Custom layout configuration
           characters: scene.characters,
           elements: scene.elements,
           imageHistory: scene.imageHistory,

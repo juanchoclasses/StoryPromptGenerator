@@ -58,6 +58,7 @@ export interface LayoutElement {
   width: number;    // percentage of canvas width (0-100)
   height: number;   // percentage of canvas height (0-100)
   zIndex: number;   // stacking order
+  aspectRatio?: string; // Optional forced aspect ratio for this element (e.g. "1:1")
 }
 
 /**

@@ -226,7 +226,9 @@ export class SceneImageGenerationService {
    */
   private static getDiagramStyle(scene: Scene, story: Story): DiagramStyle | null {
     // Check if scene has diagram panel with embedded style (legacy format)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (scene.diagramPanel && (scene.diagramPanel as any).style) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (scene.diagramPanel as any).style;
     }
     
@@ -245,8 +247,19 @@ export class SceneImageGenerationService {
   static async generateSceneImage(options: SceneImageGenerationOptions): Promise<string> {
     const { scene, story, book, model, aspectRatio = '3:4' } = options;
 
+    // Check if we have a custom layout with a forced aspect ratio for the image element
+    let finalAspectRatio = aspectRatio;
+    // @ts-expect-error: Custom layout property not yet in all interfaces but supported at runtime
+    if (scene.layout && scene.layout.elements.image.aspectRatio) {
+      // @ts-expect-error: Custom layout property not yet in all interfaces but supported at runtime
+      finalAspectRatio = scene.layout.elements.image.aspectRatio;
+      console.log(`🎨 Using forced aspect ratio from layout for generation: ${finalAspectRatio}`);
+    }
+
     // Get character and element names from scene (support both new and legacy formats)
+    // @ts-expect-error: Handling legacy fields
     const characterNames = scene.characters || scene.characterIds || [];
+    // @ts-expect-error: Handling legacy fields
     const elementNames = scene.elements || scene.elementIds || [];
     
     // Merge book-level and story-level characters
@@ -272,9 +285,10 @@ export class SceneImageGenerationService {
     const prompt = this.buildScenePrompt(scene, story, book, sceneCharacters, sceneElements);
     
     // Generate image
+    // Note: aspectRatio in layout.elements.image.aspectRatio is now defined in Story.ts
     const result = await ImageGenerationService.generateImage({
       prompt,
-      aspectRatio,
+      aspectRatio: finalAspectRatio, // Use the possibly overridden aspect ratio
       model,
       referenceImages: referenceImages.length > 0 ? referenceImages : undefined
     });
@@ -347,6 +361,8 @@ export class SceneImageGenerationService {
       console.log('scene object keys:', Object.keys(scene));
       console.log('scene.layout exists:', !!scene.layout);
       console.log('scene.layout value:', scene.layout);
+      console.log('scene.id:', scene.id);
+      console.log('Full scene object:', JSON.stringify(scene, null, 2));
       
       if (scene.layout) {
         console.log('✅ CUSTOM LAYOUT DETECTED!');
@@ -362,6 +378,7 @@ export class SceneImageGenerationService {
         console.log('═══════════════════════════════════════════════════════════════');
         console.log('');
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const overlayOptions: any = {
         imageWidth: imageDimensions.width,
         imageHeight: imageDimensions.height
@@ -389,16 +406,18 @@ export class SceneImageGenerationService {
         
         overlayOptions.textPanel = {
           text: panelText,
-          config: panelConfig
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          config: panelConfig as any
         };
       }
       
+      // Add diagram panel if present
       // Add diagram panel if present
       if (hasDiagramPanel) {
         // Get diagram style from scene or story (handles both formats)
         const diagramStyle = this.getDiagramStyle(scene, story);
         
-        if (diagramStyle) {
+        if (diagramStyle && scene.diagramPanel) {
           // Extract just the DiagramPanel fields (remove embedded style if present)
           const diagramPanel: DiagramPanel = {
             type: scene.diagramPanel.type,
@@ -429,6 +448,59 @@ export class SceneImageGenerationService {
   }
 
   /**
+   * Calculate the minimum height needed for a text panel based on content
+   */
+  private static calculateTextPanelHeight(
+    text: string,
+    width: number,
+    panelConfig: PanelConfig
+  ): number {
+    const fontSize = panelConfig.fontSize || 24;
+    const lineHeight = Math.round(fontSize * 1.3);
+    const padding = panelConfig.padding || 20;
+    
+    // Create a temporary canvas to measure text
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    ctx.font = `${fontSize}px ${panelConfig.fontFamily || 'Arial'}`;
+    
+    // Calculate available width for text
+    const innerWidth = width - (padding * 2);
+    
+    // Word-wrap text to count lines
+    const lines: string[] = [];
+    const paragraphs = text.split(/\r?\n/);
+    
+    for (const paragraph of paragraphs) {
+      if (!paragraph.trim()) {
+        lines.push("");
+        continue;
+      }
+      
+      const words = paragraph.split(/\s+/);
+      let line = "";
+      
+      for (const word of words) {
+        const test = line ? line + " " + word : word;
+        const w = ctx.measureText(test).width;
+        if (w <= innerWidth) {
+          line = test;
+        } else {
+          if (line) lines.push(line);
+          line = word;
+        }
+      }
+      if (line) lines.push(line);
+    }
+    
+    // Calculate total height needed
+    const textHeight = lines.length * lineHeight;
+    const totalHeight = textHeight + (padding * 2);
+    
+    return Math.ceil(totalHeight);
+  }
+
+  /**
    * Apply custom layout to scene
    * Renders panels separately and composes them according to layout configuration
    */
@@ -452,10 +524,22 @@ export class SceneImageGenerationService {
       const panelText = this.replaceMacros(scene.textPanel, macros);
       const panelConfig: PanelConfig = book?.style?.panelConfig || DEFAULT_PANEL_CONFIG;
       
+      // Convert percentage-based width to actual pixels
+      const textPanelWidth = Math.round((layout.elements.textPanel.width / 100) * layout.canvas.width);
+      
+      // Calculate the actual height needed for the text content
+      const textPanelHeight = this.calculateTextPanelHeight(
+        panelText,
+        textPanelWidth,
+        panelConfig
+      );
+      
+      console.log(`  Text panel size: ${textPanelWidth}x${textPanelHeight} (width: ${layout.elements.textPanel.width}%, height: auto-calculated)`);
+      
       try {
         const textPanelBitmap = await createTextPanel(panelText, {
-          width: layout.elements.textPanel.width,
-          height: layout.elements.textPanel.height,
+          width: textPanelWidth,
+          height: textPanelHeight,
           bgColor: panelConfig.backgroundColor,
           borderColor: panelConfig.borderColor,
           borderWidth: panelConfig.borderWidth,
@@ -463,7 +547,7 @@ export class SceneImageGenerationService {
           padding: panelConfig.padding,
           fontFamily: panelConfig.fontFamily,
           fontSize: panelConfig.fontSize,
-          fontColor: panelConfig.textColor,
+          fontColor: panelConfig.fontColor, // Fixed property name from textColor
           textAlign: panelConfig.textAlign as CanvasTextAlign
         });
         
@@ -482,24 +566,33 @@ export class SceneImageGenerationService {
       }
     }
 
-    // Render diagram panel if present
+      // Render diagram panel if present
     if (scene.diagramPanel && layout.elements.diagramPanel) {
       console.log('  Rendering diagram panel for layout...');
       const diagramStyle = this.getDiagramStyle(scene, story);
       
-      if (diagramStyle) {
+      if (diagramStyle && scene.diagramPanel) {
+        // Explicitly check content to satisfy TS possibly undefined
+        const diagramContent = scene.diagramPanel.content || '';
+        
         const diagramPanel: DiagramPanel = {
           type: scene.diagramPanel.type,
-          content: scene.diagramPanel.content,
+          content: diagramContent,
           language: scene.diagramPanel.language
         };
+        
+        // Convert percentage-based dimensions to actual pixels
+        const diagramPanelWidth = Math.round((layout.elements.diagramPanel.width / 100) * layout.canvas.width);
+        const diagramPanelHeight = Math.round((layout.elements.diagramPanel.height / 100) * layout.canvas.height);
+        
+        console.log(`  Diagram panel size: ${diagramPanelWidth}x${diagramPanelHeight} (${layout.elements.diagramPanel.width}% x ${layout.elements.diagramPanel.height}%)`);
         
         try {
           const diagramCanvas = await renderDiagramToCanvas(
             diagramPanel,
             diagramStyle,
-            layout.elements.diagramPanel.width,
-            layout.elements.diagramPanel.height
+            diagramPanelWidth,
+            diagramPanelHeight
           );
           
           diagramPanelDataUrl = diagramCanvas.toDataURL('image/png');

@@ -12,13 +12,21 @@ import {
   TextField,
   Grid,
   Paper,
-  Divider
+  Divider,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import type { SceneLayout, LayoutElement } from '../types/Story';
+import { ASPECT_RATIOS } from '../constants/aspectRatios';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import ViewDayIcon from '@mui/icons-material/ViewDay';
 import LayersIcon from '@mui/icons-material/Layers';
 import GridOnIcon from '@mui/icons-material/GridOn';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 interface SceneLayoutEditorProps {
   open: boolean;
@@ -181,6 +189,7 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
   const [selectedElement, setSelectedElement] = useState<ElementType | null>(null);
   const [dragging, setDragging] = useState<DraggingState | null>(null);
   const [resizing, setResizing] = useState<ResizingState | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Update layout when currentLayout or bookAspectRatio changes
@@ -389,6 +398,12 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
       <Box
         key={type}
         onMouseDown={(e) => handleMouseDown(e, type)}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!isSelected) {
+            setSelectedElement(type);
+          }
+        }}
         sx={{
           position: 'absolute',
           left: leftPx,
@@ -439,6 +454,30 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
     );
   };
 
+  const handleAspectRatioChange = (newRatio: string) => {
+    const newDimensions = getCanvasDimensionsFromAspectRatio(newRatio);
+    setLayout(prev => ({
+      ...prev,
+      canvas: {
+        ...prev.canvas,
+        width: newDimensions.width,
+        height: newDimensions.height,
+        aspectRatio: newRatio
+      }
+    }));
+  };
+
+  const handleCopyLayoutJSON = async () => {
+    try {
+      const layoutJSON = JSON.stringify(layout, null, 2);
+      await navigator.clipboard.writeText(layoutJSON);
+      setSnackbarOpen(true);
+    } catch (err) {
+      console.error('Failed to copy layout JSON:', err);
+      alert('Failed to copy to clipboard');
+    }
+  };
+
   return (
     <Dialog open={open} onClose={onCancel} maxWidth="xl" fullWidth>
       <DialogTitle>Scene Layout Editor</DialogTitle>
@@ -479,37 +518,41 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
               <Typography variant="h6" gutterBottom>
                 Canvas Settings
               </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Canvas dimensions are set by the book's aspect ratio and cannot be changed here.
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-                <TextField
-                  label="Width"
-                  value={layout.canvas.width}
-                  fullWidth
-                  margin="dense"
-                  size="small"
-                  disabled
-                  InputProps={{ readOnly: true }}
-                />
-                <TextField
-                  label="Height"
-                  value={layout.canvas.height}
-                  fullWidth
-                  margin="dense"
-                  size="small"
-                  disabled
-                  InputProps={{ readOnly: true }}
-                />
-                <TextField
-                  label="Aspect Ratio"
-                  value={layout.canvas.aspectRatio}
-                  fullWidth
-                  margin="dense"
-                  size="small"
-                  disabled
-                  InputProps={{ readOnly: true }}
-                />
+              <Box sx={{ display: 'flex', gap: 2, mt: 1, flexWrap: 'wrap' }}>
+                <FormControl fullWidth margin="dense" size="small">
+                  <InputLabel>Aspect Ratio</InputLabel>
+                  <Select
+                    value={layout.canvas.aspectRatio}
+                    label="Aspect Ratio"
+                    onChange={(e) => handleAspectRatioChange(e.target.value)}
+                  >
+                    {ASPECT_RATIOS.map((ratio) => (
+                      <MenuItem key={ratio.value} value={ratio.value}>
+                        {ratio.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+                  <TextField
+                    label="Width"
+                    value={layout.canvas.width}
+                    fullWidth
+                    margin="dense"
+                    size="small"
+                    disabled
+                    InputProps={{ readOnly: true }}
+                  />
+                  <TextField
+                    label="Height"
+                    value={layout.canvas.height}
+                    fullWidth
+                    margin="dense"
+                    size="small"
+                    disabled
+                    InputProps={{ readOnly: true }}
+                  />
+                </Box>
               </Box>
 
               <Divider sx={{ my: 2 }} />
@@ -600,6 +643,36 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
                     size="small"
                     inputProps={{ min: 5, max: 100, step: 0.1 }}
                   />
+                  
+                  {selectedElement === 'image' && (
+                    <FormControl fullWidth margin="dense" size="small">
+                      <InputLabel>Force Aspect Ratio</InputLabel>
+                      <Select
+                        value={layout.elements.image.aspectRatio || ''}
+                        label="Force Aspect Ratio"
+                        onChange={(e) => {
+                          const newRatio = e.target.value;
+                          updateElement('image', { aspectRatio: newRatio || undefined });
+                          
+                          if (newRatio) {
+                            // Optional: Automatically resize the element to match the ratio
+                            // This is complex because we're dealing with percentages of potentially non-square canvas
+                            // For now, we just set the property which will be used during generation
+                          }
+                        }}
+                        displayEmpty
+                      >
+                        <MenuItem value="">
+                          <em>None (Use Dimensions)</em>
+                        </MenuItem>
+                        {ASPECT_RATIOS.map((ratio) => (
+                          <MenuItem key={ratio.value} value={ratio.value}>
+                            {ratio.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
                 </>
               )}
             </Paper>
@@ -638,11 +711,29 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
         </Grid>
       </DialogContent>
       <DialogActions>
+        <Button 
+          onClick={handleCopyLayoutJSON} 
+          startIcon={<ContentCopyIcon />}
+          sx={{ mr: 'auto' }}
+        >
+          Copy Layout JSON
+        </Button>
         <Button onClick={onCancel}>Cancel</Button>
         <Button onClick={() => onSave(layout)} variant="contained" color="primary">
           Save Layout
         </Button>
       </DialogActions>
+      
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
+          Layout JSON copied to clipboard!
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 };

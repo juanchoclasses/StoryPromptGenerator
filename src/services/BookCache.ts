@@ -120,6 +120,11 @@ export class BookCache {
       storyData.updatedAt = new Date(storyData.updatedAt);
       storyData.scenes = reconstructedScenes;
       
+      // Preserve story-level layout if present
+      if (storyData.layout) {
+        console.log(`📐 Story "${storyData.title}" has layout:`, storyData.layout.type);
+      }
+      
       return new Story(storyData);
     }) : [];
     
@@ -138,6 +143,11 @@ export class BookCache {
         }
       };
       console.log(`📘 Book style loaded with panelConfig:`, bookDataWithoutStories.style.panelConfig);
+    }
+    
+    // Preserve book-level default layout if present
+    if (bookDataWithoutStories.defaultLayout) {
+      console.log(`📐 Book "${bookDataWithoutStories.title}" has default layout:`, bookDataWithoutStories.defaultLayout.type);
     }
     
     const book = new Book(bookDataWithoutStories);
@@ -211,6 +221,7 @@ export class BookCache {
       backgroundSetup: book.backgroundSetup,
       aspectRatio: book.aspectRatio,
       style: book.style,
+      defaultLayout: book.defaultLayout, // NEW: Book-level default layout
       characters: book.characters,
       stories: book.stories.map(story => ({
         id: story.id,
@@ -218,6 +229,7 @@ export class BookCache {
         description: story.description,
         backgroundSetup: story.backgroundSetup,
         diagramStyle: story.diagramStyle,
+        layout: story.layout, // NEW: Story-level layout
         characters: story.characters,
         elements: story.elements,
         scenes: story.scenes.map(scene => {
@@ -234,7 +246,7 @@ export class BookCache {
             description: scene.description,
             textPanel: scene.textPanel,
             diagramPanel: scene.diagramPanel,
-            layout: scene.layout, // Custom layout configuration
+            layout: scene.layout, // Scene-specific layout
             characters: scene.characters,
             elements: scene.elements,
             imageHistory: scene.imageHistory,

@@ -38,6 +38,7 @@ export class Book {
   backgroundSetup?: string;
   aspectRatio?: string;
   style: BookStyle;
+  defaultLayout?: any; // SceneLayout - Default layout for all scenes in this book (using any to avoid circular dependency)
   characters: Character[]; // Book-level characters shared across all stories
   stories: Story[];
   createdAt: Date;
@@ -50,6 +51,7 @@ export class Book {
     this.backgroundSetup = data.backgroundSetup;
     this.aspectRatio = data.aspectRatio || '9:16';
     this.style = data.style || { ...DEFAULT_BOOK_STYLE };
+    this.defaultLayout = data.defaultLayout; // NEW: Book-level default layout
     this.characters = data.characters || []; // Book-level characters
     this.stories = data.stories || [];
     this.createdAt = data.createdAt || new Date();
@@ -207,6 +209,7 @@ export class Book {
       backgroundSetup: this.backgroundSetup,
       aspectRatio: this.aspectRatio,
       style: this.style,
+      defaultLayout: this.defaultLayout, // NEW: Include book-level default layout
       characters: this.characters || [],
       stories: this.stories,
       createdAt: this.createdAt,

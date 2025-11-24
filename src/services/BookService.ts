@@ -146,13 +146,14 @@ export class BookService {
         description: story.description,
         backgroundSetup: story.backgroundSetup,
         diagramStyle: story.diagramStyle, // Include diagram style
+        layout: story.layout, // NEW: Include story-level layout
         scenes: story.scenes.map(scene => ({
           id: scene.id,
           title: scene.title,
           description: scene.description,
           textPanel: scene.textPanel,
           diagramPanel: scene.diagramPanel, // Include diagram panel
-          layout: scene.layout, // Include custom layout configuration
+          layout: scene.layout, // Include scene-specific layout configuration
           characters: scene.characters || [],
           elements: scene.elements || [],
           characterIds: scene.characters || [], // DEPRECATED: for backward compat

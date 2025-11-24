@@ -64,6 +64,7 @@ export class Story {
   description?: string;
   backgroundSetup: string;
   diagramStyle?: DiagramStyle;
+  layout?: SceneLayout; // NEW: Story-level default layout for all scenes
   characters: Character[];
   elements: StoryElement[];
   scenes: Scene[];
@@ -76,6 +77,7 @@ export class Story {
     this.description = data.description;
     this.backgroundSetup = data.backgroundSetup;
     this.diagramStyle = data.diagramStyle;
+    this.layout = data.layout; // NEW: Story-level layout
     this.characters = data.characters || [];
     this.elements = data.elements || [];
     this.scenes = data.scenes || [];
@@ -324,6 +326,7 @@ export class Story {
       description: this.description,
       backgroundSetup: this.backgroundSetup,
       diagramStyle: this.diagramStyle,
+      layout: this.layout, // NEW: Include story-level layout
       characters: this.characters,
       elements: this.elements,
       scenes: this.scenes,

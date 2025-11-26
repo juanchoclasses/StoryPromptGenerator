@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -50,6 +50,7 @@ import { measureTextFit } from '../services/TextMeasurementService';
 import { ModelSelectionDialog } from './ModelSelectionDialog';
 import { PanelConfigDialog } from './PanelConfigDialog';
 import { SceneLayoutEditor } from './SceneLayoutEditor';
+import { LayoutResolver } from '../services/LayoutResolver';
 
 /**
  * Calculate the minimum height needed for a text panel based on content
@@ -132,6 +133,17 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+
+  // Compute layout source for the layout editor
+  const layoutSourceInfo = useMemo(() => {
+    if (!currentScene || !story || !activeBook) {
+      return { source: 'default' as const, description: 'System default (overlay)' };
+    }
+    
+    const source = LayoutResolver.getLayoutSource(currentScene, story, activeBook);
+    const description = LayoutResolver.getLayoutSourceDescription(currentScene, story, activeBook);
+    return { source, description };
+  }, [currentScene, story, activeBook]);
 
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
@@ -892,6 +904,33 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   // Open layout editor
   const handleEditLayout = () => {
     setLayoutEditorOpen(true);
+  };
+
+  // Clear scene layout (to fall back to story/book layout)
+  const handleClearSceneLayout = async () => {
+    if (!currentScene || !activeBook || !story) return;
+
+    console.log('🗑️ Clearing scene-specific layout');
+    
+    const storyInBook = activeBook.stories.find((s: any) => s.id === story.id);
+    if (!storyInBook) return;
+    
+    const sceneInStory = storyInBook.scenes.find((s: any) => s.id === currentScene.id);
+    if (!sceneInStory) return;
+    
+    // Remove scene-specific layout
+    sceneInStory.layout = undefined;
+    sceneInStory.updatedAt = new Date();
+    
+    await BookService.saveBook(activeBook);
+    console.log('✓ Scene layout cleared - will now use inherited layout');
+    
+    onStoryUpdate();
+    setLayoutEditorOpen(false);
+    
+    setSnackbarMessage('Scene layout cleared - using inherited layout');
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
   };
 
   // Save layout configuration
@@ -2154,8 +2193,11 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         open={layoutEditorOpen}
         currentLayout={currentScene?.layout}
         bookAspectRatio={activeBook?.aspectRatio || '3:4'}
+        layoutSource={layoutSourceInfo.source}
+        layoutSourceDescription={layoutSourceInfo.description}
         onSave={handleSaveLayout}
         onCancel={() => setLayoutEditorOpen(false)}
+        onClearLayout={layoutSourceInfo.source === 'scene' ? handleClearSceneLayout : undefined}
       />
 
       {/* Text Panel Preview Dialog */}

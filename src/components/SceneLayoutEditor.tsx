@@ -32,8 +32,11 @@ interface SceneLayoutEditorProps {
   open: boolean;
   currentLayout?: SceneLayout;
   bookAspectRatio: string; // e.g., "3:4", "16:9"
+  layoutSource?: 'scene' | 'story' | 'book' | 'default'; // Where the layout comes from
+  layoutSourceDescription?: string; // Human-readable description
   onSave: (layout: SceneLayout) => void;
   onCancel: () => void;
+  onClearLayout?: () => void; // Optional: Clear scene-specific layout to use inherited layout
 }
 
 type ElementType = 'image' | 'textPanel' | 'diagramPanel';
@@ -93,8 +96,11 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
   open,
   currentLayout,
   bookAspectRatio,
+  layoutSource = 'default',
+  layoutSourceDescription,
   onSave,
-  onCancel
+  onCancel,
+  onClearLayout
 }) => {
   // Calculate canvas dimensions from book's aspect ratio
   const canvasDimensions = getCanvasDimensionsFromAspectRatio(bookAspectRatio);
@@ -477,7 +483,35 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
 
   return (
     <Dialog open={open} onClose={onCancel} maxWidth="xl" fullWidth>
-      <DialogTitle>Scene Layout Editor</DialogTitle>
+      <DialogTitle>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span>Scene Layout Editor</span>
+          {layoutSourceDescription && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                Layout from:
+              </Typography>
+              <Box
+                sx={{
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: 1,
+                  backgroundColor: 
+                    layoutSource === 'scene' ? 'primary.main' :
+                    layoutSource === 'story' ? 'secondary.main' :
+                    layoutSource === 'book' ? 'info.main' :
+                    'grey.500',
+                  color: 'white',
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold'
+                }}
+              >
+                {layoutSourceDescription}
+              </Box>
+            </Box>
+          )}
+        </Box>
+      </DialogTitle>
       <DialogContent>
         <Grid container spacing={3}>
           {/* Left Panel - Presets and Controls */}
@@ -687,6 +721,15 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
         >
           Copy Layout JSON
         </Button>
+        {onClearLayout && layoutSource === 'scene' && (
+          <Button 
+            onClick={onClearLayout}
+            color="warning"
+            variant="outlined"
+          >
+            Clear Scene Layout
+          </Button>
+        )}
         <Button onClick={onCancel}>Cancel</Button>
         <Button onClick={() => onSave(layout)} variant="contained" color="primary">
           Save Layout

@@ -1,7 +1,7 @@
 import { Book } from '../models/Book';
 import { Story, type Character } from '../models/Story';
 import { StorageService } from './StorageService';
-import type { StoryData } from '../types/Story';
+import type { StoryData, SceneLayout } from '../types/Story';
 import type { PanelConfig } from '../types/Book';
 import { ImageStorageService } from './ImageStorageService';
 
@@ -70,6 +70,7 @@ export class BookService {
     backgroundSetup: string;
     aspectRatio: string;
     panelConfig: PanelConfig;
+    defaultLayout: SceneLayout | undefined;
   }>): Promise<Book | null> {
     const book = await StorageService.getBook(bookId);
     if (!book) return null;
@@ -81,6 +82,9 @@ export class BookService {
     if (updates.aspectRatio !== undefined) book.aspectRatio = updates.aspectRatio;
     if (updates.panelConfig !== undefined) {
       book.updateStyle({ panelConfig: updates.panelConfig });
+    }
+    if ('defaultLayout' in updates) {
+      book.defaultLayout = updates.defaultLayout;
     }
 
     // Validate before saving

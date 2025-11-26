@@ -78,10 +78,22 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
   // Story layout editor state
   const [storyLayoutEditorOpen, setStoryLayoutEditorOpen] = useState(false);
   const [editingStoryLayout, setEditingStoryLayout] = useState<Story | null>(null);
+  const [activeBookAspectRatio, setActiveBookAspectRatio] = useState<string>('3:4');
 
   useEffect(() => {
     loadStories();
+    loadActiveBookAspectRatio();
   }, []);
+
+  const loadActiveBookAspectRatio = async () => {
+    const activeBookId = await BookService.getActiveBookId();
+    if (activeBookId) {
+      const activeBook = await BookService.getBook(activeBookId);
+      if (activeBook) {
+        setActiveBookAspectRatio(activeBook.aspectRatio || '3:4');
+      }
+    }
+  };
 
   // Note: Stories are reloaded via onStoryUpdate callbacks throughout the component
 
@@ -1029,7 +1041,7 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
         <SceneLayoutEditor
           open={storyLayoutEditorOpen}
           currentLayout={editingStoryLayout.layout}
-          bookAspectRatio={aspectRatio}
+          bookAspectRatio={activeBookAspectRatio}
           layoutSource="story"
           layoutSourceDescription={`Story: "${editingStoryLayout.title}"`}
           onSave={handleSaveStoryLayout}

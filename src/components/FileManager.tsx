@@ -27,7 +27,7 @@ import {
   Settings as SettingsIcon,
   Palette as PaletteIcon,
   Folder as FolderIcon,
-  FolderOpenIcon,
+  FolderOpen as FolderOpenIcon,
   GridOn as LayoutIcon
 } from '@mui/icons-material';
 import { FormControl, InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';

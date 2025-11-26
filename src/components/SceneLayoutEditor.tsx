@@ -35,6 +35,8 @@ interface SceneLayoutEditorProps {
   bookAspectRatio: string; // e.g., "3:4", "16:9"
   layoutSource?: 'scene' | 'story' | 'book' | 'default'; // Where the layout comes from
   layoutSourceDescription?: string; // Human-readable description
+  inheritedLayout?: SceneLayout; // The layout that would be used if scene layout is cleared (from story or book)
+  inheritedLayoutSource?: string; // Description of where inherited layout comes from
   onSave: (layout: SceneLayout) => void;
   onCancel: () => void;
   onClearLayout?: () => void; // Optional: Clear scene-specific layout to use inherited layout
@@ -99,6 +101,8 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
   bookAspectRatio,
   layoutSource = 'default',
   layoutSourceDescription,
+  inheritedLayout,
+  inheritedLayoutSource,
   onSave,
   onCancel,
   onClearLayout
@@ -803,6 +807,24 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
         >
           Copy Layout JSON
         </Button>
+        {inheritedLayout && layoutSource === 'scene' && (
+          <Button 
+            onClick={() => {
+              // Copy the inherited layout (from story or book)
+              setLayout({
+                ...inheritedLayout,
+                // Keep the current canvas dimensions
+                canvas: layout.canvas
+              });
+              setSnackbarMessage(`Copied layout from ${inheritedLayoutSource || 'parent'}`);
+              setSnackbarOpen(true);
+            }}
+            color="info"
+            variant="outlined"
+          >
+            Copy from {inheritedLayoutSource || 'Inherited Layout'}
+          </Button>
+        )}
         {onClearLayout && layoutSource === 'scene' && (
           <Button 
             onClick={onClearLayout}

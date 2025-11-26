@@ -137,12 +137,33 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   // Compute layout source for the layout editor
   const layoutSourceInfo = useMemo(() => {
     if (!currentScene || !story || !activeBook) {
-      return { source: 'default' as const, description: 'System default (overlay)' };
+      return { 
+        source: 'default' as const, 
+        description: 'System default (overlay)',
+        inheritedLayout: undefined,
+        inheritedLayoutSource: undefined
+      };
     }
     
     const source = LayoutResolver.getLayoutSource(currentScene, story, activeBook);
     const description = LayoutResolver.getLayoutSourceDescription(currentScene, story, activeBook);
-    return { source, description };
+    
+    // Calculate inherited layout (what would be used if scene layout is cleared)
+    let inheritedLayout: SceneLayout | undefined;
+    let inheritedLayoutSource: string | undefined;
+    
+    if (source === 'scene') {
+      // Scene has its own layout, so inherited would be story or book
+      if (story.layout) {
+        inheritedLayout = story.layout;
+        inheritedLayoutSource = 'Story';
+      } else if (activeBook.defaultLayout) {
+        inheritedLayout = activeBook.defaultLayout;
+        inheritedLayoutSource = 'Book';
+      }
+    }
+    
+    return { source, description, inheritedLayout, inheritedLayoutSource };
   }, [currentScene, story, activeBook]);
 
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -2195,6 +2216,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         bookAspectRatio={activeBook?.aspectRatio || '3:4'}
         layoutSource={layoutSourceInfo.source}
         layoutSourceDescription={layoutSourceInfo.description}
+        inheritedLayout={layoutSourceInfo.inheritedLayout}
+        inheritedLayoutSource={layoutSourceInfo.inheritedLayoutSource}
         onSave={handleSaveLayout}
         onCancel={() => setLayoutEditorOpen(false)}
         onClearLayout={layoutSourceInfo.source === 'scene' ? handleClearSceneLayout : undefined}

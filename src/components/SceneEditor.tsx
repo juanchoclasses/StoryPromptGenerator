@@ -1064,26 +1064,54 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         }
       };
 
-      // Create placeholder image (solid color)
+      // Create placeholder image with correct aspect ratio
+      // Use the aspect ratio from the image element or fall back to book's aspect ratio
+      const imageElement = layout.elements.image;
+      const imageAspectRatioStr = (imageElement && 'aspectRatio' in imageElement && imageElement.aspectRatio) 
+        ? imageElement.aspectRatio 
+        : defaultAspectRatio;
+      const [ratioWidth, ratioHeight] = imageAspectRatioStr.split(':').map(Number);
+      const imageAspectRatio = ratioWidth / ratioHeight;
+      
+      // Calculate actual image dimensions based on aspect ratio
+      // The image will be scaled by LayoutCompositionService, but we need to create it at the right aspect ratio
+      let imageWidth: number;
+      let imageHeight: number;
+      
+      if (imageAspectRatio > 1) {
+        // Landscape - use a standard width
+        imageWidth = 1920;
+        imageHeight = Math.round(imageWidth / imageAspectRatio);
+      } else {
+        // Portrait - use a standard height
+        imageHeight = 1920;
+        imageWidth = Math.round(imageHeight * imageAspectRatio);
+      }
+      
       const placeholderCanvas = document.createElement('canvas');
-      placeholderCanvas.width = layout.canvas.width;
-      placeholderCanvas.height = layout.canvas.height;
+      placeholderCanvas.width = imageWidth;
+      placeholderCanvas.height = imageHeight;
       const ctx = placeholderCanvas.getContext('2d');
       
       if (ctx) {
         // Fill with a gradient
-        const gradient = ctx.createLinearGradient(0, 0, layout.canvas.width, layout.canvas.height);
+        const gradient = ctx.createLinearGradient(0, 0, imageWidth, imageHeight);
         gradient.addColorStop(0, '#667eea');
         gradient.addColorStop(1, '#764ba2');
         ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, layout.canvas.width, layout.canvas.height);
+        ctx.fillRect(0, 0, imageWidth, imageHeight);
         
         // Add "PLACEHOLDER" text
         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-        ctx.font = 'bold 48px Arial';
+        const fontSize = Math.min(imageWidth, imageHeight) / 20;
+        ctx.font = `bold ${fontSize}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('AI IMAGE PLACEHOLDER', layout.canvas.width / 2, layout.canvas.height / 2);
+        ctx.fillText('AI IMAGE PLACEHOLDER', imageWidth / 2, imageHeight / 2);
+        
+        // Add aspect ratio text
+        ctx.font = `${fontSize * 0.6}px Arial`;
+        ctx.fillText(imageAspectRatioStr, imageWidth / 2, imageHeight / 2 + fontSize * 1.5);
       }
       
       const placeholderImageUrl = placeholderCanvas.toDataURL('image/png');

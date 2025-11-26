@@ -88,6 +88,7 @@ describe('Book Serialization', () => {
         lineWidth: 2,
         backgroundColor: '#000000'
       },
+      layout: testLayout, // NEW: Story-level layout
       characters: [
         {
           name: 'Character 1',
@@ -161,7 +162,8 @@ describe('Book Serialization', () => {
           imageGallery: [],
           selectedImageId: undefined
         }
-      ]
+      ],
+      defaultLayout: testLayout as any // NEW: Book-level default layout
     });
 
     testBook.stories = [testStory];

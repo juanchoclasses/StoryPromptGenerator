@@ -140,6 +140,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       return { 
         source: 'default' as const, 
         description: 'System default (overlay)',
+        resolvedLayout: undefined,
         inheritedLayout: undefined,
         inheritedLayoutSource: undefined
       };
@@ -147,6 +148,9 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     
     const source = LayoutResolver.getLayoutSource(currentScene, story, activeBook);
     const description = LayoutResolver.getLayoutSourceDescription(currentScene, story, activeBook);
+    
+    // Get the resolved layout (what's actually being used)
+    const resolvedLayout = LayoutResolver.resolveLayout(currentScene, story, activeBook);
     
     // Calculate inherited layout (what would be used if scene layout is cleared)
     let inheritedLayout: SceneLayout | undefined;
@@ -163,7 +167,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       }
     }
     
-    return { source, description, inheritedLayout, inheritedLayoutSource };
+    return { source, description, resolvedLayout, inheritedLayout, inheritedLayoutSource };
   }, [currentScene, story, activeBook]);
 
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -2212,7 +2216,10 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       {/* Scene Layout Editor Dialog */}
       <SceneLayoutEditor
         open={layoutEditorOpen}
-        currentLayout={currentScene?.layout}
+        currentLayout={
+          // If scene has its own layout, use it; otherwise show the resolved layout (from story/book)
+          currentScene?.layout || layoutSourceInfo.resolvedLayout
+        }
         bookAspectRatio={activeBook?.aspectRatio || '3:4'}
         layoutSource={layoutSourceInfo.source}
         layoutSourceDescription={layoutSourceInfo.description}

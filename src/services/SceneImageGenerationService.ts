@@ -15,6 +15,7 @@ import type { Book } from '../models/Book';
 import type { Story } from '../models/Story';
 import type { Scene } from '../models/Scene';
 import type { Character } from '../models/Story';
+import type { SceneLayout } from '../types/Story';
 import type { DiagramStyle, DiagramPanel } from '../types/Story';
 import type { PanelConfig } from '../types/Book';
 import { ImageGenerationService } from './ImageGenerationService';
@@ -352,29 +353,30 @@ export class SceneImageGenerationService {
       const imageDimensions = this.getImageDimensionsFromAspectRatio(aspectRatio);
       
       // ============================================================================
-      // CHECK IF SCENE HAS CUSTOM LAYOUT
+      // RESOLVE LAYOUT USING HIERARCHICAL SYSTEM
       // ============================================================================
+      const { LayoutResolver } = await import('./LayoutResolver');
+      // @ts-expect-error: Type mismatch between model Story and type Story (Character interface differences)
+      const resolvedLayout = LayoutResolver.resolveLayout(scene, story, book);
+      // @ts-expect-error: Type mismatch between model Story and type Story (Character interface differences)
+      const layoutSource = LayoutResolver.getLayoutSourceDescription(scene, story, book);
+      
       console.log('');
       console.log('═══════════════════════════════════════════════════════════════');
-      console.log('🔍 LAYOUT CHECK FOR SCENE: "' + scene.title + '"');
+      console.log('🔍 LAYOUT RESOLUTION FOR SCENE: "' + scene.title + '"');
       console.log('═══════════════════════════════════════════════════════════════');
-      console.log('scene object keys:', Object.keys(scene));
-      console.log('scene.layout exists:', !!scene.layout);
-      console.log('scene.layout value:', scene.layout);
-      console.log('scene.id:', scene.id);
-      console.log('Full scene object:', JSON.stringify(scene, null, 2));
+      console.log('Layout source:', layoutSource);
       
-      if (scene.layout) {
-        console.log('✅ CUSTOM LAYOUT DETECTED!');
-        console.log('  Type:', scene.layout.type);
-        console.log('  Canvas:', JSON.stringify(scene.layout.canvas, null, 2));
-        console.log('  Elements:', Object.keys(scene.layout.elements));
-        console.log('🎨 Using custom layout:', scene.layout.type);
+      if (resolvedLayout) {
+        console.log('✅ LAYOUT FOUND!');
+        console.log('  Type:', resolvedLayout.type);
+        console.log('  Canvas:', JSON.stringify(resolvedLayout.canvas, null, 2));
+        console.log('  Elements:', Object.keys(resolvedLayout.elements));
         console.log('═══════════════════════════════════════════════════════════════');
         console.log('');
-        return await this.applyCustomLayout(baseImageUrl, scene, story, book);
+        return await this.applyCustomLayout(baseImageUrl, scene, story, book, resolvedLayout);
       } else {
-        console.log('❌ NO CUSTOM LAYOUT - Using default overlay approach');
+        console.log('❌ NO LAYOUT - Using default overlay approach');
         console.log('═══════════════════════════════════════════════════════════════');
         console.log('');
       }
@@ -508,12 +510,11 @@ export class SceneImageGenerationService {
     baseImageUrl: string,
     scene: Scene,
     story: Story,
-    book: Book | null
+    book: Book | null,
+    layout: SceneLayout
   ): Promise<string> {
     const { createTextPanel } = await import('./OverlayService');
     const { renderDiagramToCanvas } = await import('./DiagramRenderService');
-    
-    const layout = scene.layout!;
     let textPanelDataUrl: string | null = null;
     let diagramPanelDataUrl: string | null = null;
 

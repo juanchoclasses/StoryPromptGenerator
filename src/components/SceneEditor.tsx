@@ -977,9 +977,16 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     try {
       console.log('🧪 Testing layout with placeholder image');
 
-      // Get layout or use default
+      // Use LayoutResolver to get the effective layout
+      const { LayoutResolver } = await import('../services/LayoutResolver');
+      const resolvedLayout = LayoutResolver.resolveLayout(currentScene, story, activeBook);
+      const layoutSource = LayoutResolver.getLayoutSourceDescription(currentScene, story, activeBook);
+      
+      console.log(`📐 Layout source: ${layoutSource}`);
+      
+      // If no layout resolved, create a default one
       const defaultAspectRatio = activeBook.aspectRatio || '3:4';
-      const layout = currentScene.layout || {
+      const layout = resolvedLayout || {
         type: 'overlay',
         canvas: {
           width: 1080,

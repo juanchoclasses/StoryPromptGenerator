@@ -18,7 +18,8 @@ import {
   InputLabel,
   FormControl,
   Snackbar,
-  Alert
+  Alert,
+  Slider
 } from '@mui/material';
 import type { SceneLayout, LayoutElement } from '../types/Story';
 import { ASPECT_RATIOS } from '../constants/aspectRatios';
@@ -120,6 +121,34 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
     const actualPixels = previewPixels / scale;
     const canvasSize = dimension === 'width' ? canvasDimensions.width : canvasDimensions.height;
     return (actualPixels / canvasSize) * 100;
+  };
+
+  /**
+   * Calculate optimal size for AI image to maximize within canvas while preserving aspect ratio
+   * Returns x, y, width and height as percentages (centered in canvas)
+   */
+  const calculateOptimalImageSize = (aspectRatioStr: string): { x: number; y: number; width: number; height: number } => {
+    const imageAspectRatio = parseAspectRatio(aspectRatioStr);
+    const canvasAspectRatio = canvasDimensions.width / canvasDimensions.height;
+
+    let width: number;
+    let height: number;
+
+    if (imageAspectRatio > canvasAspectRatio) {
+      // Image is wider than canvas - fit to width
+      width = 100;
+      height = (100 / imageAspectRatio) * canvasAspectRatio;
+    } else {
+      // Image is taller than canvas - fit to height  
+      height = 100;
+      width = (100 * imageAspectRatio) / canvasAspectRatio;
+    }
+
+    // Center the image
+    const x = (100 - width) / 2;
+    const y = (100 - height) / 2;
+
+    return { x, y, width, height };
   };
   
   // Initialize layout with book's aspect ratio if no current layout exists
@@ -430,8 +459,8 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
           {label}
         </Typography>
 
-        {/* Resize handles */}
-        {isSelected && (
+        {/* Resize handles - NOT shown for image element (use slider instead) */}
+        {isSelected && type !== 'image' && (
           <>
             {(['nw', 'ne', 'sw', 'se'] as const).map((corner) => (
               <Box
@@ -655,12 +684,21 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
                         label="Force Aspect Ratio"
                         onChange={(e) => {
                           const newRatio = e.target.value;
-                          updateElement('image', { aspectRatio: newRatio || undefined });
                           
                           if (newRatio) {
-                            // Optional: Automatically resize the element to match the ratio
-                            // This is complex because we're dealing with percentages of potentially non-square canvas
-                            // For now, we just set the property which will be used during generation
+                            // Calculate optimal size for the new aspect ratio
+                            const optimalSize = calculateOptimalImageSize(newRatio);
+                            updateElement('image', { 
+                              aspectRatio: newRatio,
+                              ...optimalSize
+                            });
+                          } else {
+                            // Use book's default aspect ratio
+                            const optimalSize = calculateOptimalImageSize(bookAspectRatio);
+                            updateElement('image', { 
+                              aspectRatio: undefined,
+                              ...optimalSize
+                            });
                           }
                         }}
                         displayEmpty
@@ -675,6 +713,50 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
                         ))}
                       </Select>
                     </FormControl>
+                  )}
+
+                  {selectedElement === 'image' && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="caption" gutterBottom display="block">
+                        Image Scale (relative to optimal size)
+                      </Typography>
+                      <Slider
+                        value={(() => {
+                          // Calculate current scale relative to optimal size
+                          const currentRatio = layout.elements.image.aspectRatio || bookAspectRatio;
+                          const optimal = calculateOptimalImageSize(currentRatio);
+                          const currentWidth = layout.elements.image.width;
+                          return (currentWidth / optimal.width) * 100;
+                        })()}
+                        onChange={(_, value) => {
+                          const scale = (value as number) / 100;
+                          const currentRatio = layout.elements.image.aspectRatio || bookAspectRatio;
+                          const optimal = calculateOptimalImageSize(currentRatio);
+                          
+                          const newWidth = optimal.width * scale;
+                          const newHeight = optimal.height * scale;
+                          const newX = (100 - newWidth) / 2;
+                          const newY = (100 - newHeight) / 2;
+                          
+                          updateElement('image', {
+                            x: newX,
+                            y: newY,
+                            width: newWidth,
+                            height: newHeight
+                          });
+                        }}
+                        min={10}
+                        max={150}
+                        step={1}
+                        marks={[
+                          { value: 50, label: '50%' },
+                          { value: 100, label: '100%' },
+                          { value: 150, label: '150%' }
+                        ]}
+                        valueLabelDisplay="auto"
+                        valueLabelFormat={(value) => `${value}%`}
+                      />
+                    </Box>
                   )}
                 </>
               )}

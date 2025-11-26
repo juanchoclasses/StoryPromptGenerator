@@ -249,12 +249,15 @@ export class SceneImageGenerationService {
     const { scene, story, book, model, aspectRatio = '3:4' } = options;
 
     // Check if we have a custom layout with a forced aspect ratio for the image element
+    // Use LayoutResolver to get the effective layout (scene > story > book)
+    const { LayoutResolver } = await import('./LayoutResolver');
+    // @ts-expect-error: Type mismatch between model Story and type Story (Character interface differences)
+    const resolvedLayout = LayoutResolver.resolveLayout(scene, story, book);
+    
     let finalAspectRatio = aspectRatio;
-    // @ts-expect-error: Custom layout property not yet in all interfaces but supported at runtime
-    if (scene.layout && scene.layout.elements.image.aspectRatio) {
-      // @ts-expect-error: Custom layout property not yet in all interfaces but supported at runtime
-      finalAspectRatio = scene.layout.elements.image.aspectRatio;
-      console.log(`🎨 Using forced aspect ratio from layout for generation: ${finalAspectRatio}`);
+    if (resolvedLayout && resolvedLayout.elements.image && 'aspectRatio' in resolvedLayout.elements.image && resolvedLayout.elements.image.aspectRatio) {
+      finalAspectRatio = resolvedLayout.elements.image.aspectRatio;
+      console.log(`🎨 Using aspect ratio from resolved layout for generation: ${finalAspectRatio}`);
     }
 
     // Get character and element names from scene (support both new and legacy formats)

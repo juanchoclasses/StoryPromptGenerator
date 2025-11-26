@@ -1,0 +1,349 @@
+{
+  "story": {
+    "title": "AI Basics: How Computers Learn",
+    "backgroundSetup": "A modern classroom called The Learning Lab, where large screens show colorful pictures and simple diagrams about artificial intelligence. Professor Olefya, a slim Eastern European woman in her 40s wearing a conservative knee-length dress in business casual fashion with comfortable low heels, teaches students about how computers learn from data. The room has bright Display Screens showing training examples, a simple Pattern Finder that shows how AI recognizes things, and a Fairness Checker that shows if the AI works well for everyone. Digital displays show both good and bad examples of AI systems. IMPORTANT: All characters (Professor Olefya and students) should be positioned in the BOTTOM HALF of the image, with the screens, Pattern Finder, Display Screens, and demonstrations in the top half.",
+    "description": "A simple introduction to artificial intelligence and machine learning, where Professor Olefya helps students understand how computers learn from examples and why it's important to teach them with diverse data."
+  },
+  "characters": [
+    {
+      "name": "Professor Olefya",
+      "description": "A slim Eastern European woman in her 40s with shoulder-length brown hair often pulled back in a neat low ponytail. She wears conservative knee-length dresses in neutral colors like navy blue, gray, or burgundy, paired with a simple cardigan and comfortable low heels. Her style is business casual and practical. She has a warm, patient expression and speaks clearly and slowly to help students understand. She uses simple hand gestures when explaining concepts and often smiles encouragingly at her students. Her demeanor is calm, professional, and approachable."
+    },
+    {
+      "name": "Student Eager Noodler",
+      "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes."
+    },
+    {
+      "name": "student Thoughtful Giggler",
+      "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet."
+    },
+    {
+      "name": "Student Zippy Zapper",
+      "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'"
+    },
+    {
+      "name": "Student Quiet observer",
+      "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook."
+    }
+  ],
+  "elements": [
+    {
+      "name": "The Learning Lab",
+      "description": "A bright, modern classroom with large screens on the walls that show simple pictures and diagrams. The walls display training examples, graphs, and colorful visualizations. Simple wooden shelves hold examples of things AI can recognize. The space is welcoming and easy to understand, with comfortable seating arranged so everyone can see the demonstrations.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Pattern Finder",
+      "description": "A large digital display in the center of the room that shows how AI finds similarities in data. It shows pictures connecting to each other with bright lines when they are similar. The display can highlight which patterns the AI sees most often and which ones it rarely sees, making learning visible and easy to understand.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Display Screens",
+      "description": "Large screens on the walls showing many examples of training data. Each screen shows different types of pictures, words, or information. Some screens have many examples of one type of thing. Other screens have only a few examples. The screens help students see what the AI is learning from.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "Fairness Checker",
+      "description": "A simple display that shows if the AI works well for everyone. It shows different groups of people and checks if the AI works the same for all of them. The display shows green when the AI is fair and red when it has problems. It helps students understand if the AI treats everyone equally.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Example Gallery",
+      "description": "A wall showing real examples of AI working well and AI making mistakes. Good examples show AI that helps many different people. Bad examples show AI that doesn't work for some people—like cameras that don't see dark faces, voice helpers that don't understand accents, or medical AI that only learned from one type of patient. Each example has simple notes explaining what happened.",
+      "category": "Set Pieces"
+    }
+  ],
+  "scenes": [
+    {
+      "title": "Welcome: What is AI?",
+      "description": "Professor Olefya stands in front of the Display Screens wearing a navy blue knee-length dress with a gray cardigan. Her brown hair is pulled back in a neat ponytail. She gestures calmly at the Pattern Finder, which glows with connected pictures. Her expression is warm and welcoming as she begins the lesson. Student Eager Noodler's antennae twitch with excitement while student Thoughtful Giggler's smile grows wide. The Display Screens show AI being used in everyday life—phones, computers, hospitals, and cars.",
+      "textPanel": "This diagram shows how AI learns. AI is like a student. It looks at many examples and tries to find patterns. The more examples it sees, the better it gets at recognizing things.",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# AI/ML: Learning from Probability\n\n## How AI Works:\n\n**Training Process:**\n1. Collect data from the world\n2. Find patterns and correlations\n3. Learn what's most common\n4. Predict based on probability\n\n```python\n# AI learns the most probable outcome\nmodel.train(training_data)  # Learn patterns\nprediction = model.predict(new_data)  # What's most likely?\n```\n\n**The Core Issue:**\n> AI systems optimize for the **most common** patterns in their training data. Whatever appears most frequently becomes the \"right\" answer.\n\n*But most common ≠ universally applicable*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Olefya", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["The Learning Lab", "Pattern Finder", "Display Screens"]
+    },
+    {
+      "title": "Training Data: What AI Learns From",
+      "description": "Professor Olefya walks slowly along the Display Screens, her comfortable low heels making soft sounds on the floor. She points at the screens with simple, clear gestures, showing how some screens have many examples while others have only a few. The Pattern Finder starts working, and students watch as it pays attention to the examples it sees most often. Student Quiet observer looks through their periscope at the screens with fewer examples. Professor Olefya's expression is serious but kind as she explains.",
+      "textPanel": "This diagram shows the problem with training data. If AI sees mostly one type of example, it thinks that type is 'normal.' If it sees very few examples of something else, it might think those examples are mistakes or errors.",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Training Data: What AI Learns From\n\n## The Problem Visualized:\n\n```\nTraining Dataset:\n═══════════════════════════════  Group A (80%)\n═══════════  Group B (15%)\n═══  Group C (5%)\n\nAI Learning:\n\"Group A patterns are MOST COMMON → This is NORMAL\"\n\"Group B patterns are rare → Edge cases\"\n\"Group C patterns barely exist → Ignore or error\"\n```\n\n**Result:**\n- AI optimizes for Group A\n- Works poorly for Groups B & C\n- Treats majority as universal truth\n\n## Real Impact:\n> If your training data is 80% one demographic, your AI will assume that demographic is \"normal\" and everyone else is an outlier.",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Olefya", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Display Screens", "Pattern Finder"]
+    },
+    {
+      "title": "Most Common Becomes 'Correct'",
+      "description": "Professor Olefya stands in front of the Pattern Finder, which now clearly shows how it pays more attention to patterns it sees often. She adjusts her gray cardigan and speaks slowly and clearly. The Fairness Checker beside her shows yellow warnings. Student Zippy Zapper's zig-zag body vibrates with concern. Professor Olefya explains patiently: AI doesn't learn what is true for everyone. It only learns what it sees most often.",
+      "textPanel": "This diagram explains a big problem. AI thinks 'most common' means 'correct.' But what is common for 80% of people might not be right for the other 20%. AI needs to work well for everyone, not just for most people.",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Most Common ≠ Universally True\n\n## The Statistical Trap:\n\n```python\n# AI learns statistical norms\ntraining_distribution = {\n    'majority_group': 0.80,    # Dominant pattern\n    'minority_group': 0.20     # Rare pattern\n}\n\n# Prediction favors majority\nif confidence > 0.80:\n    return \"NORMAL\"  # Majority pattern\nelse:\n    return \"ANOMALY\"  # Everything else\n```\n\n**The Dangerous Assumption:**\n\n| What AI Learns | What It Means |\n|----------------|---------------|\n| \"This is most common\" | → \"This is correct\" |\n| \"This is rare\" | → \"This is wrong/error\" |\n| \"This doesn't appear often\" | → \"This doesn't exist\" |\n\n*AI conflates statistical frequency with correctness*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Olefya", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Pattern Finder", "Fairness Checker"]
+    },
+    {
+      "title": "Our Diverse World",
+      "description": "Professor Olefya moves her hand across the Display Screens in a gentle, sweeping motion. Her burgundy dress and simple cardigan look professional and neat. The screens change to show the beautiful diversity of the real world—different people, cultures, languages, abilities, ages, and backgrounds. Her expression is warm but serious. Student Thoughtful Giggler's ears stand up straight as they understand how many different types of people exist. The difference between this diversity and the limited training data from before is very clear.",
+      "textPanel": "This diagram shows who often gets left out of AI training. The world has many different types of people. But AI training data often includes only some types of people. This means AI might not work well for everyone.",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# The World's True Diversity\n\n## Who Gets Excluded:\n\n**Demographics Often Underrepresented:**\n- Ethnic minorities in specific regions\n- Non-native language speakers\n- People with disabilities\n- LGBTQ+ individuals\n- Elderly populations\n- Rural communities\n- Low-income groups\n- Non-Western cultures\n\n**The Numbers:**\n```\nGlobal Population: 8 billion people\nBut AI Training Often Reflects:\n- 10-15% of global population\n- Primarily English speakers\n- Primarily urban populations\n- Primarily wealthier demographics\n```\n\n**Critical Question:**\n> Who is building the training data, and whose experiences are they most familiar with?\n\n*Builders' biases become AI biases*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Olefya", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Display Screens", "The Learning Lab"]
+    },
+    {
+      "title": "When AI Makes Mistakes",
+      "description": "Professor Olefya stands in front of the Example Gallery. Her expression is sad and concerned. The gallery shows real examples of AI making mistakes—cameras that don't see people with dark skin, voice helpers that don't understand different accents, job programs that are unfair, and medical AI that only learned from some patients. She points at each example carefully and speaks slowly. Student Eager Noodler's antennae droop sadly. These problems hurt real people.",
+      "textPanel": "This diagram shows real problems that happened when AI didn't work for everyone. These are not just stories—they are real situations where AI made mistakes and caused problems for people. This is why we must be careful when we create AI.",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Real-World AI Failures\n\n## Documented Cases:\n\n### 1. Facial Recognition\n```\nAccuracy by demographic:\nLight-skinned males:    99% accurate\nDark-skinned females:   65% accurate\n\nResult: Misidentification, false arrests\n```\n\n### 2. Hiring Algorithms\n- Amazon's AI favored male candidates\n- Trained on historical hiring (mostly men)\n- Penalized résumés with word \"women's\"\n\n### 3. Healthcare AI\n- Algorithms underestimate Black patients' health needs\n- Trained primarily on white patient data\n- Results in reduced care recommendations\n\n### 4. Voice Assistants\n- Lower accuracy for non-native English speakers\n- Struggles with regional accents\n- Assumes Standard American/British English\n\n**The Cost:** Lives affected, opportunities denied, dignity diminished",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 13,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Olefya", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Example Gallery", "The Learning Lab"]
+    },
+    {
+      "title": "A World Without Diversity",
+      "description": "Professor Olefya walks slowly and thoughtfully in her conservative navy dress. The Display Screens now show a worrying picture—a future where AI continues to work best for the majority and slowly makes diversity disappear from digital spaces, recommendations, opportunities, and creative work. Everything becomes the same, uniform, made for the majority. Her expression is very serious. Student Quiet observer makes a sad, quiet sound. The vision is frightening—a world where being different slowly disappears because of computer programs.",
+      "textPanel": "This diagram shows what could happen if we don't fix AI bias. If AI always chooses what is most common, our world might lose its diversity. Different cultures, languages, and ways of thinking might slowly disappear from digital spaces. This would be very bad for humanity.",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# The Homogeneous Society Risk\n\n## What Happens Without Intervention:\n\n### Content Recommendations\n```\nCurrent: Diverse perspectives available\n↓\nAI optimizes for majority preferences\n↓\nMinority voices get less visibility\n↓\nFeedback loop: Majority content dominates\n↓\nFuture: Homogeneous information diet\n```\n\n### Opportunity Systems\n- **Hiring:** AI learns from historical patterns → perpetuates existing inequities\n- **Lending:** Algorithms favor majority demographics → wealth gap widens\n- **Education:** Personalization optimizes for common learning styles → others left behind\n\n### Cultural Impact\n- Art and creativity optimized for \"average taste\"\n- Languages with less data representation fade from digital spaces\n- Regional and cultural differences smoothed away\n\n**The Ultimate Loss:** A society that *looks* efficient but has lost its richness, creativity, and humanity",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 13,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Olefya", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Display Screens", "Pattern Finder", "Fairness Checker"]
+    },
+    {
+      "title": "How to Fix the Problem",
+      "description": "Professor Olefya's mood changes from worried to hopeful. She straightens her gray cardigan and smiles warmly. The Fairness Checker begins showing green lights as she demonstrates solutions: diverse training data, fairness checks, diverse teams of people building AI, and feedback from communities. Student Zippy Zapper zings with new energy and hope. The Display Screens show examples of AI systems that work hard to include all types of people. Professor Olefya makes it clear: fixing this problem is possible—we just need to choose to do it.",
+      "textPanel": "This diagram shows solutions. We can fix AI bias! We can collect training data from many different types of people. We can check if AI works well for everyone. We can include diverse people in the teams that build AI. It's not impossible—we just need to decide to do it.",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Solutions: Building Inclusive AI\n\n## 1. Diverse Training Data\n```python\n# Instead of this:\ntraining_data = collect_easily_available_data()\n\n# Do this:\ntraining_data = collect_data(\n    ensure_demographic_representation=True,\n    include_minority_groups=True,\n    oversample_underrepresented=True,\n    validate_diversity=True\n)\n```\n\n## 2. Fairness Metrics\n- Measure performance across demographic groups\n- Set minimum accuracy thresholds for all groups\n- Regular audits for bias\n\n## 3. Diverse Teams\n- Include people from underrepresented groups in design\n- Community input and feedback\n- Cultural consultants\n\n## 4. Transparency\n- Document training data demographics\n- Report performance by group\n- Allow appeals and corrections\n\n**The Key:** Actively working for inclusion, not just accepting majority patterns",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 13,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Olefya", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Fairness Checker", "Display Screens", "Pattern Finder"]
+    },
+    {
+      "title": "Success Stories",
+      "description": "Professor Olefya shows success stories on the Example Gallery. She looks confident and happy now. She shows AI systems built to be fair from the beginning: medical AI that works for all types of patients, voice recognition that understands many accents, and recommendation systems that show users many different perspectives. Student Thoughtful Giggler giggles with joy. The Fairness Checker shows green for everything. Professor Olefya smiles warmly—a reminder that doing good work is valuable and possible.",
+      "textPanel": "This diagram shows AI systems that work well! When we design AI to be fair from the start, and when diverse teams work together, we can build AI that helps everyone. These success stories prove that inclusive AI is possible and works better for everyone.",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Success Stories: Inclusive AI in Action\n\n## Examples That Work:\n\n### Medical Diagnostics AI\n- Trained on diverse patient populations\n- Equal accuracy across demographics\n- Identifies diseases in all skin tones\n- **Result:** Lives saved across all communities\n\n### Adaptive Voice Recognition\n- Trained on 100+ languages and dialects\n- Understands regional accents\n- Adapts to individual speech patterns\n- **Result:** Technology accessible to billions more people\n\n### Fair Lending Algorithms\n```python\n# Traditional: Historical patterns\nloan_decision = predict_from_past_loans()\n\n# Fair: Remove demographic bias\nloan_decision = predict_based_on_actual_ability(\n    remove_proxy_features=True,\n    ensure_equal_opportunity=True\n)\n```\n\n**The Pattern:** When we prioritize fairness, we build better systems for everyone",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Olefya", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["Example Gallery", "Fairness Checker", "The Learning Lab"]
+    },
+    {
+      "title": "Everyone's Responsibility",
+      "description": "Professor Olefya stands in the center of the Learning Lab, surrounded by her students. Her expression is both serious and warm. She speaks slowly and clearly from her heart. The Display Screens, Pattern Finder, and Fairness Checker all glow together harmoniously, showing what is possible. Student Eager Noodler's antennae stand tall with determination. This is not just a technical problem—it is a moral responsibility. Professor Olefya speaks her final important message: we must build AI that works for everyone, or we should not build it at all.",
+      "textPanel": "This diagram shows what everyone can do. If you build AI, you must check your training data and make sure it includes everyone. If you use AI, you should ask questions when it seems unfair. We all have a responsibility to make sure AI works for everyone, not just for some people.",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Call to Action: Your Responsibility\n\n## For AI Developers:\n- [ ] Audit your training data for representation\n- [ ] Measure performance across demographic groups\n- [ ] Include diverse voices in your team\n- [ ] Document limitations and biases\n- [ ] Continuously monitor for fairness\n\n## For Everyone:\n- [ ] Question AI systems that seem biased\n- [ ] Demand transparency from AI companies\n- [ ] Support diverse teams in tech\n- [ ] Speak up when AI fails underrepresented groups\n- [ ] Remember: AI reflects human choices\n\n## The Bottom Line:\n\n> **AI doesn't have to perpetuate bias.** It's a choice. Every dataset curated, every model trained, every system deployed represents a decision—include everyone or optimize for the majority.\n\n**Choose inclusion. Choose diversity. Choose humanity.**",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Olefya", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["The Learning Lab", "Pattern Finder", "Display Screens", "Fairness Checker"]
+    },
+    {
+      "title": "Conclusion: A Better Future",
+      "description": "Professor Olefya stands tall with her students gathered around her in The Learning Lab, now glowing with balanced, diverse data. Her brown hair in its neat ponytail frames her warm, smiling face. Her conservative dress looks professional and approachable. The Fairness Checker shows green for everything. Each student has learned the lesson in their own way—Student Eager Noodler holds their notes carefully, student Thoughtful Giggler's smile is genuine and full of hope, Student Zippy Zapper zings with purpose, Student Quiet observer has drawn a picture of inclusive AI. Professor Olefya speaks her final words with both seriousness and hope: the future is not written yet, and it depends on the choices they make.",
+      "textPanel": "Remember, students: AI learns from examples, not from truth. What is most common is not always what is right for everyone. Our world's diversity is not a problem—it is our greatest strength. Build AI systems that respect every voice and every person. Include everyone. When we do this, AI can truly help all of humanity.",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# The Path Forward: Summary\n\n## What We Learned:\n\n1. **AI learns from probability** - most common patterns become truth\n2. **Training data has gaps** - many voices are underrepresented\n3. **Bias has real consequences** - people are harmed by biased systems\n4. **Homogeneity is a risk** - unchecked AI erases diversity\n5. **Solutions exist** - we can build inclusive systems\n6. **It's a choice** - fairness requires intentional work\n\n---\n\n## The Core Message:\n\n```\nMost Common    ≠    Universally True\nMajority Voice ≠    Only Voice\nHistorical Pattern ≠ Inevitable Future\n```\n\n**Diversity is not a problem to solve—**  \n**it's a reality to respect and include.**\n\n---\n\n*Build AI that sees everyone, or don't build it at all.*\n\n**— Professor Olefya**",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#2d3748",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#8b7355",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Olefya", "Student Eager Noodler", "student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet observer"],
+      "elements": ["The Learning Lab", "Pattern Finder", "Display Screens", "Fairness Checker", "Example Gallery"]
+    }
+  ]
+}
+

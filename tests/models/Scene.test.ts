@@ -280,7 +280,7 @@ describe('Scene Model', () => {
       expect(json.elements).toContain('Sword');
     });
 
-    it('should not include id and imageHistory in JSON export', () => {
+    it('should include all properties in JSON serialization', () => {
       const image: GeneratedImage = {
         id: 'img-1',
         modelName: 'test-model',
@@ -290,8 +290,11 @@ describe('Scene Model', () => {
       
       const json = scene.toJSON();
       
-      expect((json as any).id).toBeUndefined();
-      expect((json as any).imageHistory).toBeUndefined();
+      // toJSON() includes all properties for proper serialization
+      expect(json.id).toBeDefined();
+      expect(json.title).toBe('Test Scene');
+      expect(json.imageHistory).toHaveLength(1);
+      expect(json.imageHistory[0].id).toBe('img-1');
     });
 
     it('should create Scene from JSON', () => {

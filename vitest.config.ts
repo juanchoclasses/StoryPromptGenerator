@@ -5,7 +5,8 @@ export default defineConfig({
     globals: true,
     environment: 'happy-dom', // Provides browser APIs like localStorage
     include: ['**/*.test.ts', '**/*.test.tsx'],
-    exclude: ['node_modules', 'dist', 'build']
+    exclude: ['node_modules', 'dist', 'build'],
+    watch: false // Disable watch mode by default
   }
 });
 

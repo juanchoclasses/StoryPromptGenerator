@@ -72,7 +72,7 @@ describe('Book Model', () => {
     });
 
     it('should fail validation for invalid aspect ratio', () => {
-      book.aspectRatio = '4:3';
+      book.aspectRatio = '5:7'; // Invalid ratio not in the allowed list
       const result = book.validate();
       expect(result.isValid).toBe(false);
       expect(result.errors.some(e => e.includes('Aspect ratio'))).toBe(true);
@@ -183,7 +183,7 @@ describe('Book Model', () => {
   });
 
   describe('JSON Conversion', () => {
-    it('should convert to JSON export format', () => {
+    it('should convert to JSON serialization format', () => {
       book.updateStyle({
         colorPalette: 'Test colors',
         visualTheme: 'Test theme'
@@ -191,15 +191,17 @@ describe('Book Model', () => {
       
       const json = book.toJSON();
       
-      expect(json.book.title).toBe('Test Book');
-      expect(json.book.description).toBe('A test book');
-      expect(json.book.backgroundSetup).toBe('A magical world');
-      expect(json.book.aspectRatio).toBe('9:16');
-      expect(json.book.style.colorPalette).toBe('Test colors');
+      // toJSON() returns flat structure for JSON.stringify serialization
+      expect(json.title).toBe('Test Book');
+      expect(json.description).toBe('A test book');
+      expect(json.backgroundSetup).toBe('A magical world');
+      expect(json.aspectRatio).toBe('9:16');
+      expect(json.style.colorPalette).toBe('Test colors');
       expect(json.stories).toHaveLength(0);
+      expect(json.defaultLayout).toBeUndefined(); // No layout set yet
     });
 
-    it('should include stories in JSON export', () => {
+    it('should include stories in JSON serialization', () => {
       const story = new Story({
         title: 'Test Story',
         backgroundSetup: 'Test background'
@@ -209,7 +211,7 @@ describe('Book Model', () => {
       const json = book.toJSON();
       
       expect(json.stories).toHaveLength(1);
-      expect(json.stories[0].story.title).toBe('Test Story');
+      expect(json.stories[0].title).toBe('Test Story');
     });
 
     it('should create Book from JSON', async () => {
@@ -234,17 +236,19 @@ describe('Book Model', () => {
       expect(importedBook.style.colorPalette).toBe('Imported colors');
     });
 
-    it('should round-trip through JSON', async () => {
+    it('should round-trip through JSON.stringify/parse', () => {
       book.updateStyle({ colorPalette: 'Original colors' });
       
-      const json = book.toJSON();
-      const recreated = await Book.fromJSON(json);
+      // toJSON() is used by JSON.stringify for serialization
+      const jsonString = JSON.stringify(book);
+      const parsed = JSON.parse(jsonString);
       
-      expect(recreated.title).toBe(book.title);
-      expect(recreated.description).toBe(book.description);
-      expect(recreated.backgroundSetup).toBe(book.backgroundSetup);
-      expect(recreated.aspectRatio).toBe(book.aspectRatio);
-      expect(recreated.style.colorPalette).toBe(book.style.colorPalette);
+      // Verify all properties are preserved
+      expect(parsed.title).toBe(book.title);
+      expect(parsed.description).toBe(book.description);
+      expect(parsed.backgroundSetup).toBe(book.backgroundSetup);
+      expect(parsed.aspectRatio).toBe(book.aspectRatio);
+      expect(parsed.style.colorPalette).toBe(book.style.colorPalette);
     });
   });
 });

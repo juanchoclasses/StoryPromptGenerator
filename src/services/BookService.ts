@@ -232,6 +232,7 @@ export class BookService {
         description: storyData.description,
         backgroundSetup: storyData.backgroundSetup,
         diagramStyle: storyData.diagramStyle, // Include diagram style
+        layout: storyData.layout, // Include story-level layout
         characters: storyData.characters || [],
         elements: storyData.elements || [],
         scenes: sceneInstances,

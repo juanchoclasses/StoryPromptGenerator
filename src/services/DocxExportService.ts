@@ -36,7 +36,7 @@ export class DocxExportService {
   /**
    * Convert a data URL or blob URL to a Buffer (Uint8Array) and detect type
    */
-  static async urlToBuffer(url: string): Promise<{ buffer: Uint8Array; type: string }> {
+  static async urlToBuffer(url: string): Promise<{ buffer: Uint8Array; type: string; dimensions: { width: number; height: number } }> {
     const response = await fetch(url);
     const blob = await response.blob();
     const arrayBuffer = await blob.arrayBuffer();
@@ -49,7 +49,19 @@ export class DocxExportService {
       type = 'jpg';
     }
     
-    return { buffer: new Uint8Array(arrayBuffer), type };
+    // Get image dimensions
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = url;
+    });
+    
+    return { 
+      buffer: new Uint8Array(arrayBuffer), 
+      type,
+      dimensions: { width: img.naturalWidth, height: img.naturalHeight }
+    };
   }
   
   /**
@@ -91,8 +103,30 @@ export class DocxExportService {
           
           if (imageUrl) {
             console.log(`      ✓ Image loaded, converting to buffer...`);
-            const { buffer, type } = await this.urlToBuffer(imageUrl);
+            const { buffer, type, dimensions } = await this.urlToBuffer(imageUrl);
             console.log(`      ✓ Buffer created (${buffer.length} bytes, type: ${type})`);
+            console.log(`      Image dimensions: ${dimensions.width}x${dimensions.height}`);
+            
+            // Calculate dimensions to fit page while preserving aspect ratio
+            // Word page is ~8.5" x 11" with 1" margins = 6.5" x 9" usable
+            // At 96 DPI: 624px x 864px usable area
+            const maxWidth = 624; // 6.5 inches at 96 DPI
+            const maxHeight = 864; // 9 inches at 96 DPI
+            
+            let width = dimensions.width;
+            let height = dimensions.height;
+            
+            // Scale to fit within page while preserving aspect ratio
+            if (width > maxWidth || height > maxHeight) {
+              const widthScale = maxWidth / width;
+              const heightScale = maxHeight / height;
+              const scale = Math.min(widthScale, heightScale);
+              
+              width = Math.round(width * scale);
+              height = Math.round(height * scale);
+            }
+            
+            console.log(`      Scaled dimensions for DOCX: ${width}x${height}`);
             
             // Add image centered on page with page break before (except first)
             paragraphs.push(
@@ -101,8 +135,8 @@ export class DocxExportService {
                   new ImageRun({
                     data: buffer,
                     transformation: {
-                      width: 576,
-                      height: 768
+                      width: width,
+                      height: height
                     },
                     type: type === 'jpg' ? 'jpg' : 'png'
                   })

@@ -1050,7 +1050,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       
       // If no layout resolved, create a default one
       const defaultAspectRatio = activeBook.aspectRatio || '3:4';
-      const layout = resolvedLayout || {
+      let layout = resolvedLayout || {
         type: 'overlay',
         canvas: {
           width: 1080,
@@ -1124,6 +1124,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
 
       let textPanelDataUrl: string | null = null;
       let diagramPanelDataUrl: string | null = null;
+      let textPanelHeight = 0; // Track for bottom-anchoring
 
       // Render text panel if present
       if (currentScene.textPanel && layout.elements.textPanel) {
@@ -1133,7 +1134,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         const textPanelWidth = Math.round((layout.elements.textPanel.width / 100) * layout.canvas.width);
         
         // Calculate the actual height needed for the text content
-        const textPanelHeight = calculateTextPanelHeight(currentScene.textPanel, textPanelWidth, panelConfig);
+        textPanelHeight = calculateTextPanelHeight(currentScene.textPanel, textPanelWidth, panelConfig);
         console.log(`  Text panel auto-calculated height: ${textPanelHeight}px`);
         
         const textPanelBitmap = await createTextPanel(currentScene.textPanel, {
@@ -1182,6 +1183,10 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
 
       // Compose the final image
       console.log('  Composing layout test image...');
+      // Adjust text panel Y position if it's bottom-anchored (use shared logic)
+      const { SceneImageGenerationService } = await import('../services/SceneImageGenerationService');
+      layout = SceneImageGenerationService.adjustBottomAnchoredTextPanel(layout, textPanelHeight);
+
       const composedImageUrl = await composeSceneWithLayout(
         placeholderImageUrl,
         textPanelDataUrl,

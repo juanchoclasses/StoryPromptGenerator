@@ -453,6 +453,47 @@ export class SceneImageGenerationService {
   }
 
   /**
+   * Adjust text panel Y position if it's bottom-anchored
+   * Returns adjusted layout if panel is at bottom and needs repositioning
+   */
+  static adjustBottomAnchoredTextPanel(
+    layout: SceneLayout,
+    actualTextPanelHeight: number
+  ): SceneLayout {
+    if (!layout.elements.textPanel || actualTextPanelHeight === 0) {
+      return layout;
+    }
+
+    const textPanelLayoutHeight = (layout.elements.textPanel.height / 100) * layout.canvas.height;
+    const textPanelLayoutY = (layout.elements.textPanel.y / 100) * layout.canvas.height;
+    
+    // Check if panel is in the bottom half (likely bottom-anchored)
+    const isBottomAnchored = textPanelLayoutY > layout.canvas.height * 0.5;
+    
+    if (isBottomAnchored && actualTextPanelHeight < textPanelLayoutHeight) {
+      const heightDifference = textPanelLayoutHeight - actualTextPanelHeight;
+      const adjustedY = layout.elements.textPanel.y + (heightDifference / layout.canvas.height) * 100;
+      
+      console.log(`  📍 Adjusting bottom-anchored text panel Y position:`);
+      console.log(`     Original Y: ${layout.elements.textPanel.y.toFixed(2)}%`);
+      console.log(`     Adjusted Y: ${adjustedY.toFixed(2)}% (moved down ${heightDifference}px to stay at bottom)`);
+      
+      return {
+        ...layout,
+        elements: {
+          ...layout.elements,
+          textPanel: {
+            ...layout.elements.textPanel,
+            y: adjustedY
+          }
+        }
+      };
+    }
+    
+    return layout;
+  }
+
+  /**
    * Calculate the minimum height needed for a text panel based on content
    */
   private static calculateTextPanelHeight(
@@ -608,38 +649,8 @@ export class SceneImageGenerationService {
       }
     }
 
-    // Adjust text panel Y position if it's anchored to the bottom
-    // If the calculated height is less than the layout height, and the panel is near the bottom,
-    // we should anchor it to the bottom edge
-    if (textPanelDataUrl && layout.elements.textPanel) {
-      const textPanelLayoutHeight = (layout.elements.textPanel.height / 100) * layout.canvas.height;
-      const textPanelLayoutY = (layout.elements.textPanel.y / 100) * layout.canvas.height;
-      
-      // Check if panel is in the bottom half of the canvas (likely bottom-anchored)
-      const isBottomAnchored = textPanelLayoutY > layout.canvas.height * 0.5;
-      
-      if (isBottomAnchored && textPanelHeight < textPanelLayoutHeight) {
-        // Calculate the difference and adjust Y to keep bottom edge at the same position
-        const heightDifference = textPanelLayoutHeight - textPanelHeight;
-        const adjustedY = layout.elements.textPanel.y + (heightDifference / layout.canvas.height) * 100;
-        
-        console.log(`  📍 Adjusting bottom-anchored text panel Y position:`);
-        console.log(`     Original Y: ${layout.elements.textPanel.y.toFixed(2)}%`);
-        console.log(`     Adjusted Y: ${adjustedY.toFixed(2)}% (moved down ${heightDifference}px to stay at bottom)`);
-        
-        // Create adjusted layout
-        layout = {
-          ...layout,
-          elements: {
-            ...layout.elements,
-            textPanel: {
-              ...layout.elements.textPanel,
-              y: adjustedY
-            }
-          }
-        };
-      }
-    }
+    // Adjust text panel Y position if it's bottom-anchored
+    layout = this.adjustBottomAnchoredTextPanel(layout, textPanelHeight);
 
     // Compose all elements according to layout
     console.log('  Composing scene with custom layout...');

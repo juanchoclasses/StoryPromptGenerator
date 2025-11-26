@@ -26,7 +26,8 @@ import {
   AutoAwesome as GenerateAllIcon,
   Description as DocxIcon,
   Settings as SettingsIcon,
-  DeleteSweep as ClearImagesIcon
+  DeleteSweep as ClearImagesIcon,
+  GridOn as LayoutIcon
 } from '@mui/icons-material';
 import { BookService } from '../services/BookService';
 import { ImportStoryDialog } from './ImportStoryDialog';
@@ -34,9 +35,10 @@ import { BatchImageGenerationDialog } from './BatchImageGenerationDialog';
 import { ImageStorageService } from '../services/ImageStorageService';
 import { DocxExportService } from '../services/DocxExportService';
 import { StoryExportService } from '../services/StoryExportService';
-import type { Story, StoryData } from '../types/Story';
+import type { Story, StoryData, SceneLayout } from '../types/Story';
 import { DEFAULT_DIAGRAM_STYLE, WHITEBOARD_DIAGRAM_STYLE } from '../types/Story';
 import type { DiagramStyle } from '../types/Story';
+import { SceneLayoutEditor } from './SceneLayoutEditor';
 
 interface StoriesPanelProps {
   selectedStory: Story | null;
@@ -72,6 +74,10 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
   const [diagramStyleDialogOpen, setDiagramStyleDialogOpen] = useState(false);
   const [editingDiagramStyleStory, setEditingDiagramStyleStory] = useState<Story | null>(null);
   const [tempDiagramStyle, setTempDiagramStyle] = useState<DiagramStyle>(DEFAULT_DIAGRAM_STYLE);
+  
+  // Story layout editor state
+  const [storyLayoutEditorOpen, setStoryLayoutEditorOpen] = useState(false);
+  const [editingStoryLayout, setEditingStoryLayout] = useState<Story | null>(null);
 
   useEffect(() => {
     loadStories();
@@ -131,6 +137,57 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
     onStoryUpdate();
     
     showSnackbar('Diagram style saved successfully!', 'success');
+  };
+
+  const handleOpenStoryLayoutEditor = (story: Story) => {
+    setEditingStoryLayout(story);
+    setStoryLayoutEditorOpen(true);
+  };
+
+  const handleSaveStoryLayout = async (layout: SceneLayout) => {
+    if (!editingStoryLayout) return;
+
+    const activeBookData = await BookService.getActiveBookData();
+    if (!activeBookData) return;
+
+    const updatedStories = activeBookData.stories.map(s => {
+      if (s.id === editingStoryLayout.id) {
+        return { ...s, layout, updatedAt: new Date() };
+      }
+      return s;
+    });
+
+    const updatedData = { ...activeBookData, stories: updatedStories };
+    await BookService.saveActiveBookData(updatedData);
+    
+    setStoryLayoutEditorOpen(false);
+    setEditingStoryLayout(null);
+    onStoryUpdate();
+    
+    showSnackbar('Story layout saved successfully!', 'success');
+  };
+
+  const handleClearStoryLayout = async () => {
+    if (!editingStoryLayout) return;
+
+    const activeBookData = await BookService.getActiveBookData();
+    if (!activeBookData) return;
+
+    const updatedStories = activeBookData.stories.map(s => {
+      if (s.id === editingStoryLayout.id) {
+        return { ...s, layout: undefined, updatedAt: new Date() };
+      }
+      return s;
+    });
+
+    const updatedData = { ...activeBookData, stories: updatedStories };
+    await BookService.saveActiveBookData(updatedData);
+    
+    setStoryLayoutEditorOpen(false);
+    setEditingStoryLayout(null);
+    onStoryUpdate();
+    
+    showSnackbar('Story layout cleared - using inherited layout', 'success');
   };
 
   const handleDeleteStory = async (storyId: string) => {
@@ -644,6 +701,18 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
                         <SettingsIcon />
                       </IconButton>
                     </Tooltip>
+                    <Tooltip title="Edit story layout">
+                      <IconButton
+                        size="small"
+                        color={story.layout ? "primary" : "default"}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenStoryLayoutEditor(story);
+                        }}
+                      >
+                        <LayoutIcon />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="Clear all images">
                       <IconButton
                         size="small"
@@ -954,6 +1023,20 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      {/* Story Layout Editor */}
+      {editingStoryLayout && (
+        <SceneLayoutEditor
+          open={storyLayoutEditorOpen}
+          currentLayout={editingStoryLayout.layout}
+          bookAspectRatio={aspectRatio}
+          layoutSource="story"
+          layoutSourceDescription={`Story: "${editingStoryLayout.title}"`}
+          onSave={handleSaveStoryLayout}
+          onCancel={() => setStoryLayoutEditorOpen(false)}
+          onClearLayout={editingStoryLayout.layout ? handleClearStoryLayout : undefined}
+        />
+      )}
     </Box>
   );
 }; 

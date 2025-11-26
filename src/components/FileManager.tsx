@@ -27,7 +27,8 @@ import {
   Settings as SettingsIcon,
   Palette as PaletteIcon,
   Folder as FolderIcon,
-  FolderOpen as FolderOpenIcon
+  FolderOpenIcon,
+  GridOn as LayoutIcon
 } from '@mui/icons-material';
 import { FormControl, InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
 import { BookService } from '../services/BookService';
@@ -38,6 +39,8 @@ import type { BookStyle } from '../types/BookStyle';
 import { DEFAULT_BOOK_STYLE } from '../types/BookStyle';
 import { PanelConfigDialog } from './PanelConfigDialog';
 import { BookStyleEditor } from './BookStyleEditor';
+import { SceneLayoutEditor } from './SceneLayoutEditor';
+import type { SceneLayout } from '../types/Story';
 
 interface FileManagerProps {
   onBookSelect: (bookId: string) => void;
@@ -69,6 +72,10 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [exportingBookId, setExportingBookId] = useState<string | null>(null);
   const [importingBook, setImportingBook] = useState(false);
+  
+  // Book layout editor state
+  const [bookLayoutEditorOpen, setBookLayoutEditorOpen] = useState(false);
+  const [editingBookLayout, setEditingBookLayout] = useState<{ bookId: string, layout?: SceneLayout, aspectRatio: string } | null>(null);
 
   useEffect(() => {
     loadBooks();
@@ -320,6 +327,59 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
       setNewBookPanelConfig(config);
     } else {
       setEditBookPanelConfig(config);
+    }
+  };
+
+  const handleOpenBookLayoutEditor = async (bookId: string) => {
+    try {
+      const book = await BookService.getBook(bookId);
+      if (book) {
+        setEditingBookLayout({
+          bookId: book.id,
+          layout: book.defaultLayout,
+          aspectRatio: book.aspectRatio || '3:4'
+        });
+        setBookLayoutEditorOpen(true);
+      }
+    } catch (error) {
+      console.error('Error loading book for layout editing:', error);
+      showSnackbar('Failed to load book', 'error');
+    }
+  };
+
+  const handleSaveBookLayout = async (layout: SceneLayout) => {
+    if (!editingBookLayout) return;
+
+    try {
+      await BookService.updateBook(editingBookLayout.bookId, {
+        defaultLayout: layout
+      });
+
+      setBookLayoutEditorOpen(false);
+      setEditingBookLayout(null);
+      await loadBooks();
+      showSnackbar('Book default layout saved successfully', 'success');
+    } catch (error) {
+      console.error('Error saving book layout:', error);
+      showSnackbar('Failed to save book layout', 'error');
+    }
+  };
+
+  const handleClearBookLayout = async () => {
+    if (!editingBookLayout) return;
+
+    try {
+      await BookService.updateBook(editingBookLayout.bookId, {
+        defaultLayout: undefined
+      });
+
+      setBookLayoutEditorOpen(false);
+      setEditingBookLayout(null);
+      await loadBooks();
+      showSnackbar('Book default layout cleared', 'success');
+    } catch (error) {
+      console.error('Error clearing book layout:', error);
+      showSnackbar('Failed to clear book layout', 'error');
     }
   };
 
@@ -651,7 +711,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
               <MenuItem value="16:9">16:9 (Wide Landscape)</MenuItem>
             </Select>
           </FormControl>
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
             <Button
               startIcon={<SettingsIcon />}
               onClick={() => handleOpenPanelConfig('edit')}
@@ -659,6 +719,15 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
               fullWidth
             >
               Configure Text Panel Overlay
+            </Button>
+            <Button
+              startIcon={<LayoutIcon />}
+              onClick={() => editingBook && handleOpenBookLayoutEditor(editingBook.id)}
+              variant="outlined"
+              fullWidth
+              color="secondary"
+            >
+              Edit Default Layout
             </Button>
           </Box>
         </DialogContent>
@@ -697,6 +766,20 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      {/* Book Default Layout Editor */}
+      {editingBookLayout && (
+        <SceneLayoutEditor
+          open={bookLayoutEditorOpen}
+          currentLayout={editingBookLayout.layout}
+          bookAspectRatio={editingBookLayout.aspectRatio}
+          layoutSource="book"
+          layoutSourceDescription="Book-level default layout"
+          onSave={handleSaveBookLayout}
+          onCancel={() => setBookLayoutEditorOpen(false)}
+          onClearLayout={editingBookLayout.layout ? handleClearBookLayout : undefined}
+        />
+      )}
     </Box>
   );
 }; 

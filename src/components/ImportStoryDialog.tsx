@@ -26,7 +26,8 @@ import type { ParsedStoryBundle } from '../services/MarkdownStoryParser';
 import { BookService } from '../services/BookService';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 import type { PanelConfig } from '../types/Book';
-import type { Story, Scene, Character, StoryElement } from '../types/Story';
+import type { Story, Scene, StoryElement } from '../types/Story';
+// Note: Character is now in models/Story.ts (name-based, not ID-based)
 
 interface ImportStoryDialogProps {
   open: boolean;

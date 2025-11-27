@@ -1,4 +1,7 @@
-import type { Story, Character, StoryElement, Scene } from '../types/Story';
+import type { Story, StoryElement, Scene } from '../types/Story';
+
+// Local type for legacy Character (ID-based)
+type LegacyCharacter = { id: string; name: string; description: string };
 
 /**
  * Exchange format - matches the JSON import schema
@@ -34,7 +37,7 @@ export class StoryExportService {
    */
   static toExchangeFormat(story: Story): StoryExchangeFormat {
     // Create lookup maps
-    const characterMap = new Map<string, Character>();
+    const characterMap = new Map<string, LegacyCharacter>();
     story.characters.forEach(char => {
       characterMap.set(char.id, char);
     });

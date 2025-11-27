@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -32,6 +32,7 @@ import type { Character } from '../models/Story';
 import type { Book } from '../models/Book';
 import { BookService } from '../services/BookService';
 import { CharacterAuditionDialog } from './CharacterAuditionDialog';
+import { useCharacterManager } from '../hooks/useCharacterManager';
 
 interface BookCastManagerProps {
   book: Book | null;
@@ -39,174 +40,38 @@ interface BookCastManagerProps {
 }
 
 export const BookCastManager: React.FC<BookCastManagerProps> = ({ book, onBookUpdate }) => {
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
-  const [characterName, setCharacterName] = useState('');
-  const [characterDescription, setCharacterDescription] = useState('');
-  
-  // Character Audition Dialog state
-  const [openAuditionDialog, setOpenAuditionDialog] = useState(false);
-  const [auditionCharacter, setAuditionCharacter] = useState<Character | null>(null);
-
-  // Demote dialog state
+  // Demote dialog state (book-level specific)
   const [openDemoteDialog, setOpenDemoteDialog] = useState(false);
   const [demoteCharacter, setDemoteCharacter] = useState<Character | null>(null);
   const [demoteError, setDemoteError] = useState<string | null>(null);
   const [demoteStoriesUsing, setDemoteStoriesUsing] = useState<Array<{ id: string; title: string }>>([]);
 
-  useEffect(() => {
-    if (book) {
-      setCharacters(book.characters || []);
-    } else {
-      setCharacters([]);
-    }
-  }, [book]);
+  // Use the character manager hook
+  const {
+    characters,
+    openDialog,
+    editingCharacter,
+    characterName,
+    characterDescription,
+    openAuditionDialog,
+    auditionCharacter,
+    setCharacterName,
+    setCharacterDescription,
+    handleAddCharacter,
+    handleEditCharacter,
+    handleSaveCharacter,
+    handleDeleteCharacter,
+    handleCloseDialog,
+    handleOpenAudition,
+    handleCloseAudition,
+    handleAuditionUpdate,
+  } = useCharacterManager({
+    type: 'book',
+    book,
+    onUpdate: onBookUpdate,
+  });
 
-  const handleAddCharacter = () => {
-    if (!book) return;
-    setEditingCharacter(null);
-    setCharacterName('');
-    setCharacterDescription('');
-    setOpenDialog(true);
-  };
-
-  const handleEditCharacter = (character: Character) => {
-    setEditingCharacter(character);
-    setCharacterName(character.name);
-    setCharacterDescription(character.description);
-    setOpenDialog(true);
-  };
-
-  const handleOpenAudition = (character: Character) => {
-    setAuditionCharacter(character);
-    setOpenAuditionDialog(true);
-  };
-
-  const handleCloseAudition = () => {
-    setOpenAuditionDialog(false);
-    setAuditionCharacter(null);
-  };
-
-  const handleAuditionUpdate = async () => {
-    // Save changes to book after character images are updated
-    console.log('=== BookCastManager: handleAuditionUpdate called ===');
-    console.log('Book:', book?.title);
-    console.log('Audition Character:', auditionCharacter?.name);
-    console.log('Character imageGallery length:', auditionCharacter?.imageGallery?.length);
-    console.log('Character selectedImageId:', auditionCharacter?.selectedImageId);
-    
-    if (!book || !auditionCharacter) {
-      console.warn('Missing book or auditionCharacter, aborting save');
-      return;
-    }
-    
-    try {
-      // Find the character in the book by name
-      console.log('Step 1: Finding character in book...');
-      const char = book.characters.find(c => c.name === auditionCharacter.name);
-      
-      if (char) {
-        console.log('✓ Character found');
-        console.log('  Before update - imageGallery length:', char.imageGallery?.length);
-        
-        // Update the character directly
-        char.imageGallery = auditionCharacter.imageGallery;
-        char.selectedImageId = auditionCharacter.selectedImageId;
-        
-        console.log('  After update - imageGallery length:', char.imageGallery?.length);
-        console.log('  After update - selectedImageId:', char.selectedImageId);
-      } else {
-        console.error('Character not found in book:', auditionCharacter.name);
-        return;
-      }
-
-      // Save the book
-      console.log('Step 2: Saving book...');
-      await BookService.saveBook(book);
-      console.log('✓ Book saved');
-
-      // Reload characters from the saved book
-      console.log('Step 3: Reloading characters...');
-      const updatedBook = await BookService.getActiveBook();
-      if (updatedBook) {
-        const updatedChar = updatedBook.characters.find(c => c.name === auditionCharacter.name);
-        if (updatedChar) {
-          console.log('  Updated character imageGallery length:', updatedChar.imageGallery?.length);
-        }
-        setCharacters(updatedBook.characters || []);
-      }
-      console.log('✓ Characters reloaded');
-
-      // Notify parent to refresh
-      console.log('Step 4: Calling onBookUpdate...');
-      onBookUpdate();
-      console.log('✓ onBookUpdate called');
-      
-      console.log('=== handleAuditionUpdate Complete! ===');
-    } catch (err) {
-      console.error('✗✗✗ Failed to save character image changes:', err);
-    }
-  };
-
-  const handleSaveCharacter = async () => {
-    if (!book) return;
-
-    const trimmedName = characterName.trim();
-    if (!trimmedName) return;
-
-    try {
-      if (editingCharacter) {
-        // Edit existing character
-        const updatedCharacters = characters.map(c =>
-          c.name === editingCharacter.name
-            ? { ...c, name: trimmedName, description: characterDescription }
-            : c
-        );
-        book.characters = updatedCharacters;
-      } else {
-        // Add new character
-        book.addCharacter({
-          name: trimmedName,
-          description: characterDescription,
-          imageGallery: []
-        });
-      }
-
-      // Save book directly
-      await BookService.saveBook(book);
-
-      setCharacters(book.characters);
-      setOpenDialog(false);
-      onBookUpdate();
-    } catch (error) {
-      console.error('Failed to save character:', error);
-      alert(`Failed to save character: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  };
-
-  const handleDeleteCharacter = async (character: Character) => {
-    if (!book) return;
-    
-    if (!window.confirm(`Delete character "${character.name}"? This will also delete all their audition images.`)) {
-      return;
-    }
-
-    try {
-      // Delete character from book
-      book.deleteCharacter(character.name);
-
-      // Save book directly
-      await BookService.saveBook(book);
-
-      setCharacters(book.characters);
-      onBookUpdate();
-    } catch (error) {
-      console.error('Failed to delete character:', error);
-      alert(`Failed to delete character: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  };
-
+  // Book-level specific: Demote character to story
   const handleOpenDemote = (character: Character) => {
     setDemoteCharacter(character);
     setDemoteError(null);
@@ -248,103 +113,160 @@ export const BookCastManager: React.FC<BookCastManagerProps> = ({ book, onBookUp
 
   if (!book) {
     return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography color="text.secondary">
+      <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
+        <Typography variant="h6" color="text.secondary">
           Select a book to manage book-level characters
         </Typography>
-      </Box>
+      </Paper>
     );
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6">
-          Book Characters ({characters.length})
+    <Paper elevation={2} sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: 'calc(100vh - 200px)', 
+      maxHeight: 'calc(100vh - 200px)',
+      overflow: 'hidden'
+    }}>
+      {/* Fixed Header */}
+      <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}>
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+          <Box display="flex" alignItems="center" gap={1}>
+            <PersonIcon color="primary" />
+            <Typography variant="h5" component="h2">
+              Book Cast ({characters.length})
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleAddCharacter}
+          >
+            Add Character
+          </Button>
+        </Box>
+        <Typography variant="body2" color="text.secondary">
+          Book-level characters are shared across all stories in this book
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleAddCharacter}
-        >
-          Add Character
-        </Button>
       </Box>
 
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Book-level characters are shared across all stories in "{book.title}".
-      </Typography>
-
-      {characters.length === 0 ? (
-        <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <PersonIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
-          <Typography color="text.secondary">
-            No book-level characters yet. Add a character or promote one from a story.
-          </Typography>
-        </Paper>
-      ) : (
-        <Box>
-          {characters.map((character, index) => (
-            <Accordion key={index} defaultExpanded={index === 0}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                  <PersonIcon sx={{ mr: 1 }} />
-                  <Typography sx={{ flexGrow: 1 }}>{character.name}</Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ mr: 2 }}>
-                    {getCharacterUsageInfo(character)}
-                  </Typography>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Box>
-                  <Typography variant="body2" color="text.secondary" paragraph>
-                    {character.description || 'No description'}
-                  </Typography>
-
-                  <Typography variant="caption" display="block" sx={{ mb: 1 }}>
-                    Images: {character.imageGallery?.length || 0} audition{character.imageGallery?.length !== 1 ? 's' : ''}
-                  </Typography>
-
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    <Tooltip title="Edit character details">
-                      <IconButton size="small" onClick={() => handleEditCharacter(character)}>
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-
-                    <Tooltip title="Generate character images">
-                      <IconButton size="small" onClick={() => handleOpenAudition(character)}>
+      {/* Scrollable Content */}
+      <Box sx={{ 
+        flex: 1, 
+        overflow: 'auto', 
+        p: 3,
+        '&::-webkit-scrollbar': {
+          width: '8px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#f1f1f1',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#c1c1c1',
+          borderRadius: '4px',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: '#a8a8a8',
+        },
+      }}>
+        {characters.length === 0 ? (
+          <Box textAlign="center" py={4}>
+            <PersonIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              No book characters yet
+            </Typography>
+            <Typography variant="body2" color="text.secondary" mb={3}>
+              Add characters at the book level to use them across all stories
+            </Typography>
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={handleAddCharacter}
+            >
+              Add Your First Character
+            </Button>
+          </Box>
+        ) : (
+          <Box>
+            {characters.map((character) => (
+              <Accordion key={character.name} sx={{ mb: 1 }}>
+                <AccordionSummary 
+                  expandIcon={<ExpandMoreIcon />}
+                  sx={{ 
+                    '& .MuiAccordionSummary-content': {
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%'
+                    }
+                  }}
+                >
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <PersonIcon color="primary" />
+                    <Typography variant="h6">
+                      {character.name}
+                    </Typography>
+                  </Box>
+                  <Box display="flex" gap={1} onClick={(e) => e.stopPropagation()}>
+                    <Tooltip title="Character Audition - Generate images">
+                      <IconButton
+                        component="div"
+                        onClick={() => handleOpenAudition(character)}
+                        color="primary"
+                        size="small"
+                      >
                         <TheaterComedyIcon />
                       </IconButton>
                     </Tooltip>
-
                     <Tooltip title="Demote to story-level character">
-                      <IconButton size="small" onClick={() => handleOpenDemote(character)}>
+                      <IconButton
+                        component="div"
+                        onClick={() => handleOpenDemote(character)}
+                        size="small"
+                      >
                         <ArrowDownwardIcon />
                       </IconButton>
                     </Tooltip>
-
+                    <Tooltip title="Edit character">
+                      <IconButton
+                        component="div"
+                        onClick={() => handleEditCharacter(character)}
+                        size="small"
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="Delete character">
                       <IconButton
-                        size="small"
+                        component="div"
+                        onClick={() => handleDeleteCharacter(character.name)}
                         color="error"
-                        onClick={() => handleDeleteCharacter(character)}
+                        size="small"
                       >
                         <DeleteIcon />
                       </IconButton>
                     </Tooltip>
                   </Box>
-                </Box>
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </Box>
-      )}
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-line', mb: 2 }}>
+                    {character.description}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {getCharacterUsageInfo(character)}
+                  </Typography>
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Box>
+        )}
+      </Box>
 
-      {/* Add/Edit Character Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+      {/* Character Edit Dialog */}
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {editingCharacter ? 'Edit Character' : 'Add Book Character'}
+          {editingCharacter ? 'Edit Character' : 'Add New Character'}
         </DialogTitle>
         <DialogContent>
           <TextField
@@ -352,27 +274,44 @@ export const BookCastManager: React.FC<BookCastManagerProps> = ({ book, onBookUp
             margin="dense"
             label="Character Name"
             fullWidth
+            variant="outlined"
             value={characterName}
             onChange={(e) => setCharacterName(e.target.value)}
+            placeholder="Enter character name..."
             sx={{ mb: 2 }}
           />
           <TextField
             margin="dense"
-            label="Description"
+            label="Character Description"
             fullWidth
             multiline
             rows={4}
+            variant="outlined"
             value={characterDescription}
             onChange={(e) => setCharacterDescription(e.target.value)}
+            placeholder="Describe the character's personality, appearance, background..."
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button onClick={handleSaveCharacter} variant="contained">
-            {editingCharacter ? 'Save' : 'Add'}
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleSaveCharacter} variant="contained" disabled={!characterName.trim()}>
+            {editingCharacter ? 'Update' : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Character Audition Dialog */}
+      {auditionCharacter && book && (
+        <CharacterAuditionDialog
+          open={openAuditionDialog}
+          character={auditionCharacter}
+          storyId={undefined}
+          storyBackgroundSetup={undefined}
+          book={book}
+          onClose={handleCloseAudition}
+          onUpdate={handleAuditionUpdate}
+        />
+      )}
 
       {/* Demote Character Dialog */}
       <Dialog open={openDemoteDialog} onClose={() => setOpenDemoteDialog(false)} maxWidth="sm" fullWidth>
@@ -384,58 +323,44 @@ export const BookCastManager: React.FC<BookCastManagerProps> = ({ book, onBookUp
                 {demoteError}
               </Alert>
               {demoteStoriesUsing.length > 0 && (
-                <Box>
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    Character is used in these stories:
+                <>
+                  <Typography variant="body2" gutterBottom>
+                    This character is used in the following stories:
                   </Typography>
-                  <List dense>
-                    {demoteStoriesUsing.map((story) => (
+                  <List>
+                    {demoteStoriesUsing.map(story => (
                       <ListItem key={story.id}>
                         <ListItemText primary={story.title} />
                       </ListItem>
                     ))}
                   </List>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                    To demote this character, first remove them from all but one story's scenes.
+                  <Typography variant="body2" color="text.secondary">
+                    To demote this character, it must be used in only one story, or not used at all.
                   </Typography>
-                </Box>
+                </>
               )}
             </>
           ) : (
             <Typography>
-              Demote "{demoteCharacter?.name}" from book level to story level?
-              <br /><br />
-              The character will be moved to the story where it's currently used.
-              If not used in any story, you'll need to specify a target story.
+              Are you sure you want to demote "{demoteCharacter?.name}" to story level?
+              {demoteCharacter && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    {getCharacterUsageInfo(demoteCharacter)}
+                  </Typography>
+                </Box>
+              )}
             </Typography>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDemoteDialog(false)}>Cancel</Button>
-          <Button
-            onClick={handleDemoteCharacter}
-            variant="contained"
-            color="primary"
-            disabled={!!demoteError}
-          >
+          <Button onClick={handleDemoteCharacter} variant="contained" color="warning" disabled={!!demoteError}>
             Demote
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Character Audition Dialog */}
-      {auditionCharacter && book && (
-        <CharacterAuditionDialog
-          open={openAuditionDialog}
-          onClose={handleCloseAudition}
-          character={auditionCharacter}
-          storyId={`book:${book.id}`} // Use book ID prefixed with "book:"
-          book={book}
-          storyBackgroundSetup={book.backgroundSetup || ''}
-          onUpdate={handleAuditionUpdate}
-        />
-      )}
-    </Box>
+    </Paper>
   );
 };
 

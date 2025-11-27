@@ -59,6 +59,7 @@ export interface LayoutElement {
   height: number;   // percentage of canvas height (0-100)
   zIndex: number;   // stacking order
   aspectRatio?: string; // Optional forced aspect ratio for this element (e.g. "1:1")
+  autoHeight?: boolean; // If true, height is calculated based on content (text panel only)
 }
 
 /**

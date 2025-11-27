@@ -182,6 +182,64 @@ describe('Book Model', () => {
     });
   });
 
+  describe('Character Management', () => {
+    it('should add a character to the book', () => {
+      const character = { name: 'Hero', description: 'A brave hero' };
+      book.addCharacter(character);
+      
+      expect(book.characters).toHaveLength(1);
+      expect(book.characters[0].name).toBe('Hero');
+    });
+
+    it('should throw error when adding duplicate character', () => {
+      const character = { name: 'Hero', description: 'A brave hero' };
+      book.addCharacter(character);
+      
+      expect(() => book.addCharacter(character)).toThrow('Character with name "Hero" already exists at book level');
+    });
+
+    it('should find character by name (case-insensitive)', () => {
+      const character = { name: 'Hero', description: 'A brave hero' };
+      book.addCharacter(character);
+      
+      const found = book.findCharacterByName('hero');
+      expect(found).toBeDefined();
+      expect(found?.name).toBe('Hero');
+    });
+
+    it('should delete a character from the book', () => {
+      const character = { name: 'Hero', description: 'A brave hero' };
+      book.addCharacter(character);
+      
+      const deleted = book.deleteCharacter('Hero');
+      expect(deleted).toBe(true);
+      expect(book.characters).toHaveLength(0);
+    });
+
+    it('should return false when deleting non-existent character', () => {
+      const deleted = book.deleteCharacter('NonExistent');
+      expect(deleted).toBe(false);
+    });
+
+    it('should update updatedAt when adding character', () => {
+      const oldUpdatedAt = book.updatedAt;
+      const character = { name: 'Hero', description: 'A brave hero' };
+      
+      book.addCharacter(character);
+      expect(book.updatedAt.getTime()).toBeGreaterThanOrEqual(oldUpdatedAt.getTime());
+    });
+
+    it('should update updatedAt when deleting character', () => {
+      const character = { name: 'Hero', description: 'A brave hero' };
+      book.addCharacter(character);
+      
+      const oldUpdatedAt = book.updatedAt;
+      book.deleteCharacter('Hero');
+      
+      expect(book.updatedAt.getTime()).toBeGreaterThanOrEqual(oldUpdatedAt.getTime());
+    });
+  });
+
   describe('JSON Conversion', () => {
     it('should convert to JSON serialization format', () => {
       book.updateStyle({
@@ -249,6 +307,35 @@ describe('Book Model', () => {
       expect(parsed.backgroundSetup).toBe(book.backgroundSetup);
       expect(parsed.aspectRatio).toBe(book.aspectRatio);
       expect(parsed.style.colorPalette).toBe(book.style.colorPalette);
+    });
+
+    it('should convert to export JSON format', () => {
+      const character = { name: 'Hero', description: 'A brave hero' };
+      book.addCharacter(character);
+      book.updateStyle({ colorPalette: 'Export colors' });
+      
+      const story = new Story({
+        title: 'Test Story',
+        backgroundSetup: 'Test background'
+      });
+      book.addStory(story);
+      
+      const exportJSON = book.toExportJSON();
+      
+      // toExportJSON() returns nested structure for file export
+      expect(exportJSON.book).toBeDefined();
+      expect(exportJSON.book.title).toBe('Test Book');
+      expect(exportJSON.book.description).toBe('A test book');
+      expect(exportJSON.book.characters).toHaveLength(1);
+      expect(exportJSON.book.characters?.[0].name).toBe('Hero');
+      expect(exportJSON.stories).toHaveLength(1);
+    });
+
+    it('should handle book with no characters in export JSON', () => {
+      const exportJSON = book.toExportJSON();
+      
+      expect(exportJSON.book.characters).toBeDefined();
+      expect(exportJSON.book.characters).toHaveLength(0);
     });
   });
 });

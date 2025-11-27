@@ -51,6 +51,7 @@ import { ModelSelectionDialog } from './ModelSelectionDialog';
 import { PanelConfigDialog } from './PanelConfigDialog';
 import { SceneLayoutEditor } from './SceneLayoutEditor';
 import { LayoutResolver } from '../services/LayoutResolver';
+import { ImageGenerationPreviewDialog, type PreviewData } from './ImageGenerationPreviewDialog';
 
 /**
  * Calculate the minimum height needed for a text panel based on content
@@ -185,6 +186,9 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const [panelConfigDialogOpen, setPanelConfigDialogOpen] = useState(false);
   const [editingPanelConfig, setEditingPanelConfig] = useState<PanelConfig>(DEFAULT_PANEL_CONFIG);
   const [layoutEditorOpen, setLayoutEditorOpen] = useState(false);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<PreviewData | null>(null);
+  const [pendingModelForGeneration, setPendingModelForGeneration] = useState<string | null>(null);
   
   const textPanelFieldRef = React.useRef<HTMLTextAreaElement>(null);
   const lastNotifiedImageUrl = useRef<string | null>(null);
@@ -784,68 +788,31 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     const activeBookId = await BookService.getActiveBookId();
     const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
     
-    // Define available macros
-    const macros = {
-      'SceneDescription': currentScene.description || ''
-    };
+    // Prepare characters with isBookLevel flag for the service
+    const charactersWithLevel = selectedCast.map(char => {
+      const charWithImages = char as unknown as Character;
+      // Check if this character is from the book level
+      const isBookLevel = activeBook?.characters?.some(bookChar => bookChar.name === char.name) || false;
+      return {
+        ...charWithImages,
+        isBookLevel
+      };
+    });
     
-    let prompt = `Create an illustration with the following requirements:\n\n`;
+    // Prepare elements array
+    const elementsForPrompt = selectedElements.map(elem => ({
+      name: elem.name,
+      description: elem.description
+    }));
     
-    // Book Style - visual guidelines for the entire book
-    if (activeBook) {
-      const style = activeBook.style;
-      if (style) {
-        const styleText = formatBookStyleForPrompt(style);
-        if (styleText) {
-          prompt += `## BOOK-WIDE VISUAL STYLE (apply to all elements):\n${styleText}\n\n`;
-        }
-      }
-    }
-    
-    // Book Background Setup - applies to all stories/scenes in this book
-    if (activeBook?.backgroundSetup) {
-      prompt += `## BOOK-WIDE VISUAL WORLD (applies to all scenes):\n${activeBook.backgroundSetup}\n\n`;
-    }
-    
-    // Story Background Setup - specific context for this story
-    if (story.backgroundSetup) {
-      prompt += `## STORY CONTEXT (specific to this narrative):\n${story.backgroundSetup}\n\n`;
-    }
-    
-    // Scene Description - what happens in this specific chapter/scene
-    prompt += `## THIS SCENE (Chapter/Illustration Details):\n${currentScene.description}\n\n`;
-    
-    if (selectedCast.length > 0) {
-      prompt += `## Characters in this Scene\n`;
-      for (const character of selectedCast) {
-        const characterDescription = replaceMacros(character.description, macros);
-        prompt += `[Character Definition: ${character.name}]\n${characterDescription}\n`;
-        
-        // Include character image reference if available (v4.1+)
-        // Cast to new Character type to access imageGallery fields
-        const charWithImages = character as unknown as Character;
-        if (charWithImages.selectedImageId && charWithImages.imageGallery) {
-          const selectedImage = charWithImages.imageGallery.find(img => img.id === charWithImages.selectedImageId);
-          if (selectedImage) {
-            prompt += `\nREFERENCE IMAGE PROVIDED: A reference image of ${character.name} is included with this request.`;
-            prompt += `\nPlease maintain exact visual consistency with this character's appearance shown in the reference image.`;
-            prompt += `\nIMPORTANT: Match ALL visual characteristics from the reference image - appearance, style, colors, proportions, and distinctive features.`;
-            prompt += `\nThe character should look identical to the reference, just in this new scene and context.`;
-          }
-        }
-        prompt += `\n\n`;
-      }
-    }
-    
-    if (selectedElements.length > 0) {
-      prompt += `## Elements in this Scene\n`;
-      selectedElements.forEach(element => {
-        const elementDescription = replaceMacros(element.description, macros);
-        prompt += `[Object Definition: ${element.name}]\n${elementDescription}\n\n`;
-      });
-    }
-
-    return prompt;
+    // Use the unified service method to build the prompt
+    return SceneImageGenerationService.buildScenePrompt(
+      currentScene,
+      story,
+      activeBook,
+      charactersWithLevel,
+      elementsForPrompt
+    );
   };
 
   const updateSceneCharacterIds = async (newCharacterNames: string[]) => {
@@ -1274,6 +1241,83 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     } catch (error) {
       console.error('Failed to clear scene images:', error);
       setSnackbarMessage(`Failed to clear images: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
+  // Build preview data for the preview dialog
+  const buildPreviewData = async (modelName: string): Promise<PreviewData> => {
+    const activeBookId = await BookService.getActiveBookId();
+    const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
+    
+    // Calculate aspect ratio
+    let aspectRatio: string;
+    if (currentScene?.layout) {
+      const canvasWidth = currentScene.layout.canvas.width;
+      const canvasHeight = currentScene.layout.canvas.height;
+      const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b);
+      const divisor = gcd(canvasWidth, canvasHeight);
+      const ratioWidth = canvasWidth / divisor;
+      const ratioHeight = canvasHeight / divisor;
+      aspectRatio = `${ratioWidth}:${ratioHeight}`;
+    } else {
+      aspectRatio = activeBook?.aspectRatio || '3:4';
+    }
+    
+    // Generate the full prompt
+    const prompt = await generatePrompt();
+    
+    // Load character images
+    const characterImages: Array<{ name: string; url: string }> = [];
+    for (const charName of selectedCharacters) {
+      let character = story?.characters?.find(c => c.name === charName);
+      if (!character && activeBook) {
+        character = activeBook.characters?.find(c => c.name === charName);
+      }
+      
+      if (character) {
+        const charWithImages = character as unknown as Character;
+        if (charWithImages.selectedImageId && charWithImages.imageGallery) {
+          const selectedImage = charWithImages.imageGallery.find(img => img.id === charWithImages.selectedImageId);
+          if (selectedImage) {
+            try {
+              const imageUrl = await ImageStorageService.getImage(selectedImage.id);
+              if (imageUrl) {
+                characterImages.push({
+                  name: character.name,
+                  url: imageUrl
+                });
+              }
+            } catch (error) {
+              console.warn(`Failed to load image for character ${character.name}:`, error);
+            }
+          }
+        }
+      }
+    }
+    
+    return {
+      sceneTitle: currentScene?.title || 'Untitled Scene',
+      sceneDescription: currentScene?.description || '',
+      prompt,
+      characterImages,
+      aspectRatio,
+      model: modelName
+    };
+  };
+
+  // Show preview dialog after model selection
+  const handleShowPreview = async (modelName: string) => {
+    try {
+      setPendingModelForGeneration(modelName);
+      const preview = await buildPreviewData(modelName);
+      setPreviewData(preview);
+      setPreviewDialogOpen(true);
+      setModelSelectionOpen(false);
+    } catch (error) {
+      console.error('Failed to build preview:', error);
+      setSnackbarMessage(`Failed to build preview: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
@@ -2223,6 +2267,23 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         open={modelSelectionOpen}
         onClose={() => setModelSelectionOpen(false)}
         onConfirm={performImageGeneration}
+        onPreview={handleShowPreview}
+      />
+
+      {/* Image Generation Preview Dialog */}
+      <ImageGenerationPreviewDialog
+        open={previewDialogOpen}
+        onClose={() => {
+          setPreviewDialogOpen(false);
+          setPreviewData(null);
+          setPendingModelForGeneration(null);
+        }}
+        onGenerate={() => {
+          if (pendingModelForGeneration) {
+            performImageGeneration(pendingModelForGeneration);
+          }
+        }}
+        previewData={previewData}
       />
 
       {/* Panel Config Dialog */}

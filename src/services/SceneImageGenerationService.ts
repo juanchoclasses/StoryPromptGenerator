@@ -127,8 +127,9 @@ export class SceneImageGenerationService {
   /**
    * Build prompt for scene image generation
    * Includes character descriptions and reference image notes
+   * PUBLIC method so it can be used by preview dialogs
    */
-  private static buildScenePrompt(
+  public static buildScenePrompt(
     scene: Scene,
     story: Story,
     book: Book | null,
@@ -139,7 +140,32 @@ export class SceneImageGenerationService {
       'SceneDescription': scene.description || ''
     };
 
+    // Check which characters have reference images
+    const charactersWithImages = characters.filter(c => 
+      c.selectedImageId && c.imageGallery && 
+      c.imageGallery.find(img => img.id === c.selectedImageId)
+    );
+
     let prompt = `Create an illustration with the following requirements:\n\n`;
+    
+    // ⭐ CRITICAL: Put reference image instructions at the very top if we have any
+    if (charactersWithImages.length > 0) {
+      prompt += `!!! CRITICAL INSTRUCTION - REFERENCE IMAGES ATTACHED !!!\n\n`;
+      prompt += `${charactersWithImages.length} CHARACTER REFERENCE IMAGE(S) ARE INCLUDED WITH THIS REQUEST.\n\n`;
+      prompt += `🚨 HIGHEST PRIORITY: You MUST match the EXACT visual appearance of each character from their reference image.\n`;
+      prompt += `DO NOT deviate from the reference images. DO NOT interpret or modify the character's appearance.\n`;
+      prompt += `USE THE REFERENCE IMAGES AS THE ABSOLUTE SOURCE OF TRUTH for:\n`;
+      prompt += `  - Face shape, features, and proportions\n`;
+      prompt += `  - Hair style, color, and length\n`;
+      prompt += `  - Skin tone and complexion\n`;
+      prompt += `  - Body proportions and build\n`;
+      prompt += `  - Clothing style and colors (unless scene description specifies different clothing)\n`;
+      prompt += `  - ALL other visual characteristics\n\n`;
+      prompt += `The reference images take PRECEDENCE over any conflicting text descriptions.\n`;
+      prompt += `Each character MUST look identical to their reference image, just positioned in this new scene.\n\n`;
+      prompt += `Characters with reference images: ${charactersWithImages.map(c => c.name).join(', ')}\n\n`;
+      prompt += `════════════════════════════════════════════════════════════════════\n\n`;
+    }
     
     // Book Style - visual guidelines for the entire book
     if (book?.style) {
@@ -164,32 +190,54 @@ export class SceneImageGenerationService {
     
     // Characters in scene
     if (characters.length > 0) {
-      prompt += `## Characters in this Scene\n`;
+      prompt += `## Characters in this Scene\n\n`;
       for (const character of characters) {
         const characterDescription = this.replaceMacros(character.description, macros);
-        prompt += `[Character Definition: ${character.name}]\n${characterDescription}\n`;
+        const hasReferenceImage = character.selectedImageId && character.imageGallery && 
+          character.imageGallery.find(img => img.id === character.selectedImageId);
         
-        // Include character image reference if available
-        if (character.selectedImageId && character.imageGallery) {
-          const selectedImage = character.imageGallery.find(img => img.id === character.selectedImageId);
-          if (selectedImage) {
-            prompt += `\nREFERENCE IMAGE PROVIDED: A reference image of ${character.name} is included with this request.`;
-            prompt += `\nPlease maintain exact visual consistency with this character's appearance shown in the reference image.`;
-            prompt += `\nIMPORTANT: Match ALL visual characteristics from the reference image - appearance, style, colors, proportions, and distinctive features.`;
-            prompt += `\nThe character should look identical to the reference, just in this new scene and context.`;
-          }
+        prompt += `[Character: ${character.name}]\n`;
+        
+        // If reference image exists, emphasize it BEFORE the description
+        if (hasReferenceImage) {
+          prompt += `\n⚠️ REFERENCE IMAGE ATTACHED FOR THIS CHARACTER ⚠️\n`;
+          prompt += `>>> USE THE ATTACHED REFERENCE IMAGE AS THE PRIMARY SOURCE for ${character.name}'s appearance <<<\n`;
+          prompt += `>>> The reference image shows the EXACT appearance that MUST be used <<<\n`;
+          prompt += `>>> Match EVERY visual detail from the reference image <<<\n\n`;
         }
+        
+        prompt += `${characterDescription}\n`;
+        
+        // Repeat reference image emphasis AFTER the description
+        if (hasReferenceImage) {
+          prompt += `\n🎯 REMINDER: A reference image of ${character.name} is attached to this request.\n`;
+          prompt += `Copy the EXACT appearance from the reference image - face, hair, features, proportions, everything.\n`;
+          prompt += `The reference image is the definitive visual source. Any text description conflicts should be IGNORED in favor of the reference image.\n`;
+        }
+        
         prompt += `\n\n`;
       }
     }
     
     // Elements in scene
     if (elements.length > 0) {
-      prompt += `## Elements in this Scene\n`;
+      prompt += `## Elements in this Scene\n\n`;
       elements.forEach(element => {
         const elementDescription = this.replaceMacros(element.description, macros);
         prompt += `[Object Definition: ${element.name}]\n${elementDescription}\n\n`;
       });
+    }
+
+    // Final reminder about reference images
+    if (charactersWithImages.length > 0) {
+      prompt += `\n════════════════════════════════════════════════════════════════════\n`;
+      prompt += `🚨 FINAL REMINDER: ${charactersWithImages.length} reference image(s) attached\n`;
+      prompt += `Characters that MUST match their reference images EXACTLY:\n`;
+      charactersWithImages.forEach(c => {
+        prompt += `  • ${c.name} - Use attached reference image as the absolute visual source\n`;
+      });
+      prompt += `\nDO NOT modify, interpret, or deviate from the reference images in any way.\n`;
+      prompt += `════════════════════════════════════════════════════════════════════\n`;
     }
 
     return prompt;
@@ -573,14 +621,20 @@ export class SceneImageGenerationService {
       // Convert percentage-based width to actual pixels
       const textPanelWidth = Math.round((layout.elements.textPanel.width / 100) * layout.canvas.width);
       
-      // Calculate the actual height needed for the text content
-      textPanelHeight = this.calculateTextPanelHeight(
-        panelText,
-        textPanelWidth,
-        panelConfig
-      );
-      
-      console.log(`  Text panel size: ${textPanelWidth}x${textPanelHeight} (width: ${layout.elements.textPanel.width}%, height: auto-calculated)`);
+      // Calculate height: either auto-calculate based on content or use fixed percentage
+      if (layout.elements.textPanel.autoHeight) {
+        // Auto-calculate the actual height needed for the text content
+        textPanelHeight = this.calculateTextPanelHeight(
+          panelText,
+          textPanelWidth,
+          panelConfig
+        );
+        console.log(`  Text panel size: ${textPanelWidth}x${textPanelHeight} (width: ${layout.elements.textPanel.width}%, height: auto-calculated)`);
+      } else {
+        // Use fixed height from layout
+        textPanelHeight = Math.round((layout.elements.textPanel.height / 100) * layout.canvas.height);
+        console.log(`  Text panel size: ${textPanelWidth}x${textPanelHeight} (width: ${layout.elements.textPanel.width}%, height: ${layout.elements.textPanel.height}%)`);
+      }
       
       try {
         const textPanelBitmap = await createTextPanel(panelText, {

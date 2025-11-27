@@ -13,6 +13,7 @@ import {
   Box,
   Alert,
 } from '@mui/material';
+import PreviewIcon from '@mui/icons-material/Preview';
 import { IMAGE_MODELS } from '../constants/imageModels';
 import { SettingsService } from '../services/SettingsService';
 
@@ -20,12 +21,14 @@ interface ModelSelectionDialogProps {
   open: boolean;
   onClose: () => void;
   onConfirm: (modelName: string) => void;
+  onPreview?: (modelName: string) => void; // Optional preview callback
 }
 
 export const ModelSelectionDialog: React.FC<ModelSelectionDialogProps> = ({
   open,
   onClose,
   onConfirm,
+  onPreview,
 }) => {
   const [selectedModel, setSelectedModel] = useState('');
   const [rememberChoice, setRememberChoice] = useState(false);
@@ -54,6 +57,20 @@ export const ModelSelectionDialog: React.FC<ModelSelectionDialogProps> = ({
     
     onConfirm(selectedModel);
     onClose();
+  };
+
+  const handlePreview = async () => {
+    if (!selectedModel || !onPreview) return;
+    
+    // Optionally save as default
+    if (rememberChoice) {
+      await SettingsService.updateSettings({
+        imageGenerationModel: selectedModel
+      });
+    }
+    
+    onPreview(selectedModel);
+    // Don't close here - SceneEditor will handle closing after preview is built
   };
 
   const getModelInfo = () => {
@@ -103,6 +120,17 @@ export const ModelSelectionDialog: React.FC<ModelSelectionDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
+        <Box sx={{ flex: 1 }} />
+        {onPreview && (
+          <Button 
+            onClick={handlePreview} 
+            variant="outlined"
+            startIcon={<PreviewIcon />}
+            disabled={!selectedModel}
+          >
+            Preview
+          </Button>
+        )}
         <Button 
           onClick={handleConfirm} 
           variant="contained" 

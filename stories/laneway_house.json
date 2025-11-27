@@ -1,0 +1,177 @@
+{
+  "book": {
+    "title": "Building Home: A Laneway House Journey",
+    "description": "A practical, step-by-step journey through the process of building a laneway house, from city permits to final construction, showing the dedication, planning, and hard work required to create a home.",
+    "backgroundSetup": "A residential backyard in an urban neighborhood where an old garage stands ready for transformation. Anja, a meticulous German woman with a short bob and construction overalls, oversees the construction of a modern laneway house. The setting evolves from an empty lot to a fully constructed home, with construction equipment, building materials, blueprints, and city permits visible throughout. Martin, the gruff contractor, leads the work with precision. Nick, a movie director lending his hands occasionally, and Parker, a young man in army fatigues preparing for military service, round out the team. IMPORTANT: Characters should be positioned in the BOTTOM HALF of images, with construction site, machinery, and building progress in the top half.",
+    "aspectRatio": "16:9",
+    "style": {
+      "artStyle": "XKCD webcomic style: simple stick figure drawings with clean black lines on white background, hand-drawn aesthetic with intentional wobbliness, minimalist details, no shading or complex coloring, emphasis on clarity and humor through simplicity",
+      "visualTheme": "Simple, clear, educational, hand-drawn webcomic aesthetic",
+      "characterStyle": "Simple stick figures with basic circle heads, minimal facial features (dots for eyes, simple line for mouth), stick limbs, distinguishable by key features like hairstyle or clothing indicated with simple lines",
+      "environmentStyle": "Minimalist line drawings of buildings and construction equipment, essential details only, clean simple shapes, hand-drawn wobbly lines",
+      "colorPalette": "Primarily black lines on white background, occasional simple flat colors for emphasis (like hard hats or safety vests), no gradients or shading"
+    }
+  },
+  "stories": [
+    {
+      "story": {
+        "title": "Building Home: A Laneway House Journey",
+        "backgroundSetup": "A residential backyard in an urban neighborhood where an old garage stands ready for transformation. Anja, a meticulous German woman with a short bob and construction overalls, oversees the construction of a modern laneway house. The setting evolves from an empty lot to a fully constructed home, with construction equipment, building materials, blueprints, and city permits visible throughout. Martin, the gruff contractor, leads the work with precision. Nick, a movie director lending his hands occasionally, and Parker, a young man in army fatigues preparing for military service, round out the team. IMPORTANT: Characters should be positioned in the BOTTOM HALF of images, with construction site, machinery, and building progress in the top half.",
+        "description": "A practical, step-by-step journey through the process of building a laneway house, from city permits to final construction, showing the dedication, planning, and hard work required to create a home."
+      },
+      "characters": [
+        {
+          "name": "Anja",
+          "description": "A determined woman of German descent in her early forties with a practical short bob haircut, often tucked behind her ears. She wears sturdy construction overalls in navy blue over a gray work shirt, steel-toed boots, and always carries a clipboard with her detailed to-do list. Her expression is focused and serious, with sharp eyes that miss nothing on the construction site. She has a no-nonsense demeanor but shows pride in the project. Often seen checking items off her list with a worn pencil kept behind her ear."
+        },
+        {
+          "name": "Martin",
+          "description": "A gruff, weathered contractor in his fifties with calloused hands and a permanent squint from years of outdoor work. He wears a faded plaid flannel shirt, work jeans with a leather tool belt, and scuffed work boots covered in concrete dust. His gray-streaked beard is short and practical. He's all business—no small talk, just efficient movement and expert craftsmanship. His face rarely shows emotion, but his work speaks volumes about his skill and dedication."
+        },
+        {
+          "name": "Nick",
+          "description": "A creative soul in his thirties who splits time between directing films and helping with construction. He has an artistic look with slightly longer hair, designer glasses, and an interesting mix of style—sometimes wearing a vintage band t-shirt under a work vest. When on site, he's energetic and curious, asking questions and bringing a different perspective. He appears in some scenes lending a hand, bringing coffee, or documenting progress with his camera."
+        },
+        {
+          "name": "Parker",
+          "description": "A disciplined young man in his early twenties preparing for military service. He wears army fatigues even on the construction site, with combat boots laced tight and a military haircut. His posture is straight, his movements efficient and purposeful. He approaches construction work with the same dedication he brings to his training, lifting materials with proper form and following instructions precisely. His face shows youthful determination and respect for the process."
+        }
+      ],
+      "elements": [
+        {
+          "name": "The Backyard Site",
+          "description": "An urban backyard plot, initially featuring an old garage ready for demolition. The lot is surrounded by neighboring houses and fences. As the story progresses, the site transforms—excavation equipment arrives, forms are built, concrete is poured, and a house takes shape. Construction materials are stacked neatly, orange safety cones mark boundaries, and blueprints are often spread on makeshift tables.",
+          "category": "Rooms"
+        },
+        {
+          "name": "City Hall Permit Office",
+          "description": "A bureaucratic office with fluorescent lighting, filing cabinets, and a counter separating applicants from city officials. Walls are covered with building codes, zoning maps, and permit application forms. A large city zoning map dominates one wall. The space feels official and procedural.",
+          "category": "Rooms"
+        },
+        {
+          "name": "Excavator",
+          "description": "A heavy-duty excavation machine with a powerful hydraulic arm and large bucket for digging. Its yellow paint is marked with dirt and wear from countless jobs. The machine rumbles with industrial power, its tracks leaving deep impressions in the earth as it carves out the foundation hole.",
+          "category": "Machinery"
+        },
+        {
+          "name": "Concrete Mixer Truck",
+          "description": "A large truck with a rotating drum filled with wet concrete. The drum slowly turns to keep the mixture from setting. A long chute extends from the back for precise pouring. The truck is industrial gray with warning stripes, representing the critical foundation phase.",
+          "category": "Machinery"
+        },
+        {
+          "name": "Wooden Forms and Rebar",
+          "description": "Precise wooden frames that define the shape of the concrete foundation, with steel reinforcement bars (rebar) tied in grid patterns inside. The forms are secured with stakes and braces, creating the mold for the foundation. The rebar provides structural strength.",
+          "category": "Set Pieces"
+        },
+        {
+          "name": "Blueprints and Plans",
+          "description": "Large architectural drawings showing floor plans, elevations, and construction details. The blueprints are marked with measurements, notes, and city approval stamps. Often weighted down on a table with tools, or rolled up and carried under arms. They represent the vision becoming reality.",
+          "category": "Set Pieces"
+        },
+        {
+          "name": "Lumber and Framing Materials",
+          "description": "Stacks of dimensional lumber—2x4s, 2x6s, and plywood sheets—arranged neatly on the site. The fresh wood smells of sawdust. Framing nails, metal connectors, and measuring tools are nearby. This is the skeleton of the house waiting to be assembled.",
+          "category": "Set Pieces"
+        },
+        {
+          "name": "Tool Wall",
+          "description": "A mobile pegboard setup with organized tools—hammers, levels, squares, drills, saws, and measuring tapes. Everything has its place. Safety equipment like hard hats, gloves, and safety glasses hang nearby. The wall represents the precision and care required in construction.",
+          "category": "Set Pieces"
+        }
+      ],
+      "scenes": [
+        {
+          "title": "Introduction: The Building Team",
+          "description": "The four key people stand together in front of the old garage that will soon be demolished. Anja holds her clipboard prominently, her short bob neat and professional in her navy overalls. Martin stands with arms crossed, his weathered face serious and his tool belt visible. Parker stands at attention in his army fatigues, posture military-straight. Nick, in his creative casual wear with designer glasses, holds a camera. Behind them, the old garage and the blueprints on a table show the vision of what's to come. The mood is serious and determined—this is the team that will build a home.",
+          "textPanel": "Meet Anja with her list so neat,\nAnd Martin, the contractor you should meet.\nYoung Parker in fatigues stands tall and ready,\nWhile Nick the director keeps the vision steady.\n\nTogether they'll build with sweat and might,\nA laneway house done right.",
+          "characters": ["Anja", "Martin", "Nick", "Parker"],
+          "elements": ["The Backyard Site", "Blueprints and Plans"]
+        },
+        {
+          "title": "Step One: The Permit Process",
+          "description": "Anja and Martin stand in the City Hall Permit Office, surrounded by bureaucratic paperwork and zoning maps. Anja holds her clipboard with a thick stack of application forms, her expression patient but determined. Martin looks less comfortable in this administrative setting, his arms crossed as he waits. A city official reviews their plans at a counter. Behind them, zoning maps and building codes cover the walls. This is the unglamorous but essential first step—no building without permission.",
+          "textPanel": "Before one nail or board is placed,\nTo City Hall Anja raced.\nPermits and papers, forms galore,\nZoning rules and building code to explore.\n\nMartin grumbled, 'Let's just build!'\nBut Anja's patience kept him stilled.\n'Without approval from the city's hand,\nOur house cannot legally stand.'",
+          "characters": ["Anja", "Martin"],
+          "elements": ["City Hall Permit Office", "Blueprints and Plans"]
+        },
+        {
+          "title": "Step Two: Demolition Day",
+          "description": "The old garage stands ready for demolition, marked with caution tape. Parker, in his army fatigues, operates demolition equipment while Martin directs the work with hand signals. Anja stands at a safe distance, checking off 'demolition permit' on her clipboard, a slight smile showing—finally, visible progress! Debris is carefully loaded into a dumpster. The garage comes down board by board, making way for the new. This is the dramatic transformation beginning.",
+          "textPanel": "The old garage had stood for years,\nBut now its end appears.\nWith permits signed and approved at last,\nTime to remove the past.\n\nParker swung and Martin led,\nDown came walls, both blue and red.\nAnja checked her list with pride—\nOne more step, boxes verified.",
+          "characters": ["Anja", "Martin", "Parker"],
+          "elements": ["The Backyard Site", "Tool Wall"]
+        },
+        {
+          "title": "Step Three: Digging Deep",
+          "description": "A large yellow excavator dominates the scene, its hydraulic arm scooping earth from the backyard. The hole grows deeper with each bucket. Martin sits in the excavator's cab, operating it with expert precision. Anja stands nearby in her overalls, consulting blueprints to ensure the hole dimensions match specifications. Parker helps with measurements, holding a long tape measure. The excavation reveals layers of soil and clay. This is hard, dirty work—the literal groundwork.",
+          "textPanel": "The excavator's arm came down,\nDigging through the earth so brown.\nDeeper, wider, precise and true,\nMartin knew just what to do.\n\nAnja measured, checked the depth,\nEvery inch with care was kept.\n'The foundation must sit right,\nOn solid ground, stable and tight.'",
+          "characters": ["Anja", "Martin", "Parker"],
+          "elements": ["The Backyard Site", "Excavator", "Blueprints and Plans"]
+        },
+        {
+          "title": "Step Four: Building the Forms",
+          "description": "The excavated hole now contains precise wooden forms—temporary walls that will shape the concrete foundation. Martin and Parker work together, measuring and securing wooden boards with stakes and braces. Steel rebar is tied in grid patterns inside the forms, creating reinforcement. Anja checks measurements against her blueprints, pencil behind her ear, making small notations. Nick appears with coffee for the crew. The forms are engineering and carpentry combined—they must be exact.",
+          "textPanel": "Wooden forms and rebar steel,\nBuilt with care to make it real.\nMartin measured twice, then cut,\nNo room for error, corners square and shut.\n\nParker tied the rebar tight,\nGrid pattern strong to hold the might.\nAnja nodded, 'This will do—\nThese forms will hold the concrete true.'",
+          "characters": ["Anja", "Martin", "Nick", "Parker"],
+          "elements": ["The Backyard Site", "Wooden Forms and Rebar", "Tool Wall"]
+        },
+        {
+          "title": "Step Five: The Concrete Pour",
+          "description": "A concrete mixer truck backs into position, its massive drum rotating. The long chute extends into the forms as wet concrete begins to flow. Martin guides the chute's position while Parker uses a concrete vibrator to remove air bubbles. Anja watches intently, her clipboard temporarily set aside—this is a critical moment that cannot be stopped once started. The gray concrete fills the forms steadily. This is point of no return—the foundation is being literally set in stone.",
+          "textPanel": "The concrete truck arrived at dawn,\nIts drum rotating round and round.\nWet concrete flowed down the chute,\nFilling forms without dispute.\n\nMartin guided, Parker vibrated air,\nSmoothed the surface with expert care.\nAnja watched with careful eyes—\n'This foundation must not compromise.'",
+          "characters": ["Anja", "Martin", "Parker"],
+          "elements": ["The Backyard Site", "Concrete Mixer Truck", "Wooden Forms and Rebar"]
+        },
+        {
+          "title": "Step Six: Foundation Walls Rise",
+          "description": "With the concrete footer cured, foundation walls are being built. Concrete blocks are stacked with precision, each course checked with a level. Martin works methodically, applying mortar and setting blocks. Parker mixes mortar and carries blocks. Anja cross-references the foundation height with her blueprints. The walls rise from the ground, creating the base upon which everything else will stand. The wooden forms have been removed, revealing the solid concrete footer beneath. This is where the house begins to take real shape.",
+          "textPanel": "Upon the footer, strong and cured,\nFoundation walls are now secured.\nBlock by block, both straight and level,\nMartin worked like building's devil.\n\nMortar spread and blocks were placed,\nNo gaps or cracks could be traced.\nAnja measured, 'Perfect height—\nThis foundation's built just right.'",
+          "characters": ["Anja", "Martin", "Parker"],
+          "elements": ["The Backyard Site", "Tool Wall", "Blueprints and Plans"]
+        },
+        {
+          "title": "Step Seven: Framing the Structure",
+          "description": "The foundation is complete, and now the skeleton of the house takes shape. Stacks of dimensional lumber are being assembled into walls. Martin and Parker work in tandem—measuring, cutting, nailing. The sound of hammers and saws fills the air. Wall frames lie flat on the foundation before being tilted up into position. Anja reviews the blueprints constantly, ensuring each wall is placed correctly. Nick appears to document the progress with his camera. The outline of rooms becomes visible—this is starting to look like a house.",
+          "textPanel": "With foundation set and dry,\nNow the frame will reach the sky.\nTwo-by-fours and two-by-sixes tall,\nMartin built each wooden wall.\n\nHammers rang, the saws did sing,\nParker helped with everything.\n'The frame's the skeleton,' Anja said,\n'Built correctly, strong like lead.'",
+          "characters": ["Anja", "Martin", "Nick", "Parker"],
+          "elements": ["The Backyard Site", "Lumber and Framing Materials", "Tool Wall"]
+        },
+        {
+          "title": "Step Eight: Raising the Roof",
+          "description": "The walls are up, and now the roof structure is being built. Roof trusses or rafters are being lifted into place and secured to the top plates. Martin directs from below while Parker helps guide the heavy trusses. The geometry of the roof takes shape—angles precise, spacing exact. Anja watches as her house gets its protective cover. Once the trusses are secured, plywood sheathing is nailed on, creating the roof deck. This is a milestone moment—the structure is now enclosed from above.",
+          "textPanel": "The walls stood tall, now time for more—\nThe roof to shelter every floor.\nTrusses lifted high with care,\nMartin placed them in the air.\n\nAngled beams and plywood sheets,\nWhere walls and roofline meets.\nAnja smiled, for all could see,\nA house is what this soon would be.",
+          "characters": ["Anja", "Martin", "Parker"],
+          "elements": ["The Backyard Site", "Lumber and Framing Materials", "Tool Wall"]
+        },
+        {
+          "title": "Step Nine: Windows and Exterior",
+          "description": "The house is now structurally complete and beginning to look finished. Windows are being installed in their rough openings, sealed carefully against the weather. Exterior sheathing is complete, and house wrap creates a weather barrier. Martin and Parker work on installing siding—each piece level and properly fastened. Anja checks that windows open and close smoothly, her clipboard nearly full of checked items. The transformation is dramatic—from a wooden skeleton to something that actually looks like a home.",
+          "textPanel": "Windows placed in frames so tight,\nLetting in the natural light.\nSiding covered every wall,\nProtecting what's within the hall.\n\nMartin sealed each seam and crack,\nKeeping weather firmly back.\nAnja checked each window's fit—\n'This house is taking shape, a bit.'",
+          "characters": ["Anja", "Martin", "Parker"],
+          "elements": ["The Backyard Site", "Tool Wall", "Blueprints and Plans"]
+        },
+        {
+          "title": "Step Ten: Systems Installation",
+          "description": "Inside the framed house, the walls are open, revealing the installation of essential systems. Electrical wires run through studs, outlets and switches are roughed in. Plumbing pipes snake through walls and floors. HVAC ducts are positioned. Martin coordinates multiple specialized subcontractors. Parker helps run wires and hold pipes in place. Anja cross-references her blueprints with the installations, ensuring everything is positioned correctly before walls are closed up. This hidden infrastructure is what makes a house functional.",
+          "textPanel": "Behind the walls where none will see,\nRuns the house's mystery.\nWires for power, pipes for flow,\nDucts to make warm air blow.\n\nMartin checked each line and wire,\nMaking sure none would misfire.\n'These systems hidden in the wall,\nAre what will serve this home's call.'",
+          "characters": ["Anja", "Martin", "Parker"],
+          "elements": ["The Backyard Site", "Tool Wall"]
+        },
+        {
+          "title": "Step Eleven: Interior Finishing",
+          "description": "The house is enclosed and systems are installed. Now comes the transformation to living space. Drywall covers the walls and ceilings, creating smooth surfaces. Paint is applied in chosen colors. Flooring is laid down—hardwood, tile, or carpet depending on the room. Kitchen cabinets are installed, countertops placed. Martin oversees finish carpentry—baseboards, door trim, crown molding. Anja reviews each room against her vision, occasionally consulting with Nick on aesthetic choices. The house is becoming a home.",
+          "textPanel": "Drywall smooth and painted white,\nFloors installed both clean and tight.\nCabinets hung and trim in place,\nEvery room now shows its face.\n\nMartin measured, cut, and fit,\nEvery detail small and bit.\nAnja walked through rooms with pride—\nHer vision now lived inside.",
+          "characters": ["Anja", "Martin", "Nick"],
+          "elements": ["The Backyard Site", "Tool Wall"]
+        },
+        {
+          "title": "Completion: Home Sweet Home",
+          "description": "The laneway house stands complete in the backyard, a modern small home where once an old garage stood. The exterior is finished with clean siding, windows gleam, and the front door is painted a welcoming color. Anja stands in front of her completed house, clipboard in hand with every item checked off, a genuine smile of accomplishment on her face. Martin stands beside her, tools put away, allowing himself a rare look of satisfaction. Parker in his army fatigues and Nick with his camera complete the group. The team that built this home together. Behind them, the house represents months of planning, permits, hard work, and dedication—a dream made real through process and persistence.",
+          "textPanel": "From permits first to final nail,\nThrough every step without fail.\nAnja's vision now complete—\nA laneway home, small and neat.\n\nMartin's skill and Parker's hand,\nNick's support helped this house stand.\nWhat was once just empty space,\nNow a home with warmth and grace.\n\nEvery box on Anja's list was checked,\nEvery detail, she'd inspected.\n'This is what hard work can do—\nBuild dreams both strong and true.'",
+          "characters": ["Anja", "Martin", "Nick", "Parker"],
+          "elements": ["The Backyard Site", "Blueprints and Plans"]
+        }
+      ]
+    }
+  ]
+}

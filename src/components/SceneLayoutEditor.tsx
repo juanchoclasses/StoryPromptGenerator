@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -17,6 +17,8 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  FormControlLabel,
+  Checkbox,
   Snackbar,
   Alert,
   Slider
@@ -107,9 +109,70 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
   onCancel,
   onClearLayout
 }) => {
-  // Calculate canvas dimensions from book's aspect ratio
-  const canvasDimensions = getCanvasDimensionsFromAspectRatio(bookAspectRatio);
+  // Initialize layout with book's aspect ratio if no current layout exists
+  const getInitialLayout = (): SceneLayout => {
+    // Calculate initial dimensions from book's aspect ratio
+    const initialDimensions = getCanvasDimensionsFromAspectRatio(bookAspectRatio);
+    
+    if (currentLayout) {
+      // If layout exists, just update canvas dimensions (percentages stay the same)
+      return {
+        ...currentLayout,
+        canvas: {
+          ...currentLayout.canvas,
+          width: initialDimensions.width,
+          height: initialDimensions.height,
+          aspectRatio: bookAspectRatio
+        },
+        // Keep existing percentage-based elements
+        elements: {
+          image: currentLayout.elements.image || { x: 0, y: 0, width: 100, height: 100, zIndex: 1 },
+          textPanel: currentLayout.elements.textPanel,
+          diagramPanel: currentLayout.elements.diagramPanel
+        }
+      };
+    } else {
+      // Create new overlay layout with book's aspect ratio
+      // All values are percentages (0-100)
+      return {
+        type: 'overlay',
+        canvas: {
+          width: initialDimensions.width,
+          height: initialDimensions.height,
+          aspectRatio: bookAspectRatio
+        },
+        elements: {
+          image: { x: 0, y: 0, width: 100, height: 100, zIndex: 1 },
+          textPanel: { 
+            x: 5,
+            y: 78,
+            width: 90,
+            height: 17,
+            zIndex: 2
+          },
+          diagramPanel: {
+            x: 5,
+            y: 5,
+            width: 60,
+            height: 40,
+            zIndex: 3
+          }
+        }
+      };
+    }
+  };
   
+  const [layout, setLayout] = useState<SceneLayout>(getInitialLayout());
+  const [selectedElement, setSelectedElement] = useState<ElementType | null>(null);
+  const [dragging, setDragging] = useState<DraggingState | null>(null);
+  const [resizing, setResizing] = useState<ResizingState | null>(null);
+
+  // Recalculate canvas dimensions whenever layout aspect ratio changes
+  // This allows the preview to update when user changes aspect ratio in the dropdown
+  const canvasDimensions = useMemo(() => {
+    return getCanvasDimensionsFromAspectRatio(layout.canvas.aspectRatio);
+  }, [layout.canvas.aspectRatio]);
+
   // Helper functions to convert between percentages and preview pixels
   const PREVIEW_WIDTH = 800;
   const scale = PREVIEW_WIDTH / canvasDimensions.width;
@@ -154,61 +217,6 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
 
     return { x, y, width, height };
   };
-  
-  // Initialize layout with book's aspect ratio if no current layout exists
-  const getInitialLayout = (): SceneLayout => {
-    if (currentLayout) {
-      // If layout exists, just update canvas dimensions (percentages stay the same)
-      return {
-        ...currentLayout,
-        canvas: {
-          ...currentLayout.canvas,
-          width: canvasDimensions.width,
-          height: canvasDimensions.height,
-          aspectRatio: bookAspectRatio
-        },
-        // Keep existing percentage-based elements
-        elements: {
-          image: currentLayout.elements.image || { x: 0, y: 0, width: 100, height: 100, zIndex: 1 },
-          textPanel: currentLayout.elements.textPanel,
-          diagramPanel: currentLayout.elements.diagramPanel
-        }
-      };
-    } else {
-      // Create new overlay layout with book's aspect ratio
-      // All values are percentages (0-100)
-      return {
-        type: 'overlay',
-        canvas: {
-          width: canvasDimensions.width,
-          height: canvasDimensions.height,
-          aspectRatio: bookAspectRatio
-        },
-        elements: {
-          image: { x: 0, y: 0, width: 100, height: 100, zIndex: 1 },
-          textPanel: { 
-            x: 5,
-            y: 78,
-            width: 90,
-            height: 17,
-            zIndex: 2
-          },
-          diagramPanel: {
-            x: 5,
-            y: 5,
-            width: 60,
-            height: 40,
-            zIndex: 3
-          }
-        }
-      };
-    }
-  };
-  
-  const [layout, setLayout] = useState<SceneLayout>(getInitialLayout());
-  const [selectedElement, setSelectedElement] = useState<ElementType | null>(null);
-  const [dragging, setDragging] = useState<DraggingState | null>(null);
-  const [resizing, setResizing] = useState<ResizingState | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -678,7 +686,28 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
                     margin="dense"
                     size="small"
                     inputProps={{ min: 5, max: 100, step: 0.1 }}
+                    disabled={selectedElement === 'textPanel' && layout.elements.textPanel?.autoHeight}
                   />
+                  
+                  {selectedElement === 'textPanel' && (
+                    <Box sx={{ mt: 1 }}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={layout.elements.textPanel?.autoHeight || false}
+                            onChange={(e) => {
+                              updateElement('textPanel', { autoHeight: e.target.checked });
+                            }}
+                            size="small"
+                          />
+                        }
+                        label="Auto Height"
+                      />
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ ml: 4 }}>
+                        Calculate height automatically based on text content
+                      </Typography>
+                    </Box>
+                  )}
                   
                   {selectedElement === 'image' && (
                     <FormControl fullWidth margin="dense" size="small">

@@ -29,6 +29,7 @@ import type { Story } from '../types/Story';
 import type { Book } from '../models/Book';
 import { BookService } from '../services/BookService';
 import { CharacterAuditionDialog } from './CharacterAuditionDialog';
+import { useCharacterManager } from '../hooks/useCharacterManager';
 
 interface CastManagerProps {
   story: Story | null;
@@ -36,30 +37,15 @@ interface CastManagerProps {
 }
 
 export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }) => {
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
-  const [characterName, setCharacterName] = useState('');
-  const [characterDescription, setCharacterDescription] = useState('');
-  
-  // Character Audition Dialog state
-  const [openAuditionDialog, setOpenAuditionDialog] = useState(false);
-  const [auditionCharacter, setAuditionCharacter] = useState<Character | null>(null);
-  const [activeBook, setActiveBook] = useState<Book | null>(null); // Book instance for audition dialog
+  // Load active book for character management and audition dialog
+  const [activeBook, setActiveBook] = useState<Book | null>(null);
 
-  // Promote to Book state
+  // Promote to Book state (story-level specific)
   const [promoting, setPromoting] = useState(false);
 
   useEffect(() => {
-    if (story) {
-      setCharacters(story.characters || []);
-      // Load active book for audition dialog
-      loadActiveBook();
-    } else {
-      setCharacters([]);
-      setActiveBook(null);
-    }
-  }, [story]);
+    loadActiveBook();
+  }, []);
 
   const loadActiveBook = async () => {
     try {
@@ -73,142 +59,33 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
     }
   };
 
-  const handleAddCharacter = () => {
-    if (!story) return;
-    setEditingCharacter(null);
-    setCharacterName('');
-    setCharacterDescription('');
-    setOpenDialog(true);
-  };
+  // Use the character manager hook
+  const {
+    characters,
+    openDialog,
+    editingCharacter,
+    characterName,
+    characterDescription,
+    openAuditionDialog,
+    auditionCharacter,
+    setCharacterName,
+    setCharacterDescription,
+    handleAddCharacter,
+    handleEditCharacter,
+    handleSaveCharacter,
+    handleDeleteCharacter,
+    handleCloseDialog,
+    handleOpenAudition,
+    handleCloseAudition,
+    handleAuditionUpdate,
+  } = useCharacterManager({
+    type: 'story',
+    book: activeBook,
+    storyId: story?.id,
+    onUpdate: onStoryUpdate,
+  });
 
-  const handleEditCharacter = (character: Character) => {
-    setEditingCharacter(character);
-    setCharacterName(character.name);
-    setCharacterDescription(character.description);
-    setOpenDialog(true);
-  };
-
-  const handleOpenAudition = (character: Character) => {
-    setAuditionCharacter(character);
-    setOpenAuditionDialog(true);
-  };
-
-  const handleCloseAudition = () => {
-    setOpenAuditionDialog(false);
-    setAuditionCharacter(null);
-  };
-
-  const handleAuditionUpdate = async () => {
-    // Save changes to book after character images are updated
-    console.log('=== CastManager: handleAuditionUpdate called ===');
-    console.log('Story:', story?.title);
-    console.log('Audition Character:', auditionCharacter?.name);
-    console.log('Character imageGallery length:', auditionCharacter?.imageGallery?.length);
-    console.log('Character selectedImageId:', auditionCharacter?.selectedImageId);
-    
-    if (!story || !auditionCharacter) {
-      console.warn('Missing story or auditionCharacter, aborting save');
-      return;
-    }
-    
-    try {
-      // Get the current book directly (no conversion)
-      console.log('Step 1: Getting active book...');
-      const book = await BookService.getActiveBook();
-      if (!book) {
-        console.error('No active book found');
-        return;
-      }
-      console.log('✓ Book loaded, stories:', book.stories.length);
-
-      // Find the story in the book
-      console.log('Step 2: Finding story in book...');
-      const bookStory = book.stories.find(s => s.id === story.id);
-      if (!bookStory) {
-        console.error('Story not found in book:', story.id);
-        return;
-      }
-      console.log('✓ Story found');
-
-      // Find the character in the story by name
-      console.log('Step 3: Finding character in story...');
-      const char = bookStory.characters.find(c => c.name === auditionCharacter.name);
-      
-      if (char) {
-        console.log('✓ Character found');
-        console.log('  Before update - imageGallery length:', char.imageGallery?.length);
-        
-        // Update the character directly (no conversion needed!)
-        char.imageGallery = auditionCharacter.imageGallery;
-        char.selectedImageId = auditionCharacter.selectedImageId;
-        
-        console.log('  After update - imageGallery length:', char.imageGallery?.length);
-        console.log('  After update - selectedImageId:', char.selectedImageId);
-      } else {
-        console.error('Character not found in story:', auditionCharacter.name);
-        return;
-      }
-
-      // Save the book directly (no conversion!)
-      console.log('Step 4: Saving book...');
-      await BookService.saveBook(book);
-      console.log('✓ Book saved');
-
-      // Reload characters from the saved book
-      console.log('Step 5: Reloading characters...');
-      const updatedBook = await BookService.getActiveBook();
-      if (updatedBook) {
-        const updatedStory = updatedBook.stories.find(s => s.id === story.id);
-        if (updatedStory) {
-          console.log('  Updated story found, characters:', updatedStory.characters.length);
-          const updatedChar = updatedStory.characters.find(c => c.name === auditionCharacter.name);
-          if (updatedChar) {
-            console.log('  Updated character imageGallery length:', updatedChar.imageGallery?.length);
-          }
-          setCharacters(updatedStory.characters || []);
-        }
-      }
-      console.log('✓ Characters reloaded');
-
-      // Notify parent to refresh
-      console.log('Step 6: Calling onStoryUpdate...');
-      onStoryUpdate();
-      console.log('✓ onStoryUpdate called');
-      
-      console.log('=== handleAuditionUpdate Complete! ===');
-    } catch (err) {
-      console.error('✗✗✗ Failed to save character image changes:', err);
-    }
-  };
-
-  const handleDeleteCharacter = async (characterName: string) => {
-    if (!story) return;
-    const activeBookData = await BookService.getActiveBookData();
-    if (!activeBookData) return;
-    
-    if (window.confirm('Are you sure you want to delete this character? This will also remove them from all scenes.')) {
-      const updatedCharacters = story.characters.filter(char => char.name !== characterName);
-      
-      // Update the story in the book data
-      // Convert model Character[] to old format with IDs for backward compatibility
-      const charactersWithIds = updatedCharacters.map(char => ({
-        id: char.name, // Use name as ID
-        name: char.name,
-        description: char.description
-      }));
-      
-      const updatedStories = activeBookData.stories.map(s => 
-        s.id === story.id 
-          ? { ...s, characters: charactersWithIds, updatedAt: new Date() }
-          : s
-      );
-      const updatedData = { ...activeBookData, stories: updatedStories };
-      await BookService.saveActiveBookData(updatedData);
-      setCharacters(updatedCharacters);
-      onStoryUpdate();
-    }
-  };
-
+  // Story-level specific: Promote character to book
   const handlePromoteToBook = async (character: Character) => {
     if (!story || !activeBook) return;
 
@@ -236,50 +113,6 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
     } finally {
       setPromoting(false);
     }
-  };
-
-  const handleSaveCharacter = async () => {
-    if (!story) return;
-    const activeBookData = await BookService.getActiveBookData();
-    if (!activeBookData || !characterName.trim()) return;
-
-    let updatedCharacters: Character[];
-    
-    if (editingCharacter) {
-      // Update existing character
-      updatedCharacters = story.characters.map(char => 
-        char.name === editingCharacter.name 
-          ? { name: characterName.trim(), description: characterDescription }
-          : char
-      );
-    } else {
-      // Create new character
-      const newCharacter: Character = {
-        name: characterName.trim(),
-        description: characterDescription
-      };
-      updatedCharacters = [...story.characters, newCharacter];
-    }
-    
-    // Update the story in the book data
-    // Convert model Character[] to old format with IDs for backward compatibility
-    const charactersWithIds = updatedCharacters.map(char => ({
-      id: char.name, // Use name as ID
-      name: char.name,
-      description: char.description
-    }));
-    
-    const updatedStories = activeBookData.stories.map(s => 
-      s.id === story.id 
-        ? { ...s, characters: charactersWithIds, updatedAt: new Date() }
-        : s
-    );
-    const updatedData = { ...activeBookData, stories: updatedStories };
-    await BookService.saveActiveBookData(updatedData);
-    setCharacters(updatedCharacters);
-
-    setOpenDialog(false);
-    onStoryUpdate();
   };
 
   // Check if there's a selected story
@@ -431,7 +264,7 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
       </Box>
 
       {/* Character Edit Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
           {editingCharacter ? 'Edit Character' : 'Add New Character'}
         </DialogTitle>
@@ -460,7 +293,7 @@ export const CastManager: React.FC<CastManagerProps> = ({ story, onStoryUpdate }
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
           <Button onClick={handleSaveCharacter} variant="contained" disabled={!characterName.trim()}>
             {editingCharacter ? 'Update' : 'Create'}
           </Button>

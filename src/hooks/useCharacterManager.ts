@@ -12,7 +12,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Character } from '../types/Story';
+import { Character } from '../models/Story';
 import { Book } from '../models/Book';
 import { BookService } from '../services/BookService';
 

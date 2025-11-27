@@ -51,8 +51,8 @@ import { IMAGE_MODELS } from '../constants/imageModels';
 interface CharacterAuditionDialogProps {
   open: boolean;
   character: Character;
-  storyId: string;
-  storyBackgroundSetup: string;
+  storyId?: string; // Optional for book-level characters
+  storyBackgroundSetup?: string; // Optional for book-level characters
   book: Book;
   onClose: () => void;
   onUpdate: () => void; // Callback when character is updated
@@ -67,6 +67,9 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
   onClose,
   onUpdate
 }) => {
+  // For book-level characters, use book ID as context; for story-level, use story ID
+  const contextId = storyId || `book:${book.id}`;
+  const backgroundSetup = storyBackgroundSetup || book.backgroundSetup || '';
   const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS[0].value);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,7 +104,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     setLoadingGallery(true);
     try {
       const beforeCount = character.imageGallery?.length || 0;
-      const images = await CharacterImageService.loadCharacterGallery(storyId, character.name, character);
+      const images = await CharacterImageService.loadCharacterGallery(contextId, character.name, character);
       const afterCount = character.imageGallery?.length || 0;
       
       // If cleanup removed stale references, save the book (but only once per cleanup cycle)
@@ -119,7 +122,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     } finally {
       setLoadingGallery(false);
     }
-  }, [storyId, character.name, character.imageGallery, onUpdate]);
+  }, [contextId, character.name, character.imageGallery, onUpdate]);
 
   // Handle reference image upload
   const handleReferenceImageUpload = useCallback(async (file: File) => {
@@ -141,7 +144,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
       // Store to filesystem using ImageStorageService
       const { ImageStorageService } = await import('../services/ImageStorageService');
       await ImageStorageService.storeCharacterImage(
-        storyId,
+        contextId,
         character.name,
         imageId,
         blobUrl,
@@ -160,7 +163,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
       setError('Failed to save reference image');
       throw err;
     }
-  }, [character, storyId, onUpdate]);
+  }, [character, contextId, onUpdate]);
 
   // Handle reference image file input change
   const handleReferenceImageFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -180,7 +183,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     if (character.referenceImageId) {
       try {
         await CharacterImageService.deleteCharacterImage(
-          storyId,
+          contextId,
           character.name,
           character.referenceImageId
         );
@@ -199,7 +202,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  }, [character, storyId, onUpdate]);
+  }, [character, contextId, onUpdate]);
 
   const processImageFile = useCallback(async (file: File, source: 'upload' | 'paste') => {
     // Validate file type
@@ -230,7 +233,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
       // Store to filesystem using ImageStorageService
       const { ImageStorageService } = await import('../services/ImageStorageService');
       await ImageStorageService.storeCharacterImage(
-        storyId,
+        contextId,
         character.name,
         imageId,
         blobUrl,
@@ -259,7 +262,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     } finally {
       setUploading(false);
     }
-  }, [storyId, character.name, onUpdate, loadGallery]);
+  }, [contextId, character.name, onUpdate, loadGallery]);
 
   // Load reference image from character metadata
   const loadReferenceImage = useCallback(async () => {
@@ -272,7 +275,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     try {
       // Load the reference image from filesystem
       const imageUrl = await CharacterImageService.loadCharacterImage(
-        storyId,
+        contextId,
         character.name,
         character.referenceImageId
       );
@@ -416,8 +419,8 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
       console.log('Step 1: Calling generateCharacterImage...');
       const characterImage = await CharacterImageService.generateCharacterImage(
         character,
-        storyId,
-        storyBackgroundSetup,
+        contextId,
+        backgroundSetup,
         book,
         selectedModel,
         '1:1',
@@ -471,7 +474,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
 
     try {
       // Delete from filesystem
-      await CharacterImageService.deleteCharacterImage(storyId, character.name, imageId);
+      await CharacterImageService.deleteCharacterImage(contextId, character.name, imageId);
 
       // Remove from character's gallery
       CharacterImageService.removeImageFromGallery(character, imageId);
@@ -497,7 +500,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     // Build the prompt that would be used for generation
     const prompt = CharacterImageService.buildCharacterPrompt(
       character,
-      storyBackgroundSetup,
+      backgroundSetup,
       book
     );
     setGeneratedPrompt(prompt);

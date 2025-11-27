@@ -92,13 +92,61 @@ export const BookCastManager: React.FC<BookCastManagerProps> = ({ book, onBookUp
     // Save changes to book after character images are updated
     console.log('=== BookCastManager: handleAuditionUpdate called ===');
     console.log('Book:', book?.title);
+    console.log('Audition Character:', auditionCharacter?.name);
+    console.log('Character imageGallery length:', auditionCharacter?.imageGallery?.length);
+    console.log('Character selectedImageId:', auditionCharacter?.selectedImageId);
     
-    // Simply call the onBookUpdate callback
-    // The character images are already saved to filesystem by CharacterAuditionDialog
-    // We just need to trigger a refresh in the parent component
-    onBookUpdate();
+    if (!book || !auditionCharacter) {
+      console.warn('Missing book or auditionCharacter, aborting save');
+      return;
+    }
     
-    console.log('✓ Book update triggered');
+    try {
+      // Find the character in the book by name
+      console.log('Step 1: Finding character in book...');
+      const char = book.characters.find(c => c.name === auditionCharacter.name);
+      
+      if (char) {
+        console.log('✓ Character found');
+        console.log('  Before update - imageGallery length:', char.imageGallery?.length);
+        
+        // Update the character directly
+        char.imageGallery = auditionCharacter.imageGallery;
+        char.selectedImageId = auditionCharacter.selectedImageId;
+        
+        console.log('  After update - imageGallery length:', char.imageGallery?.length);
+        console.log('  After update - selectedImageId:', char.selectedImageId);
+      } else {
+        console.error('Character not found in book:', auditionCharacter.name);
+        return;
+      }
+
+      // Save the book
+      console.log('Step 2: Saving book...');
+      await BookService.saveBook(book);
+      console.log('✓ Book saved');
+
+      // Reload characters from the saved book
+      console.log('Step 3: Reloading characters...');
+      const updatedBook = await BookService.getActiveBook();
+      if (updatedBook) {
+        const updatedChar = updatedBook.characters.find(c => c.name === auditionCharacter.name);
+        if (updatedChar) {
+          console.log('  Updated character imageGallery length:', updatedChar.imageGallery?.length);
+        }
+        setCharacters(updatedBook.characters || []);
+      }
+      console.log('✓ Characters reloaded');
+
+      // Notify parent to refresh
+      console.log('Step 4: Calling onBookUpdate...');
+      onBookUpdate();
+      console.log('✓ onBookUpdate called');
+      
+      console.log('=== handleAuditionUpdate Complete! ===');
+    } catch (err) {
+      console.error('✗✗✗ Failed to save character image changes:', err);
+    }
   };
 
   const handleSaveCharacter = async () => {

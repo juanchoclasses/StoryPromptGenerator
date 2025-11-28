@@ -71,6 +71,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
   const contextId = storyId || `book:${book.id}`;
   const backgroundSetup = storyBackgroundSetup || book.backgroundSetup || '';
   const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS[0].value);
+  const [promptStrategy, setPromptStrategy] = useState<'auto' | 'legacy' | 'gemini'>('auto');
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -436,7 +437,8 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
         book,
         selectedModel,
         '1:1',
-        referenceImageToUse
+        referenceImageToUse,
+        promptStrategy // Pass the selected prompt strategy
       );
       console.log('✓ Step 1 complete: Image generated', characterImage.id);
 
@@ -514,7 +516,10 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     const prompt = CharacterImageService.buildCharacterPrompt(
       characterWithEditedDesc,
       backgroundSetup,
-      book
+      book,
+      selectedModel, // Pass model for strategy selection
+      !!referenceImage, // Has reference image
+      promptStrategy // Pass the selected prompt strategy
     );
     setGeneratedPrompt(prompt);
     setShowPromptDialog(true);
@@ -731,6 +736,20 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
                     {model.label}
                   </MenuItem>
                 ))}
+              </Select>
+            </FormControl>
+
+            <FormControl sx={{ minWidth: 200 }}>
+              <InputLabel>Prompt Strategy</InputLabel>
+              <Select
+                value={promptStrategy}
+                label="Prompt Strategy"
+                onChange={(e) => setPromptStrategy(e.target.value as 'auto' | 'legacy' | 'gemini')}
+                disabled={generating}
+              >
+                <MenuItem value="auto">Auto (Detect from Model)</MenuItem>
+                <MenuItem value="legacy">Legacy (Simple)</MenuItem>
+                <MenuItem value="gemini">Gemini (Structured)</MenuItem>
               </Select>
             </FormControl>
 

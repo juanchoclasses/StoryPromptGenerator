@@ -20,8 +20,8 @@ import { SettingsService } from '../services/SettingsService';
 interface ModelSelectionDialogProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: (modelName: string) => void;
-  onPreview?: (modelName: string) => void; // Optional preview callback
+  onConfirm: (modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini') => void;
+  onPreview?: (modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini') => void; // Optional preview callback
 }
 
 export const ModelSelectionDialog: React.FC<ModelSelectionDialogProps> = ({
@@ -31,6 +31,7 @@ export const ModelSelectionDialog: React.FC<ModelSelectionDialogProps> = ({
   onPreview,
 }) => {
   const [selectedModel, setSelectedModel] = useState('');
+  const [promptStrategy, setPromptStrategy] = useState<'auto' | 'legacy' | 'gemini'>('auto');
   const [rememberChoice, setRememberChoice] = useState(false);
 
   useEffect(() => {
@@ -55,7 +56,7 @@ export const ModelSelectionDialog: React.FC<ModelSelectionDialogProps> = ({
       });
     }
     
-    onConfirm(selectedModel);
+    onConfirm(selectedModel, promptStrategy);
     onClose();
   };
 
@@ -69,7 +70,7 @@ export const ModelSelectionDialog: React.FC<ModelSelectionDialogProps> = ({
       });
     }
     
-    onPreview(selectedModel);
+    onPreview(selectedModel, promptStrategy);
     // Don't close here - SceneEditor will handle closing after preview is built
   };
 
@@ -102,6 +103,31 @@ export const ModelSelectionDialog: React.FC<ModelSelectionDialogProps> = ({
               ))}
             </Select>
           </FormControl>
+
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Prompt Strategy</InputLabel>
+            <Select
+              value={promptStrategy}
+              label="Prompt Strategy"
+              onChange={(e) => setPromptStrategy(e.target.value as 'auto' | 'legacy' | 'gemini')}
+            >
+              <MenuItem value="auto">Auto (Detect from Model)</MenuItem>
+              <MenuItem value="legacy">Legacy (Simple)</MenuItem>
+              <MenuItem value="gemini">Gemini (Structured)</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
+            <Typography variant="caption" display="block" gutterBottom>
+              <strong>Auto:</strong> Selects Gemini format for Gemini/Imagen models, Legacy for others
+            </Typography>
+            <Typography variant="caption" display="block" gutterBottom>
+              <strong>Legacy:</strong> Simple concatenated prompts (works with all models)
+            </Typography>
+            <Typography variant="caption" display="block">
+              <strong>Gemini:</strong> Structured prompts optimized for Gemini Nano Banana Pro
+            </Typography>
+          </Alert>
 
           {selectedModel && (
             <Alert severity="info" sx={{ mb: 2 }}>

@@ -1308,13 +1308,15 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   };
 
   // Show preview dialog after model selection
-  const handleShowPreview = async (modelName: string) => {
+  const handleShowPreview = async (modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini') => {
     try {
       setPendingModelForGeneration(modelName);
       const preview = await buildPreviewData(modelName);
       setPreviewData(preview);
       setPreviewDialogOpen(true);
       setModelSelectionOpen(false);
+      // Store promptStrategy for later use if needed (could extend PreviewData)
+      console.log(`Preview using strategy: ${promptStrategy || 'auto'}`);
     } catch (error) {
       console.error('Failed to build preview:', error);
       setSnackbarMessage(`Failed to build preview: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -1324,7 +1326,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   };
 
   // Actually perform the image generation with the selected model
-  const performImageGeneration = async (modelName: string) => {
+  const performImageGeneration = async (modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini') => {
     // Store the selected model for potential retry
     lastSelectedModel.current = modelName;
     
@@ -1402,7 +1404,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         story: story!,
         book: activeBook,
         model: modelName,
-        aspectRatio
+        aspectRatio,
+        promptStrategy // Pass the selected prompt strategy
       });
       
       // Save generated image to scene in local storage

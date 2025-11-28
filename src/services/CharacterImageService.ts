@@ -11,13 +11,87 @@ import type { Book } from '../models/Book';
 import { ImageGenerationService } from './ImageGenerationService';
 import { ImageStorageService } from './ImageStorageService';
 import { formatBookStyleForPrompt } from '../types/BookStyle';
+import { LegacyPromptBuildingService } from './LegacyPromptBuildingService';
+import { GeminiPromptBuildingService } from './GeminiPromptBuildingService';
+import type { PromptBuildingService as IPromptBuildingService } from './PromptBuildingService';
 
 export class CharacterImageService {
   /**
-   * Build prompt for character image generation
+   * Select the appropriate prompt building strategy based on model
+   */
+  private static selectPromptStrategy(model: string, strategyOption?: 'auto' | 'legacy' | 'gemini'): IPromptBuildingService {
+    // If strategy is explicitly specified, use it
+    if (strategyOption === 'legacy') {
+      return new LegacyPromptBuildingService();
+    }
+    if (strategyOption === 'gemini') {
+      return new GeminiPromptBuildingService();
+    }
+    
+    // Auto-detect based on model
+    const geminiStrategy = new GeminiPromptBuildingService();
+    if (geminiStrategy.isSuitableForModel(model)) {
+      console.log(`🎯 Auto-selected Gemini prompt strategy for character generation with model: ${model}`);
+      return geminiStrategy;
+    }
+    
+    // Default to legacy
+    console.log(`📝 Using legacy prompt strategy for character generation with model: ${model}`);
+    return new LegacyPromptBuildingService();
+  }
+
+  /**
+   * Build prompt for character image generation using pluggable strategy
    * Includes book style, story context, and white background requirement
+   * 
+   * @param character Character to generate
+   * @param storyBackgroundSetup Story context
+   * @param book Book for style
+   * @param model Model identifier for strategy selection
+   * @param hasReferenceImage Whether a reference image is provided
+   * @param promptStrategy Optional: 'auto' (default), 'legacy', or 'gemini'
+   * @returns Prompt string
    */
   static buildCharacterPrompt(
+    character: Character,
+    storyBackgroundSetup: string,
+    book: Book,
+    model?: string,
+    hasReferenceImage: boolean = false,
+    promptStrategy?: 'auto' | 'legacy' | 'gemini'
+  ): string {
+    // If model is provided, use the new pluggable strategy system
+    if (model) {
+      const strategy = this.selectPromptStrategy(model, promptStrategy);
+      
+      const result = strategy.buildCharacterPrompt({
+        character,
+        storyBackgroundSetup,
+        book,
+        hasReferenceImage
+      });
+      
+      // Log metadata for debugging
+      if (result.metadata) {
+        console.log(`📋 Character Prompt Strategy: ${result.metadata.strategy}`);
+        console.log(`📊 Estimated tokens: ${result.metadata.estimatedTokens}`);
+        if (result.metadata.warnings && result.metadata.warnings.length > 0) {
+          console.log(`⚠️  Warnings:`, result.metadata.warnings);
+        }
+      }
+      
+      return result.prompt;
+    }
+    
+    // LEGACY PATH: Keep old logic for backward compatibility
+    return this.buildCharacterPromptLegacy(character, storyBackgroundSetup, book);
+  }
+
+  /**
+   * Legacy prompt building method (preserved for backward compatibility)
+   * @deprecated Use buildCharacterPrompt with model parameter instead
+   */
+  private static buildCharacterPromptLegacy(
     character: Character,
     storyBackgroundSetup: string,
     book: Book
@@ -56,6 +130,7 @@ export class CharacterImageService {
   /**
    * Generate a character image
    * @param referenceImage Optional base64 data URL of reference image to include in generation
+   * @param promptStrategy Optional: 'auto' (default), 'legacy', or 'gemini'
    * @returns CharacterImage object with metadata (url will be loaded separately)
    */
   static async generateCharacterImage(
@@ -65,10 +140,18 @@ export class CharacterImageService {
     book: Book,
     model: string,
     aspectRatio: string = '1:1',
-    referenceImage?: string | null
+    referenceImage?: string | null,
+    promptStrategy?: 'auto' | 'legacy' | 'gemini'
   ): Promise<CharacterImage> {
-    // Build the prompt
-    const prompt = this.buildCharacterPrompt(character, storyBackgroundSetup, book);
+    // Build the prompt using pluggable strategy
+    const prompt = this.buildCharacterPrompt(
+      character,
+      storyBackgroundSetup,
+      book,
+      model, // Pass model for strategy selection
+      !!referenceImage, // Has reference image
+      promptStrategy // Pass user's strategy choice
+    );
 
     // Validate prompt is not empty
     if (!prompt || prompt.trim().length === 0) {

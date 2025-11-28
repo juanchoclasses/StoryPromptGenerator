@@ -24,6 +24,9 @@ import { applyAllOverlays } from './OverlayService';
 import { composeSceneWithLayout } from './LayoutCompositionService';
 import { formatBookStyleForPrompt } from '../types/BookStyle';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
+import { LegacyPromptBuildingService } from './LegacyPromptBuildingService';
+import { GeminiPromptBuildingService } from './GeminiPromptBuildingService';
+import type { PromptBuildingService as IPromptBuildingService } from './PromptBuildingService';
 
 interface SceneImageGenerationOptions {
   scene: Scene;
@@ -31,6 +34,7 @@ interface SceneImageGenerationOptions {
   book: Book | null;
   model: string;
   aspectRatio?: string;
+  promptStrategy?: 'auto' | 'legacy' | 'gemini'; // Default: 'auto' (detects from model)
 }
 
 interface CompleteSceneImageOptions extends SceneImageGenerationOptions {
@@ -42,6 +46,30 @@ interface CharacterWithLevel extends Character {
 }
 
 export class SceneImageGenerationService {
+  /**
+   * Select the appropriate prompt building strategy based on model and options
+   */
+  private static selectPromptStrategy(model: string, strategyOption?: 'auto' | 'legacy' | 'gemini'): IPromptBuildingService {
+    // If strategy is explicitly specified, use it
+    if (strategyOption === 'legacy') {
+      return new LegacyPromptBuildingService();
+    }
+    if (strategyOption === 'gemini') {
+      return new GeminiPromptBuildingService();
+    }
+    
+    // Auto-detect based on model
+    const geminiStrategy = new GeminiPromptBuildingService();
+    if (geminiStrategy.isSuitableForModel(model)) {
+      console.log(`🎯 Auto-selected Gemini prompt strategy for model: ${model}`);
+      return geminiStrategy;
+    }
+    
+    // Default to legacy
+    console.log(`📝 Using legacy prompt strategy for model: ${model}`);
+    return new LegacyPromptBuildingService();
+  }
+
   /**
    * Convert blob URL to base64 data URL
    */
@@ -125,11 +153,69 @@ export class SceneImageGenerationService {
   }
 
   /**
-   * Build prompt for scene image generation
-   * Includes character descriptions and reference image notes
+   * Build prompt for scene image generation using pluggable strategy
    * PUBLIC method so it can be used by preview dialogs
+   * 
+   * @param scene Scene to generate
+   * @param story Story context
+   * @param book Book context (style, characters)
+   * @param characters Characters in this scene
+   * @param elements Elements in this scene
+   * @param model Model identifier for strategy selection
+   * @param promptStrategy Optional: 'auto' (default), 'legacy', or 'gemini'
+   * @returns Prompt string
    */
   public static buildScenePrompt(
+    scene: Scene,
+    story: Story,
+    book: Book | null,
+    characters: CharacterWithLevel[],
+    elements: Array<{ name: string; description: string }>,
+    model?: string,
+    promptStrategy?: 'auto' | 'legacy' | 'gemini'
+  ): string {
+    // If model is provided, use the new pluggable strategy system
+    if (model) {
+      const strategy = this.selectPromptStrategy(model, promptStrategy);
+      
+      // Check which characters have reference images
+      const charactersWithImages = characters.filter(c => 
+        c.selectedImageId && c.imageGallery && 
+        c.imageGallery.find(img => img.id === c.selectedImageId)
+      );
+      
+      const result = strategy.buildScenePrompt({
+        scene,
+        story,
+        book,
+        characters,
+        elements,
+        hasReferenceImages: charactersWithImages.length > 0,
+        charactersWithImages
+      });
+      
+      // Log metadata for debugging
+      if (result.metadata) {
+        console.log(`📋 Prompt Strategy: ${result.metadata.strategy}`);
+        console.log(`📊 Estimated tokens: ${result.metadata.estimatedTokens}`);
+        if (result.metadata.warnings && result.metadata.warnings.length > 0) {
+          console.log(`⚠️  Warnings:`, result.metadata.warnings);
+        }
+      }
+      
+      return result.prompt;
+    }
+    
+    // LEGACY PATH: Keep old logic for backward compatibility
+    // This is used when buildScenePrompt is called without a model parameter
+    return this.buildScenePromptLegacy(scene, story, book, characters, elements);
+  }
+
+  /**
+   * Legacy prompt building method (preserved for backward compatibility)
+   * @deprecated Use buildScenePrompt with model parameter instead
+   */
+  private static buildScenePromptLegacy(
     scene: Scene,
     story: Story,
     book: Book | null,
@@ -333,8 +419,16 @@ export class SceneImageGenerationService {
       book?.id
     );
     
-    // Build prompt
-    const prompt = this.buildScenePrompt(scene, story, book, sceneCharacters, sceneElements);
+    // Build prompt using pluggable strategy
+    const prompt = this.buildScenePrompt(
+      scene,
+      story,
+      book,
+      sceneCharacters,
+      sceneElements,
+      model, // Pass model for strategy selection
+      options.promptStrategy // Pass user's strategy choice
+    );
     
     // Generate image
     // Note: aspectRatio in layout.elements.image.aspectRatio is now defined in Story.ts

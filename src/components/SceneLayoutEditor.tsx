@@ -111,18 +111,18 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
 }) => {
   // Initialize layout with book's aspect ratio if no current layout exists
   const getInitialLayout = (): SceneLayout => {
-    // Calculate initial dimensions from book's aspect ratio
-    const initialDimensions = getCanvasDimensionsFromAspectRatio(bookAspectRatio);
-    
     if (currentLayout) {
-      // If layout exists, just update canvas dimensions (percentages stay the same)
+      // If layout exists, preserve its aspect ratio and recalculate dimensions
+      const savedAspectRatio = currentLayout.canvas.aspectRatio;
+      const dimensions = getCanvasDimensionsFromAspectRatio(savedAspectRatio);
+      
       return {
         ...currentLayout,
         canvas: {
           ...currentLayout.canvas,
-          width: initialDimensions.width,
-          height: initialDimensions.height,
-          aspectRatio: bookAspectRatio
+          width: dimensions.width,
+          height: dimensions.height,
+          aspectRatio: savedAspectRatio // ← Keep the saved aspect ratio, don't overwrite with book's!
         },
         // Keep existing percentage-based elements
         elements: {
@@ -132,6 +132,8 @@ export const SceneLayoutEditor: React.FC<SceneLayoutEditorProps> = ({
         }
       };
     } else {
+      // Create new layout using book's aspect ratio as default
+      const initialDimensions = getCanvasDimensionsFromAspectRatio(bookAspectRatio);
       // Create new overlay layout with book's aspect ratio
       // All values are percentages (0-100)
       return {

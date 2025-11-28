@@ -91,6 +91,16 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
   
   // Track last saved image count to prevent duplicate saves during React strict mode double-invocation
   const lastSavedCountRef = useRef<number | null>(null);
+  
+  // Editable character description
+  const [characterDescription, setCharacterDescription] = useState(character.description);
+  const [descriptionChanged, setDescriptionChanged] = useState(false);
+
+  // Reset description when character changes
+  useEffect(() => {
+    setCharacterDescription(character.description);
+    setDescriptionChanged(false);
+  }, [character]);
 
   const loadGallery = useCallback(async () => {
     // If character has no image gallery metadata, don't try to load from filesystem
@@ -417,8 +427,10 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
       }
       
       console.log('Step 1: Calling generateCharacterImage...');
+      // Use the edited description for generation
+      const characterWithEditedDesc = { ...character, description: characterDescription };
       const characterImage = await CharacterImageService.generateCharacterImage(
-        character,
+        characterWithEditedDesc,
         contextId,
         backgroundSetup,
         book,
@@ -497,9 +509,10 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
   };
 
   const handleViewPrompt = () => {
-    // Build the prompt that would be used for generation
+    // Build the prompt using the edited description
+    const characterWithEditedDesc = { ...character, description: characterDescription };
     const prompt = CharacterImageService.buildCharacterPrompt(
-      character,
+      characterWithEditedDesc,
       backgroundSetup,
       book
     );
@@ -556,22 +569,37 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
       <DialogContent dividers>
         {/* Character Description Section */}
         <Box mb={3}>
-          <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-            Character Description:
-          </Typography>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+            <Typography variant="subtitle2" color="textSecondary">
+              Character Description:
+            </Typography>
+            {descriptionChanged && (
+              <Button
+                size="small"
+                variant="contained"
+                onClick={() => {
+                  character.description = characterDescription;
+                  onUpdate(); // Save the updated description
+                  setDescriptionChanged(false);
+                  setSuccess('Description updated successfully!');
+                }}
+              >
+                Save Description
+              </Button>
+            )}
+          </Box>
           <TextField
             multiline
             rows={3}
-            value={character.description}
-            disabled
+            value={characterDescription}
+            onChange={(e) => {
+              setCharacterDescription(e.target.value);
+              setDescriptionChanged(e.target.value !== character.description);
+            }}
             fullWidth
             variant="outlined"
-            sx={{
-              '& .MuiInputBase-input.Mui-disabled': {
-                WebkitTextFillColor: 'rgba(0, 0, 0, 0.87)',
-              }
-            }}
-            helperText="Edit description in the Characters panel"
+            placeholder="Describe the character's appearance, personality, clothing, etc."
+            helperText={descriptionChanged ? "Don't forget to save your changes!" : "Changes will be used for future image generations"}
           />
         </Box>
 

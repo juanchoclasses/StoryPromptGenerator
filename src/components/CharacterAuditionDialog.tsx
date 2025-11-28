@@ -82,6 +82,10 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
   const [showPromptDialog, setShowPromptDialog] = useState(false);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   
+  // Image preview dialog state
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  
   // File upload state
   const [uploading, setUploading] = useState(false);
   
@@ -892,7 +896,10 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
                             backgroundColor: '#f5f5f5',
                             cursor: 'pointer'
                           }}
-                          onClick={() => window.open(imageUrl, '_blank')}
+                          onClick={() => {
+                            setPreviewImageUrl(imageUrl);
+                            setImagePreviewOpen(true);
+                          }}
                         />
                       ) : (
                         <Box 
@@ -996,6 +1003,52 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
           Copy Prompt
         </Button>
         <Button onClick={() => setShowPromptDialog(false)}>
+          Close
+        </Button>
+      </DialogActions>
+    </Dialog>
+
+    {/* Image Preview Dialog */}
+    <Dialog
+      open={imagePreviewOpen}
+      onClose={() => setImagePreviewOpen(false)}
+      maxWidth="lg"
+      fullWidth
+    >
+      <DialogTitle>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6">{character.name} - Image Preview</Typography>
+          <IconButton onClick={() => setImagePreviewOpen(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+      </DialogTitle>
+      <DialogContent>
+        <Box 
+          display="flex" 
+          justifyContent="center" 
+          alignItems="center" 
+          sx={{ 
+            minHeight: '400px',
+            backgroundColor: '#f5f5f5',
+            p: 2
+          }}
+        >
+          {previewImageUrl && (
+            <img
+              src={previewImageUrl}
+              alt={`${character.name} preview`}
+              style={{
+                maxWidth: '100%',
+                maxHeight: '80vh',
+                objectFit: 'contain'
+              }}
+            />
+          )}
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setImagePreviewOpen(false)}>
           Close
         </Button>
       </DialogActions>

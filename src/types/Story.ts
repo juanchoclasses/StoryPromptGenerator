@@ -1,8 +1,6 @@
-export interface Character {
-  id: string;
-  name: string;
-  description: string;
-}
+// Character interface removed - use Character from models/Story.ts instead
+// The old ID-based Character is deprecated. For legacy code that needs it,
+// define inline or create a LegacyCharacter type.
 
 export interface StoryElement {
   id: string;
@@ -98,6 +96,13 @@ export interface Scene {
   updatedAt: Date;
 }
 
+// Legacy Character type for backward compatibility with old data format
+interface LegacyCharacter {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export interface Story {
   id: string;
   title: string;
@@ -105,7 +110,7 @@ export interface Story {
   backgroundSetup: string;
   diagramStyle?: DiagramStyle; // Optional diagram style configuration for all scenes in this story
   layout?: SceneLayout; // Optional default layout for all scenes in this story
-  characters: Character[]; // Characters specific to this story
+  characters: LegacyCharacter[]; // LEGACY: ID-based characters (deprecated)
   elements: StoryElement[]; // Elements specific to this story
   scenes: Scene[];
   createdAt: Date;
@@ -115,7 +120,7 @@ export interface Story {
 export interface StoryData {
   version: string;
   stories: Story[];
-  characters: Character[]; // DEPRECATED: Kept for backward compatibility with v2.0.0
+  characters: LegacyCharacter[]; // DEPRECATED: Kept for backward compatibility with v2.0.0
   elements: StoryElement[]; // DEPRECATED: Kept for backward compatibility with v2.0.0
   lastUpdated: Date;
 }

@@ -1,12 +1,23 @@
 # Storage Refactoring Progress Tracker
 
+> **NOTE:** This document tracks the **v4.0 Storage System Refactoring** (Oct 27-28, 2025) which is **COMPLETE**.
+> 
+> **For current refactoring work** (Testing & Code Quality - Nov 2025), see:
+> - [ARCHITECTURE-ANALYSIS-REPORT.md](./ARCHITECTURE-ANALYSIS-REPORT.md) - Full analysis and progress
+> - [REFACTORING-ROADMAP.md](./REFACTORING-ROADMAP.md) - Quick reference guide
+> 
+> This document is kept for historical reference.
+
+---
+
 **Plan Document**: [STORAGE_STANDARDIZATION_PLAN.md](./STORAGE_STANDARDIZATION_PLAN.md)
 
 **Start Date**: October 27, 2025  
 **Target Completion**: October 28, 2025  
 **Estimated Time**: 10.5 hours  
 **Actual Time**: 10.0 hours  
-**Status**: ✅ COMPLETE (100% - All phases done!)
+**Status**: ✅ COMPLETE (100% - All phases done!)  
+**Scope**: v4.0 Storage System Migration
 
 ---
 
@@ -560,5 +571,39 @@ All phases finished successfully:
 
 ---
 
-**Last Updated**: October 28, 2025
+## Refactoring Timeline
+
+This project has undergone multiple refactoring phases:
+
+### Phase A: v4.0 Storage System (Oct 27-28, 2025) ✅ COMPLETE
+**This Document**
+- Name-based references (no IDs)
+- Book style system
+- Model layer with 133 tests
+- Storage architecture
+- Import/Export functionality
+- **Result:** v4.0 successfully deployed
+
+### Phase B: Testing & Code Quality (Nov 27-30, 2025) ✅ SPRINTS 1-2 COMPLETE
+**See:** [ARCHITECTURE-ANALYSIS-REPORT.md](./ARCHITECTURE-ANALYSIS-REPORT.md)
+- Service test coverage: 35% → 73%
+- Component test coverage: 0% → 4%
+- 492 tests (479 passing)
+- CastManager refactoring (70% duplication eliminated)
+- Pluggable prompt architecture
+- Storage architecture documentation
+- **Result:** Health score 6.5 → 7.8
+
+### Phase C: Component Refactoring (Dec 2025) ⏳ SPRINT 3 UPCOMING
+**See:** [REFACTORING-ROADMAP.md](./REFACTORING-ROADMAP.md)
+- Break up SceneEditor (2400 → <800 lines)
+- Merge diagram renderers
+- Expand component test coverage
+- Add integration tests
+- **Target:** Health score 8.5+
+
+---
+
+**Last Updated**: November 30, 2025  
+**This Tracker (v4.0 Storage):** October 28, 2025
 

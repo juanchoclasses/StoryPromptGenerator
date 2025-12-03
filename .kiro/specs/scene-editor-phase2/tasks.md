@@ -23,7 +23,7 @@ This plan extracts 3 high-value features from SceneEditor to reduce it from 1,68
   - Handle auto-save on content changes
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [ ]* 1.1 Write tests for SceneDiagramPanel
+- [x] 1.1 Write tests for SceneDiagramPanel
   - **Property 1: SceneDiagramPanel component correctness**
   - **Validates: Requirements 1.1, 1.2, 1.3, 1.4, 1.5**
   - Test rendering with different diagram types
@@ -54,7 +54,7 @@ This plan extracts 3 high-value features from SceneEditor to reduce it from 1,68
   - Add helpful caption about macro usage
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ]* 2.1 Write tests for SceneTextPanel
+- [x] 2.1 Write tests for SceneTextPanel
   - **Property 2: SceneTextPanel component correctness**
   - **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5**
   - Test rendering with text content

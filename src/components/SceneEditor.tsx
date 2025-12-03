@@ -23,7 +23,6 @@ import {
   DialogActions,
   Tooltip
 } from '@mui/material';
-import type { SelectChangeEvent } from '@mui/material/Select';
 import {
   ExpandMore as ExpandMoreIcon,
   ContentCopy as CopyIcon,
@@ -52,6 +51,8 @@ import { PanelConfigDialog } from './PanelConfigDialog';
 import { SceneLayoutEditor } from './SceneLayoutEditor';
 import { LayoutResolver } from '../services/LayoutResolver';
 import { ImageGenerationPreviewDialog, type PreviewData } from './ImageGenerationPreviewDialog';
+import { SceneCharacterSelector } from './SceneCharacterSelector';
+import { SceneElementSelector } from './SceneElementSelector';
 
 /**
  * Calculate the minimum height needed for a text panel based on content
@@ -587,76 +588,26 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     }, 0);
   };
 
-  const handleCharacterSelection = async (event: SelectChangeEvent<string[]>) => {
+  /**
+   * Handle character selection from SceneCharacterSelector component
+   * This is a simpler handler that receives the character names array directly
+   */
+  const handleCharacterSelectionChange = async (characterNames: string[]) => {
     if (!story || !currentScene) return;
     
-    const value = event.target.value;
-    const characterNames = typeof value === 'string' ? value.split(',') : value;
     setSelectedCharacters(characterNames);
-    
-    // v4.0: Store character names instead of IDs
-    const activeBookData = await BookService.getActiveBookData();
-    if (!activeBookData) return;
-    
-    const updatedStories = activeBookData.stories.map(s => {
-      if (s.id === story.id) {
-        const updatedScenes = s.scenes.map(scene => {
-          if (scene.id === currentScene.id) {
-            return { 
-              ...scene, 
-              characters: characterNames, // v4.0: Store names
-              characterIds: characterNames, // Backward compat
-              updatedAt: new Date() 
-            };
-          }
-          return scene;
-        });
-        return { ...s, scenes: updatedScenes, updatedAt: new Date() };
-      }
-      return s;
-    });
-    
-    const updatedData = { ...activeBookData, stories: updatedStories };
-    await BookService.saveActiveBookData(updatedData);
-    
-    // Trigger update
-    onStoryUpdate();
+    await updateSceneCharacterIds(characterNames);
   };
 
-  const handleElementSelection = async (event: SelectChangeEvent<string[]>) => {
+  /**
+   * Handle element selection from SceneElementSelector component
+   * This is a simpler handler that receives the element IDs array directly
+   */
+  const handleElementSelectionChange = async (elementIds: string[]) => {
     if (!story || !currentScene) return;
     
-    const value = event.target.value;
-    const elementNames = typeof value === 'string' ? value.split(',') : value;
-    setSelectedElements(elementNames);
-    
-    // v4.0: Store element names instead of IDs
-    const activeBookData = await BookService.getActiveBookData();
-    if (!activeBookData) return;
-    
-    const updatedStories = activeBookData.stories.map(s => {
-      if (s.id === story.id) {
-        const updatedScenes = s.scenes.map(scene => {
-          if (scene.id === currentScene.id) {
-            return { 
-              ...scene, 
-              elements: elementNames, // v4.0: Store names
-              elementIds: elementNames, // Backward compat
-              updatedAt: new Date() 
-            };
-          }
-          return scene;
-        });
-        return { ...s, scenes: updatedScenes, updatedAt: new Date() };
-      }
-      return s;
-    });
-    
-    const updatedData = { ...activeBookData, stories: updatedStories };
-    await BookService.saveActiveBookData(updatedData);
-    
-    // Trigger update
-    onStoryUpdate();
+    setSelectedElements(elementIds);
+    await updateSceneElementIds(elementIds);
   };
 
 
@@ -770,7 +721,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     return imageUrls;
   };
 
-  const generatePrompt = async () => {
+  const generatePrompt = async (modelName?: string, promptStrategy?: 'auto' | 'legacy' | 'gemini') => {
     if (!story || !currentScene) return '';
 
     // v4.0: Find characters and elements by name (not ID)
@@ -811,7 +762,9 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       story,
       activeBook,
       charactersWithLevel,
-      elementsForPrompt
+      elementsForPrompt,
+      modelName,
+      promptStrategy
     );
   };
 
@@ -1247,7 +1200,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   };
 
   // Build preview data for the preview dialog
-  const buildPreviewData = async (modelName: string): Promise<PreviewData> => {
+  const buildPreviewData = async (modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini'): Promise<PreviewData> => {
     const activeBookId = await BookService.getActiveBookId();
     const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
     
@@ -1265,8 +1218,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       aspectRatio = activeBook?.aspectRatio || '3:4';
     }
     
-    // Generate the full prompt
-    const prompt = await generatePrompt();
+    // Generate the full prompt with model and strategy
+    const prompt = await generatePrompt(modelName, promptStrategy);
     
     // Load character images
     const characterImages: Array<{ name: string; url: string }> = [];
@@ -1311,11 +1264,10 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const handleShowPreview = async (modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini') => {
     try {
       setPendingModelForGeneration(modelName);
-      const preview = await buildPreviewData(modelName);
+      const preview = await buildPreviewData(modelName, promptStrategy);
       setPreviewData(preview);
       setPreviewDialogOpen(true);
       setModelSelectionOpen(false);
-      // Store promptStrategy for later use if needed (could extend PreviewData)
       console.log(`Preview using strategy: ${promptStrategy || 'auto'}`);
     } catch (error) {
       console.error('Failed to build preview:', error);
@@ -1847,229 +1799,19 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         },
       }}>
 
-      {/* Character Selection */}
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Box display="flex" alignItems="center" gap={1}>
-            <PersonIcon color="primary" />
-            <Typography variant="h6">
-              Characters in this Scene ({selectedCharacters.length})
-            </Typography>
-          </Box>
-        </AccordionSummary>
-        <AccordionDetails>
-          <FormControl fullWidth>
-            <InputLabel>Select Characters</InputLabel>
-            <Select
-              multiple
-              value={selectedCharacters}
-              onChange={handleCharacterSelection}
-              input={<OutlinedInput label="Select Characters" />}
-              renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {selected.map((characterName) => {
-                    const character = availableCharacters.find(c => c.name === characterName);
-                    return character ? (
-                      <Chip 
-                        key={characterName} 
-                        label={character.name} 
-                        size="small" 
-                        color="primary"
-                        variant="filled"
-                      />
-                    ) : (
-                      <Chip 
-                        key={characterName} 
-                        label={`Unknown (${characterName})`} 
-                        size="small" 
-                        color="error"
-                        variant="outlined"
-                      />
-                    );
-                  })}
-                </Box>
-              )}
-            >
-              {availableCharacters.map((character: any) => (
-                <MenuItem key={character.name} value={character.name}>
-                  <Box sx={{ width: '100%' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body1">{character.name}</Typography>
-                      {character.isBookLevel && (
-                        <Chip 
-                          label="Book" 
-                          size="small" 
-                          color="primary" 
-                          variant="outlined"
-                          sx={{ height: 20, fontSize: '0.7rem' }}
-                        />
-                      )}
-                    </Box>
-                    <Typography variant="caption" color="text.secondary">
-                      {character.description}
-                    </Typography>
-                  </Box>
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          
-          {/* Selected Characters Summary */}
-          {selectedCharacters.length > 0 && (
-            <Box mt={2}>
-              <Typography variant="subtitle2" color="primary" gutterBottom>
-                Selected Characters:
-              </Typography>
-              <Box display="flex" flexWrap="wrap" gap={1}>
-                {selectedCharacters.map((characterName) => {
-                  const character = availableCharacters.find(c => c.name === characterName);
-                  return character ? (
-                    <Chip
-                      key={characterName}
-                      label={character.name}
-                      size="small"
-                      color="primary"
-                      variant="outlined"
-                      onDelete={() => {
-                        const newSelection = selectedCharacters.filter(name => name !== characterName);
-                        setSelectedCharacters(newSelection);
-                        updateSceneCharacterIds(newSelection);
-                      }}
-                    />
-                  ) : (
-                    <Chip
-                      key={characterName}
-                      label={`Unknown (${characterName})`}
-                      size="small"
-                      color="error"
-                      variant="outlined"
-                      onDelete={() => {
-                        const newSelection = selectedCharacters.filter(name => name !== characterName);
-                        setSelectedCharacters(newSelection);
-                        updateSceneCharacterIds(newSelection);
-                      }}
-                    />
-                  );
-                })}
-              </Box>
-            </Box>
-          )}
-          
-          {availableCharacters.length === 0 && (
-            <Box textAlign="center" py={2}>
-              <Typography variant="body2" color="text.secondary">
-                No characters available. Add characters to the story's cast first.
-              </Typography>
-            </Box>
-          )}
-        </AccordionDetails>
-      </Accordion>
+      {/* Character Selection - Extracted Component */}
+      <SceneCharacterSelector
+        availableCharacters={availableCharacters}
+        selectedCharacters={selectedCharacters}
+        onSelectionChange={handleCharacterSelectionChange}
+      />
 
-      {/* Element Selection */}
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Box display="flex" alignItems="center" gap={1}>
-            <Typography variant="h6">
-              Elements in this Scene ({selectedElements.length})
-            </Typography>
-          </Box>
-        </AccordionSummary>
-        <AccordionDetails>
-          <FormControl fullWidth>
-            <InputLabel>Select Elements</InputLabel>
-            <Select
-              multiple
-              value={selectedElements}
-              onChange={handleElementSelection}
-              input={<OutlinedInput label="Select Elements" />}
-              renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {selected.map((elementId) => {
-                    const element = availableElements.find(e => e.id === elementId);
-                    return element ? (
-                      <Chip 
-                        key={elementId} 
-                        label={element.name} 
-                        size="small" 
-                        color="secondary"
-                        variant="filled"
-                      />
-                    ) : (
-                      <Chip 
-                        key={elementId} 
-                        label={`Unknown (${elementId.slice(0, 8)}...)`} 
-                        size="small" 
-                        color="error"
-                        variant="outlined"
-                      />
-                    );
-                  })}
-                </Box>
-              )}
-            >
-              {availableElements.map((element) => (
-                <MenuItem key={element.id} value={element.id}>
-                  <Box>
-                    <Typography variant="body1">{element.name}</Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {element.description}
-                    </Typography>
-                  </Box>
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          
-          {/* Selected Elements Summary */}
-          {selectedElements.length > 0 && (
-            <Box mt={2}>
-              <Typography variant="subtitle2" color="secondary" gutterBottom>
-                Selected Elements:
-              </Typography>
-              <Box display="flex" flexWrap="wrap" gap={1}>
-                {selectedElements.map((elementId) => {
-                  const element = availableElements.find(e => e.id === elementId);
-                  return element ? (
-                    <Chip
-                      key={elementId}
-                      label={element.name}
-                      size="small"
-                      color="secondary"
-                      variant="outlined"
-                      onDelete={() => {
-                        const newSelection = selectedElements.filter(id => id !== elementId);
-                        setSelectedElements(newSelection);
-                        updateSceneElementIds(newSelection);
-                      }}
-                    />
-                  ) : (
-                    <Chip
-                      key={elementId}
-                      label={`Unknown (${elementId.slice(0, 8)}...)`}
-                      size="small"
-                      color="error"
-                      variant="outlined"
-                      onDelete={() => {
-                        const newSelection = selectedElements.filter(id => id !== elementId);
-                        setSelectedElements(newSelection);
-                        updateSceneElementIds(newSelection);
-                      }}
-                    />
-                  );
-                })}
-              </Box>
-            </Box>
-          )}
-          
-          {availableElements.length === 0 && (
-            <Box textAlign="center" py={2}>
-              <Typography variant="body2" color="text.secondary">
-                No elements available. Add elements to the story's elements first.
-              </Typography>
-            </Box>
-          )}
-        </AccordionDetails>
-      </Accordion>
+      {/* Element Selection - Extracted Component */}
+      <SceneElementSelector
+        availableElements={availableElements}
+        selectedElements={selectedElements}
+        onSelectionChange={handleElementSelectionChange}
+      />
 
       {/* Diagram Preview Dialog */}
       <Dialog

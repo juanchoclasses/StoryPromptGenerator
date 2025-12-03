@@ -13,7 +13,7 @@ This plan extracts 3 high-value features from SceneEditor to reduce it from 1,68
 
 ## Tasks
 
-- [ ] 1. Extract SceneDiagramPanel component
+- [x] 1. Extract SceneDiagramPanel component
   - Create new component file with TypeScript interfaces
   - Implement diagram type selection (mermaid, math, code, markdown)
   - Implement language selection for code blocks
@@ -37,7 +37,7 @@ This plan extracts 3 high-value features from SceneEditor to reduce it from 1,68
   - Target: ~15 tests
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [ ] 1.2 Integrate SceneDiagramPanel into SceneEditor
+- [x] 1.2 Integrate SceneDiagramPanel into SceneEditor
   - Import component
   - Replace existing diagram panel code
   - Wire up props and callbacks

@@ -5,10 +5,6 @@ import {
   Paper,
   Button,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Snackbar,
   Alert,
   Dialog,
@@ -19,7 +15,6 @@ import {
 } from '@mui/material';
 import {
   ContentCopy as CopyIcon,
-  Image as ImageIcon,
   ErrorOutline as ErrorIcon,
   Code as CodeIcon,
   TextFields as TextFieldsIcon,
@@ -43,6 +38,7 @@ import { SceneCharacterSelector } from './SceneCharacterSelector';
 import { SceneElementSelector } from './SceneElementSelector';
 import { SceneImageGenerator } from './SceneImageGenerator';
 import { ScenePromptPreview } from './ScenePromptPreview';
+import { SceneDiagramPanel } from './SceneDiagramPanel';
 import { useSceneEditor } from '../hooks/useSceneEditor';
 import { useImageGeneration } from '../hooks/useImageGeneration';
 
@@ -1250,90 +1246,16 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         </Button>
       </Box>
 
-      {/* Diagram Panel Section */}
-      <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', bgcolor: 'grey.100' }}>
-        <Box display="flex" alignItems="center" gap={1} mb={1}>
-          <ImageIcon color="secondary" />
-          <Typography variant="h6">
-            Diagram Panel (optional blackboard/whiteboard overlay)
-          </Typography>
-        </Box>
-        
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-          Add a diagram, code block, math equation, or markdown text overlay on your image.
-        </Typography>
-
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel>Diagram Type</InputLabel>
-          <Select
-            value={diagramType}
-            label="Diagram Type"
-            onChange={(e) => handleDiagramPanelChange(diagramContent, e.target.value, diagramLanguage)}
-          >
-            <MenuItem value="mermaid">Mermaid Diagram</MenuItem>
-            <MenuItem value="math">Math Equation (LaTeX)</MenuItem>
-            <MenuItem value="code">Code Block</MenuItem>
-            <MenuItem value="markdown">Markdown Text</MenuItem>
-          </Select>
-        </FormControl>
-
-        {diagramType === 'code' && (
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Programming Language</InputLabel>
-            <Select
-              value={diagramLanguage}
-              label="Programming Language"
-              onChange={(e) => handleDiagramPanelChange(diagramContent, diagramType, e.target.value)}
-            >
-              <MenuItem value="javascript">JavaScript</MenuItem>
-              <MenuItem value="python">Python</MenuItem>
-              <MenuItem value="java">Java</MenuItem>
-              <MenuItem value="typescript">TypeScript</MenuItem>
-              <MenuItem value="cpp">C++</MenuItem>
-              <MenuItem value="csharp">C#</MenuItem>
-            </Select>
-          </FormControl>
-        )}
-
-        <TextField
-          fullWidth
-          multiline
-          rows={6}
-          variant="outlined"
-          label={`${diagramType.charAt(0).toUpperCase() + diagramType.slice(1)} Content`}
-          placeholder={
-            diagramType === 'mermaid' ? 'graph TD\n    A[Start] --> B[Process]\n    B --> C[End]' :
-            diagramType === 'math' ? 'x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}' :
-            diagramType === 'code' ? 'function factorial(n) {\n  return n <= 1 ? 1 : n * factorial(n - 1);\n}' :
-            '# Title\n\n- **Bold** text\n- *Italic* text'
-          }
-          value={diagramContent}
-          onChange={(e) => handleDiagramPanelChange(e.target.value, diagramType, diagramLanguage)}
-          sx={{ 
-            bgcolor: 'white',
-            '& .MuiInputBase-root': {
-              fontFamily: 'monospace',
-              fontSize: '0.85rem'
-            }
-          }}
-        />
-        
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={handlePreviewDiagram}
-          sx={{ mt: 2 }}
-        >
-          Preview Diagram
-        </Button>
-        
-        {!story?.diagramStyle && (
-          <Alert severity="info" sx={{ mt: 2 }}>
-            Note: Diagram style (colors, position, board type) needs to be configured at the story level.
-            Click the ⚙️ icon next to the story in the Stories panel to configure it.
-          </Alert>
-        )}
-      </Box>
+      {/* Diagram Panel Section - Extracted Component */}
+      <SceneDiagramPanel
+        scene={currentScene}
+        story={story}
+        diagramType={diagramType}
+        diagramContent={diagramContent}
+        diagramLanguage={diagramLanguage}
+        onDiagramChange={handleDiagramPanelChange}
+        onPreview={handlePreviewDiagram}
+      />
 
       {/* Scrollable Content */}
       <Box sx={{ 

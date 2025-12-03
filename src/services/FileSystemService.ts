@@ -372,6 +372,13 @@ export class FileSystemService {
     imageDataUrl: string,
     metadata?: { sceneId?: string; characterName?: string; modelName?: string }
   ): Promise<{ success: boolean; path?: string; error?: string }> {
+    // Route to Electron implementation if in Electron mode
+    if (this.isElectron()) {
+      const { ElectronFileSystemService } = await import('./ElectronFileSystemService');
+      return ElectronFileSystemService.saveImageById(imageId, imageDataUrl, metadata);
+    }
+
+    // Browser implementation
     try {
       const parentHandle = await this.getDirectoryHandle();
       if (!parentHandle) {
@@ -434,6 +441,13 @@ export class FileSystemService {
    * Load image by ID from prompter-cache directory
    */
   static async loadImageById(imageId: string): Promise<string | null> {
+    // Route to Electron implementation if in Electron mode
+    if (this.isElectron()) {
+      const { ElectronFileSystemService } = await import('./ElectronFileSystemService');
+      return ElectronFileSystemService.loadImageById(imageId);
+    }
+
+    // Browser implementation
     try {
       const parentHandle = await this.getDirectoryHandle();
       if (!parentHandle) {
@@ -471,6 +485,13 @@ export class FileSystemService {
    * Delete image by ID from prompter-cache directory
    */
   static async deleteImageById(imageId: string): Promise<boolean> {
+    // Route to Electron implementation if in Electron mode
+    if (this.isElectron()) {
+      const { ElectronFileSystemService } = await import('./ElectronFileSystemService');
+      return ElectronFileSystemService.deleteImageById(imageId);
+    }
+
+    // Browser implementation
     try {
       const parentHandle = await this.getDirectoryHandle();
       if (!parentHandle) {
@@ -651,6 +672,13 @@ export class FileSystemService {
     bookId: string,
     bookData: string
   ): Promise<{ success: boolean; path?: string; error?: string }> {
+    // Route to Electron implementation if in Electron mode
+    if (this.isElectron()) {
+      const { ElectronFileSystemService } = await import('./ElectronFileSystemService');
+      return ElectronFileSystemService.saveBookMetadata(bookId, bookData);
+    }
+
+    // Browser implementation
     try {
       const parentHandle = await this.getDirectoryHandle();
       if (!parentHandle) {
@@ -717,6 +745,13 @@ export class FileSystemService {
    * @returns Map of bookId -> book JSON string
    */
   static async loadAllBooksMetadata(): Promise<Map<string, string>> {
+    // Route to Electron implementation if in Electron mode
+    if (this.isElectron()) {
+      const { ElectronFileSystemService } = await import('./ElectronFileSystemService');
+      return ElectronFileSystemService.loadAllBooksMetadata();
+    }
+
+    // Browser implementation
     const books = new Map<string, string>();
     
     try {
@@ -791,6 +826,13 @@ export class FileSystemService {
     activeBookId?: string | null;
     settings?: any;
   }): Promise<{ success: boolean; error?: string }> {
+    // Route to Electron implementation if in Electron mode
+    if (this.isElectron()) {
+      const { ElectronFileSystemService } = await import('./ElectronFileSystemService');
+      return ElectronFileSystemService.saveAppMetadata(metadata);
+    }
+
+    // Browser implementation
     try {
       const parentHandle = await this.getDirectoryHandle();
       if (!parentHandle) {
@@ -838,6 +880,13 @@ export class FileSystemService {
    * @returns App metadata or null if not found
    */
   static async loadAppMetadata(): Promise<{ activeBookId?: string | null; settings?: any } | null> {
+    // Route to Electron implementation if in Electron mode
+    if (this.isElectron()) {
+      const { ElectronFileSystemService } = await import('./ElectronFileSystemService');
+      return ElectronFileSystemService.loadAppMetadata();
+    }
+
+    // Browser implementation
     try {
       const parentHandle = await this.getDirectoryHandle();
       if (!parentHandle) {

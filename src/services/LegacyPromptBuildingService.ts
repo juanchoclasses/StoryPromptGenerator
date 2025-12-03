@@ -127,11 +127,6 @@ export class LegacyPromptBuildingService extends PromptBuildingService {
       prompt += `${bookStyle}\n\n`;
     }
     
-    // Add story context if available
-    if (storyBackgroundSetup && storyBackgroundSetup.trim()) {
-      prompt += `Story Context:\n${storyBackgroundSetup}\n\n`;
-    }
-    
     // Reference image note if provided
     if (hasReferenceImage) {
       prompt += `!!! REFERENCE IMAGE PROVIDED !!!\n`;
@@ -160,7 +155,7 @@ export class LegacyPromptBuildingService extends PromptBuildingService {
       prompt: prompt.trim(),
       metadata: {
         strategy: 'legacy',
-        sections: ['book_style', 'story_context', 'reference_note', 'character_details', 'requirements'],
+        sections: ['book_style', 'reference_note', 'character_details', 'requirements'],
         estimatedTokens: this.estimateTokens(prompt),
         warnings: hasReferenceImage ? ['Reference image provided - consistency expected'] : []
       }

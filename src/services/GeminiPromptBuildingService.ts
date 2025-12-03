@@ -169,9 +169,6 @@ export class GeminiPromptBuildingService extends PromptBuildingService {
     prompt += `SUBJECT:\n`;
     prompt += `Generate a character named "${character.name}".\n`;
     prompt += `Character description: ${character.description || 'A character'}\n`;
-    if (storyBackgroundSetup && storyBackgroundSetup.trim()) {
-      prompt += `\nStory context: ${storyBackgroundSetup}\n`;
-    }
     prompt += `\n`;
 
     // Composition

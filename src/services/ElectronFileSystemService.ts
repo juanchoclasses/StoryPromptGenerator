@@ -299,9 +299,17 @@ export class ElectronFileSystemService {
    * Join path segments (cross-platform)
    */
   private static joinPath(...segments: string[]): string {
-    // Remove leading/trailing slashes and join
+    if (segments.length === 0) return '';
+    
+    // Check if first segment starts with / (absolute path)
+    const isAbsolute = segments[0].startsWith('/');
+    
+    // Remove leading/trailing slashes from all segments
     const cleaned = segments.map(s => s.replace(/^\/+|\/+$/g, ''));
-    return cleaned.join('/');
+    
+    // Join and restore leading slash if it was absolute
+    const joined = cleaned.filter(s => s.length > 0).join('/');
+    return isAbsolute ? '/' + joined : joined;
   }
 
   /**
@@ -349,5 +357,379 @@ export class ElectronFileSystemService {
       console.error(`Error deleting store value for key "${key}":`, error);
     }
   }
-}
 
+  /**
+   * Load all books metadata from filesystem
+   * @returns Map of bookId -> book JSON string
+   */
+  static async loadAllBooksMetadata(): Promise<Map<string, string>> {
+    const books = new Map<string, string>();
+    
+    if (!this.isElectron()) {
+      return books;
+    }
+
+    try {
+      const baseDir = await this.getDirectoryPath();
+      if (!baseDir) {
+        console.log('No base directory configured');
+        return books;
+      }
+
+      const booksPath = this.joinPath(baseDir, CACHE_DIR_NAME, 'books');
+      
+      // Check if books directory exists
+      const dirExists = await window.electronAPI!.fileExists(booksPath);
+      if (!dirExists.exists) {
+        console.log('Books directory does not exist:', booksPath);
+        return books;
+      }
+
+      // Read books directory
+      const dirResult = await window.electronAPI!.readDirectory(booksPath);
+      if (!dirResult.success || !dirResult.files) {
+        console.log('Failed to read books directory:', dirResult.error);
+        return books;
+      }
+
+      // Load each book JSON file
+      for (const filename of dirResult.files) {
+        if (filename.endsWith('.json')) {
+          try {
+            const filePath = this.joinPath(booksPath, filename);
+            const fileResult = await window.electronAPI!.readFile(filePath);
+            
+            if (fileResult.success && fileResult.content) {
+              const bookId = filename.replace('.json', '');
+              books.set(bookId, fileResult.content);
+              console.log(`✓ Loaded book: ${bookId}`);
+            }
+          } catch (error) {
+            console.error(`Error reading book file ${filename}:`, error);
+          }
+        }
+      }
+
+      console.log(`📚 Loaded ${books.size} books from Electron filesystem`);
+    } catch (error) {
+      console.error('Error loading books metadata:', error);
+    }
+    
+    return books;
+  }
+
+  /**
+   * Load app metadata from filesystem
+   * @returns App metadata or null if not found
+   */
+  static async loadAppMetadata(): Promise<{ activeBookId?: string | null; settings?: any } | null> {
+    if (!this.isElectron()) {
+      return null;
+    }
+
+    try {
+      const baseDir = await this.getDirectoryPath();
+      if (!baseDir) {
+        return null;
+      }
+
+      const metadataPath = this.joinPath(baseDir, CACHE_DIR_NAME, 'app-metadata.json');
+      const result = await window.electronAPI!.readFile(metadataPath);
+      
+      if (result.success && result.content) {
+        return JSON.parse(result.content);
+      }
+    } catch (error) {
+      console.log('No app metadata found (this is normal for first run)');
+    }
+
+    return null;
+  }
+
+  /**
+   * Save book metadata to filesystem
+   * @param bookId Book ID
+   * @param bookData Book data as JSON string
+   * @returns Success status
+   */
+  static async saveBookMetadata(bookId: string, bookData: string): Promise<{ success: boolean; path?: string; error?: string }> {
+    if (!this.isElectron()) {
+      return { success: false, error: 'Not running in Electron' };
+    }
+
+    try {
+      const baseDir = await this.getDirectoryPath();
+      if (!baseDir) {
+        return { success: false, error: 'Filesystem not configured' };
+      }
+
+      // Create books directory
+      const booksDir = this.joinPath(baseDir, CACHE_DIR_NAME, 'books');
+      await window.electronAPI!.createDirectory(booksDir);
+
+      // Save book JSON file
+      const bookPath = this.joinPath(CACHE_DIR_NAME, 'books', `${bookId}.json`);
+      await this.writeFile(bookPath, bookData);
+
+      return { 
+        success: true,
+        path: bookPath
+      };
+    } catch (error) {
+      console.error('Error saving book metadata:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save book metadata'
+      };
+    }
+  }
+
+  /**
+   * Save image with specific ID to prompter-cache directory
+   * @param imageId Image ID
+   * @param imageDataUrl Data URL of image
+   * @param metadata Optional metadata (sceneId, characterName, etc.)
+   * @returns Success status
+   */
+  static async saveImageById(
+    imageId: string,
+    imageDataUrl: string,
+    metadata?: { sceneId?: string; characterName?: string; modelName?: string }
+  ): Promise<{ success: boolean; path?: string; error?: string }> {
+    if (!this.isElectron()) {
+      return { success: false, error: 'Not running in Electron' };
+    }
+
+    try {
+      const baseDir = await this.getDirectoryPath();
+      if (!baseDir) {
+        return {
+          success: false,
+          error: 'No directory selected. Images will be stored in browser storage only.'
+        };
+      }
+
+      // Determine subdirectory based on metadata
+      let subdir = '';
+      if (metadata?.sceneId) {
+        subdir = 'scenes';
+      } else if (metadata?.characterName) {
+        subdir = 'characters';
+      }
+
+      // Create cache directory structure
+      const cacheDir = this.joinPath(baseDir, CACHE_DIR_NAME);
+      await window.electronAPI!.createDirectory(cacheDir);
+      
+      if (subdir) {
+        const subdirPath = this.joinPath(cacheDir, subdir);
+        await window.electronAPI!.createDirectory(subdirPath);
+      }
+
+      // Convert data URL to blob and then to ArrayBuffer
+      const response = await fetch(imageDataUrl);
+      const blob = await response.blob();
+      const arrayBuffer = await blob.arrayBuffer();
+
+      // Save image file
+      const imagePath = subdir 
+        ? this.joinPath(CACHE_DIR_NAME, subdir, `${imageId}.png`)
+        : this.joinPath(CACHE_DIR_NAME, `${imageId}.png`);
+      
+      await this.writeFileBinary(imagePath, arrayBuffer);
+
+      // Save metadata as JSON
+      const metadataPath = subdir
+        ? this.joinPath(CACHE_DIR_NAME, subdir, `${imageId}.json`)
+        : this.joinPath(CACHE_DIR_NAME, `${imageId}.json`);
+      
+      const metadataJson = JSON.stringify({
+        id: imageId,
+        timestamp: new Date().toISOString(),
+        ...metadata
+      }, null, 2);
+
+      await this.writeFile(metadataPath, metadataJson);
+
+      return {
+        success: true,
+        path: imagePath
+      };
+    } catch (error) {
+      console.error('Error saving image by ID:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save image'
+      };
+    }
+  }
+
+  /**
+   * Delete image by ID from prompter-cache directory
+   * @param imageId Image ID
+   * @returns Success status
+   */
+  static async deleteImageById(imageId: string): Promise<boolean> {
+    if (!this.isElectron()) {
+      return false;
+    }
+
+    try {
+      const baseDir = await this.getDirectoryPath();
+      if (!baseDir) {
+        return false;
+      }
+
+      // Try both scenes and characters directories
+      const directories = ['scenes', 'characters'];
+      let deleted = false;
+
+      for (const dir of directories) {
+        try {
+          // Delete image file
+          const imagePath = this.joinPath(CACHE_DIR_NAME, dir, `${imageId}.png`);
+          const imageExists = await this.fileExists(imagePath);
+          
+          if (imageExists) {
+            await this.deleteFile(imagePath);
+            deleted = true;
+          }
+
+          // Delete metadata file
+          const metadataPath = this.joinPath(CACHE_DIR_NAME, dir, `${imageId}.json`);
+          const metadataExists = await this.fileExists(metadataPath);
+          
+          if (metadataExists) {
+            await this.deleteFile(metadataPath);
+          }
+        } catch (error) {
+          // Continue to next directory
+          continue;
+        }
+      }
+
+      return deleted;
+    } catch (error) {
+      console.error('Error deleting image by ID:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Load image by ID from prompter-cache directory
+   * @param imageId Image ID
+   * @returns Data URL of image or null if not found
+   */
+  static async loadImageById(imageId: string): Promise<string | null> {
+    if (!this.isElectron()) {
+      return null;
+    }
+
+    try {
+      const baseDir = await this.getDirectoryPath();
+      if (!baseDir) {
+        return null;
+      }
+
+      // Try both scenes and characters directories
+      const directories = ['scenes', 'characters'];
+      
+      for (const dir of directories) {
+        try {
+          const imagePath = this.joinPath(baseDir, CACHE_DIR_NAME, dir, `${imageId}.png`);
+          const exists = await window.electronAPI!.fileExists(imagePath);
+          
+          if (exists) {
+            const result = await window.electronAPI!.readFileBinary(imagePath);
+            
+            if (result.success && result.data) {
+              // Convert ArrayBuffer to data URL
+              const blob = new Blob([result.data], { type: 'image/png' });
+              return await this.blobToDataURL(blob);
+            }
+          }
+        } catch (error) {
+          // Try next directory
+          continue;
+        }
+      }
+
+      // Not found in any directory
+      return null;
+    } catch (error) {
+      console.error('Error loading image by ID:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Convert Blob to data URL
+   */
+  private static blobToDataURL(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  /**
+   * Save app metadata (activeBookId, settings, etc.) to filesystem
+   * @param metadata App metadata object
+   * @returns Success status
+   */
+  static async saveAppMetadata(metadata: { 
+    activeBookId?: string | null;
+    settings?: any;
+  }): Promise<{ success: boolean; error?: string }> {
+    if (!this.isElectron()) {
+      return { success: false, error: 'Not running in Electron' };
+    }
+
+    try {
+      const baseDir = await this.getDirectoryPath();
+      if (!baseDir) {
+        return { success: false, error: 'Filesystem not configured' };
+      }
+
+      // Ensure cache directory exists
+      const cacheDir = this.joinPath(baseDir, CACHE_DIR_NAME);
+      await window.electronAPI!.createDirectory(cacheDir);
+
+      // Load existing metadata to merge
+      let existingMetadata: any = {};
+      try {
+        const metadataPath = this.joinPath(baseDir, CACHE_DIR_NAME, 'app-metadata.json');
+        const existingResult = await window.electronAPI!.readFile(metadataPath);
+        if (existingResult.success && existingResult.content) {
+          existingMetadata = JSON.parse(existingResult.content);
+        }
+      } catch {
+        // File doesn't exist yet - start fresh
+      }
+
+      // Merge and save
+      const metadataPath = this.joinPath(baseDir, CACHE_DIR_NAME, 'app-metadata.json');
+      const metadataJson = JSON.stringify({
+        ...existingMetadata,
+        ...metadata,
+        lastUpdated: new Date().toISOString()
+      }, null, 2);
+
+      const result = await window.electronAPI!.writeFile(metadataPath, metadataJson);
+      
+      if (result.success) {
+        return { success: true };
+      } else {
+        return { success: false, error: result.error || 'Failed to save metadata' };
+      }
+    } catch (error) {
+      console.error('Error saving app metadata:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save app metadata'
+      };
+    }
+  }
+}

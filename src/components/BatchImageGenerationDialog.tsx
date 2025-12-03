@@ -34,7 +34,7 @@ interface BatchImageGenerationDialogProps {
   onClose: () => void;
   story: Story;
   activeBook: Book | null;
-  onGenerate: (sceneId: string, modelName: string) => Promise<void>;
+  onGenerate: (sceneId: string, modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini') => Promise<void>;
 }
 
 type SceneStatus = 'pending' | 'generating' | 'completed' | 'error';
@@ -53,6 +53,7 @@ export const BatchImageGenerationDialog: React.FC<BatchImageGenerationDialogProp
   onGenerate
 }) => {
   const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS[0].value);
+  const [promptStrategy, setPromptStrategy] = useState<'auto' | 'legacy' | 'gemini'>('auto');
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState<Map<string, SceneProgress>>(new Map());
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
@@ -87,7 +88,7 @@ export const BatchImageGenerationDialog: React.FC<BatchImageGenerationDialogProp
       });
 
       try {
-        await onGenerate(scene.id, selectedModel);
+        await onGenerate(scene.id, selectedModel, promptStrategy);
         
         // Update status to completed
         setProgress(prev => {
@@ -196,27 +197,54 @@ export const BatchImageGenerationDialog: React.FC<BatchImageGenerationDialogProp
           
           {!isGenerating && progress.size === 0 && (
             <Alert severity="info" sx={{ mt: 2 }}>
-              Select a model and click "Start Generation". Images will be generated one at a time.
+              Select a model and prompt strategy, then click "Start Generation". Images will be generated one at a time to avoid rate limits.
             </Alert>
           )}
         </Box>
 
         {/* Model Selection */}
         {!isGenerating && progress.size === 0 && (
-          <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel>Image Generation Model</InputLabel>
-            <Select
-              value={selectedModel}
-              label="Image Generation Model"
-              onChange={(e) => setSelectedModel(e.target.value)}
-            >
-              {IMAGE_MODELS.map((model) => (
-                <MenuItem key={model.value} value={model.value}>
-                  {model.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <>
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel>Image Generation Model</InputLabel>
+              <Select
+                value={selectedModel}
+                label="Image Generation Model"
+                onChange={(e) => setSelectedModel(e.target.value)}
+              >
+                {IMAGE_MODELS.map((model) => (
+                  <MenuItem key={model.value} value={model.value}>
+                    {model.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth sx={{ mb: 3 }}>
+              <InputLabel>Prompt Strategy</InputLabel>
+              <Select
+                value={promptStrategy}
+                label="Prompt Strategy"
+                onChange={(e) => setPromptStrategy(e.target.value as 'auto' | 'legacy' | 'gemini')}
+              >
+                <MenuItem value="auto">Auto (Detect from Model)</MenuItem>
+                <MenuItem value="legacy">Legacy (Simple)</MenuItem>
+                <MenuItem value="gemini">Gemini (Structured)</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
+              <Typography variant="caption" display="block" gutterBottom>
+                <strong>Auto:</strong> Selects Gemini format for Gemini/Imagen models, Legacy for others
+              </Typography>
+              <Typography variant="caption" display="block" gutterBottom>
+                <strong>Legacy:</strong> Simple concatenated prompts (works with all models)
+              </Typography>
+              <Typography variant="caption" display="block">
+                <strong>Gemini:</strong> Structured prompts optimized for Gemini/Imagen models
+              </Typography>
+            </Alert>
+          </>
         )}
 
         {/* Progress */}

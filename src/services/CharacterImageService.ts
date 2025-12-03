@@ -105,11 +105,6 @@ export class CharacterImageService {
       prompt += `${bookStylePrompt}\n\n`;
     }
     
-    // Add story context if available
-    if (storyBackgroundSetup && storyBackgroundSetup.trim()) {
-      prompt += `Story Context:\n${storyBackgroundSetup}\n\n`;
-    }
-    
     // Character details (required)
     prompt += `Character to Generate:\n`;
     prompt += `Name: ${character.name}\n`;

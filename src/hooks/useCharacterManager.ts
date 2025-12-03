@@ -250,12 +250,15 @@ export function useCharacterManager(options: UseCharacterManagerOptions): UseCha
           console.log('✓ Character found');
           console.log('  Before update - imageGallery length:', char.imageGallery?.length);
           
-          // Update the character directly
+          // Update the character directly (all audition-related fields)
           char.imageGallery = auditionCharacter.imageGallery;
           char.selectedImageId = auditionCharacter.selectedImageId;
+          char.referenceImageId = auditionCharacter.referenceImageId;
+          char.description = auditionCharacter.description; // Include description updates
           
           console.log('  After update - imageGallery length:', char.imageGallery?.length);
           console.log('  After update - selectedImageId:', char.selectedImageId);
+          console.log('  After update - referenceImageId:', char.referenceImageId);
         } else {
           console.error('Character not found in book:', auditionCharacter.name);
           return;
@@ -277,12 +280,15 @@ export function useCharacterManager(options: UseCharacterManagerOptions): UseCha
           console.log('✓ Character found');
           console.log('  Before update - imageGallery length:', char.imageGallery?.length);
           
-          // Update the character directly
+          // Update the character directly (all audition-related fields)
           char.imageGallery = auditionCharacter.imageGallery;
           char.selectedImageId = auditionCharacter.selectedImageId;
+          char.referenceImageId = auditionCharacter.referenceImageId;
+          char.description = auditionCharacter.description; // Include description updates
           
           console.log('  After update - imageGallery length:', char.imageGallery?.length);
           console.log('  After update - selectedImageId:', char.selectedImageId);
+          console.log('  After update - referenceImageId:', char.referenceImageId);
         } else {
           console.error('Character not found in story:', auditionCharacter.name);
           return;

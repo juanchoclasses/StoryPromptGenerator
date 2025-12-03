@@ -394,7 +394,7 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
     }
   };
 
-  const handleBatchGenerateScene = async (sceneId: string, modelName: string) => {
+  const handleBatchGenerateScene = async (sceneId: string, modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini') => {
     if (!batchGenerationStory) return;
     
     const scene = batchGenerationStory.scenes.find(s => s.id === sceneId);
@@ -431,6 +431,7 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
     
     console.log(`   Book: ${activeBook?.title || 'N/A'}`);
     console.log(`   Model: ${modelName}`);
+    console.log(`   Prompt Strategy: ${promptStrategy || 'auto'}`);
     
     // Use the UNIFIED service to generate complete image with all overlays
     const { SceneImageGenerationService } = await import('../services/SceneImageGenerationService');
@@ -440,6 +441,7 @@ export const StoriesPanel: React.FC<StoriesPanelProps> = ({
       book: activeBook,
       model: modelName,
       aspectRatio,
+      promptStrategy, // Pass prompt strategy
       applyOverlays: true // Apply text and diagram panels
     });
     

@@ -47,6 +47,7 @@ import type { Character } from '../models/Story';
 import type { Book } from '../models/Book';
 import { CharacterImageService } from '../services/CharacterImageService';
 import { IMAGE_MODELS } from '../constants/imageModels';
+import { CharacterImagePreviewDialog, type CharacterPreviewData } from './CharacterImagePreviewDialog';
 
 interface CharacterAuditionDialogProps {
   open: boolean;
@@ -85,6 +86,10 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
   // Image preview dialog state
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  
+  // Generation preview dialog state
+  const [generationPreviewOpen, setGenerationPreviewOpen] = useState(false);
+  const [generationPreviewData, setGenerationPreviewData] = useState<CharacterPreviewData | null>(null);
   
   // File upload state
   const [uploading, setUploading] = useState(false);
@@ -309,7 +314,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
       setReferenceImage(null);
       setIncludeReferenceImage(false);
     }
-  }, [character, storyId]);
+  }, [character, contextId]);
 
   // Reset ref when dialog opens or character changes, then load gallery and reference image
   useEffect(() => {
@@ -392,6 +397,61 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
     console.log('Dialog closing - saving character changes...');
     onUpdate();
     onClose();
+  };
+
+  // Build preview data for the generation preview dialog
+  const buildPreviewData = async (): Promise<CharacterPreviewData> => {
+    // Build the prompt using the edited description
+    const characterWithEditedDesc = { ...character, description: characterDescription };
+    const prompt = CharacterImageService.buildCharacterPrompt(
+      characterWithEditedDesc,
+      backgroundSetup,
+      book,
+      selectedModel,
+      includeReferenceImage && !!referenceImage,
+      promptStrategy
+    );
+
+    // Convert blob URL to data URL if needed for preview
+    let referenceImageForPreview = referenceImage;
+    if (referenceImageForPreview && referenceImageForPreview.startsWith('blob:')) {
+      try {
+        const response = await fetch(referenceImageForPreview);
+        const blob = await response.blob();
+        referenceImageForPreview = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } catch (err) {
+        console.error('Failed to convert blob URL for preview:', err);
+        // Continue with blob URL anyway
+      }
+    }
+
+    return {
+      characterName: character.name,
+      characterDescription: characterDescription,
+      prompt,
+      referenceImage: referenceImageForPreview,
+      includeReferenceImage,
+      aspectRatio: '1:1',
+      model: selectedModel,
+      promptStrategy
+    };
+  };
+
+  // Show preview dialog
+  const handleShowPreview = async () => {
+    try {
+      const preview = await buildPreviewData();
+      setGenerationPreviewData(preview);
+      setGenerationPreviewOpen(true);
+    } catch (error) {
+      console.error('Failed to build preview:', error);
+      setError(`Failed to build preview: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const handleGenerateImage = async () => {
@@ -768,6 +828,15 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
 
             <Button
               variant="outlined"
+              onClick={handleShowPreview}
+              startIcon={<VisibilityIcon />}
+              disabled={generating}
+            >
+              Preview
+            </Button>
+
+            <Button
+              variant="outlined"
               onClick={handleViewPrompt}
               startIcon={<VisibilityIcon />}
             >
@@ -799,7 +868,7 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
             </Button>
           </Box>
           <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
-            Generate with API, view the prompt for external tools, upload an image, or click "Paste Image" (or press Ctrl+V/Cmd+V).
+            <strong>Preview:</strong> See the full prompt and reference images before generating. <strong>Generate:</strong> Create image with API. <strong>View Prompt:</strong> Copy for external tools. <strong>Upload/Paste:</strong> Add existing images (or press Ctrl+V/Cmd+V).
             <br />
             <strong>Tip:</strong> Select any image from the gallery below to use it as a reference image in scene generation prompts.
           </Typography>
@@ -1053,6 +1122,17 @@ export const CharacterAuditionDialog: React.FC<CharacterAuditionDialogProps> = (
         </Button>
       </DialogActions>
     </Dialog>
+
+    {/* Generation Preview Dialog */}
+    <CharacterImagePreviewDialog
+      open={generationPreviewOpen}
+      onClose={() => {
+        setGenerationPreviewOpen(false);
+        setGenerationPreviewData(null);
+      }}
+      onGenerate={handleGenerateImage}
+      previewData={generationPreviewData}
+    />
     </>
   );
 };

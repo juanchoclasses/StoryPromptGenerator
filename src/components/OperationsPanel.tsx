@@ -291,7 +291,7 @@ export const OperationsPanel: React.FC = () => {
           console.log(`Rebuilding imageGallery for ${characterName} (book-level)...`);
           
           // Rebuild imageGallery from IndexedDB
-          character.imageGallery = details.imageIds.map(imageId => ({
+          character.imageGallery = details.imageIds.map((imageId: string) => ({
             id: imageId,
             url: '', // Will be loaded from IndexedDB on demand
             model: 'unknown',
@@ -299,7 +299,7 @@ export const OperationsPanel: React.FC = () => {
             timestamp: new Date()
           }));
           
-          console.log(`  Rebuilt gallery with ${character.imageGallery.length} images`);
+          console.log(`  Rebuilt gallery with ${character.imageGallery?.length || 0} images`);
           
           // Save book
           await BookService.saveBook(book);
@@ -317,7 +317,7 @@ export const OperationsPanel: React.FC = () => {
                 console.log(`Rebuilding imageGallery for ${characterName} (story-level)...`);
                 
                 // Rebuild imageGallery from IndexedDB
-                character.imageGallery = details.imageIds.map(imageId => ({
+                character.imageGallery = details.imageIds.map((imageId: string) => ({
                   id: imageId,
                   url: '',
                   model: 'unknown',
@@ -325,7 +325,7 @@ export const OperationsPanel: React.FC = () => {
                   timestamp: new Date()
                 }));
                 
-                console.log(`  Rebuilt gallery with ${character.imageGallery.length} images`);
+                console.log(`  Rebuilt gallery with ${character.imageGallery?.length || 0} images`);
                 
                 // Save book
                 await BookService.saveBook(book);
@@ -440,7 +440,7 @@ export const OperationsPanel: React.FC = () => {
           
           // Rebuild imageGallery with actual IDs from filesystem
           const actualImageIds = Array.from(imageMap.keys());
-          character.imageGallery = actualImageIds.map(imageId => ({
+          character.imageGallery = actualImageIds.map((imageId: string) => ({
             id: imageId,
             url: '', // Will be loaded on demand
             model: 'unknown',
@@ -454,7 +454,7 @@ export const OperationsPanel: React.FC = () => {
             console.log(`    Updated selectedImageId to ${character.selectedImageId}`);
           }
           
-          console.log(`    Rebuilt gallery with ${character.imageGallery.length} actual images`);
+          console.log(`    Rebuilt gallery with ${character.imageGallery?.length || 0} actual images`);
           fixedCount++;
         }
         

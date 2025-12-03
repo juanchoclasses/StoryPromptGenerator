@@ -32,7 +32,7 @@ This plan fixes 147 TypeScript errors preventing Electron builds. Fixes are orga
   - Remove unused PromptBuildingService from SceneEditor.tsx
   - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ] 3. Add browser API type definitions
+- [x] 3. Add browser API type definitions
   - Create src/types/browser-apis.d.ts with File System Access API types
   - Define FileSystemDirectoryHandle interface
   - Define FileSystemFileHandle interface
@@ -41,7 +41,7 @@ This plan fixes 147 TypeScript errors preventing Electron builds. Fixes are orga
   - Update tsconfig.app.json to include new type definition file
   - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 4. Fix type errors in OperationsPanel.tsx
+- [x] 4. Fix type errors in OperationsPanel.tsx
   - Add explicit type for imageId parameters (should be `string`)
   - Add optional chaining for character.imageGallery access
   - Fix implicit any types in image handling functions

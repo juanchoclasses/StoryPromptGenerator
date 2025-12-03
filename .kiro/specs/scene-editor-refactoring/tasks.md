@@ -29,7 +29,7 @@
   - Verify all 35 SceneEditor tests still pass
   - _Requirements: 1.3, 7.1_
 
-- [ ] 2. Extract SceneImageGenerator component
+- [x] 2. Extract SceneImageGenerator component
   - Create new component file with TypeScript interfaces
   - Implement generate button and loading states
   - Integrate ModelSelectionDialog
@@ -39,7 +39,7 @@
   - Implement image save/clear callbacks
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 2.1 Write tests for SceneImageGenerator
+- [x] 2.1 Write tests for SceneImageGenerator
   - **Property 3: SceneImageGenerator component correctness**
   - **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.5**
   - Test button rendering and clicks
@@ -51,7 +51,7 @@
   - Target: ~20 tests
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 2.2 Integrate SceneImageGenerator into SceneEditor
+- [x] 2.2 Integrate SceneImageGenerator into SceneEditor
   - Import component
   - Replace existing image generation code
   - Wire up props and callbacks
@@ -59,7 +59,7 @@
   - Verify all 35 SceneEditor tests still pass
   - _Requirements: 1.3, 7.1_
 
-- [ ] 3. Extract ScenePromptPreview component
+- [x] 3. Extract ScenePromptPreview component
   - Create new component file with TypeScript interfaces
   - Implement prompt generation logic
   - Add prompt display UI
@@ -68,7 +68,7 @@
   - Handle success/error notifications
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 3.1 Write tests for ScenePromptPreview
+- [x] 3.1 Write tests for ScenePromptPreview
   - **Property 4: ScenePromptPreview component correctness**
   - **Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5**
   - Test prompt generation
@@ -79,7 +79,7 @@
   - Target: ~20 tests
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 3.2 Integrate ScenePromptPreview into SceneEditor
+- [x] 3.2 Integrate ScenePromptPreview into SceneEditor
   - Import component
   - Replace existing prompt code
   - Wire up props and callbacks

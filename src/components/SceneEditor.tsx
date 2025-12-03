@@ -46,13 +46,14 @@ import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 import type { PanelConfig } from '../types/Book';
 import { formatBookStyleForPrompt } from '../types/BookStyle';
 import { measureTextFit } from '../services/TextMeasurementService';
-import { ModelSelectionDialog } from './ModelSelectionDialog';
 import { PanelConfigDialog } from './PanelConfigDialog';
 import { SceneLayoutEditor } from './SceneLayoutEditor';
 import { LayoutResolver } from '../services/LayoutResolver';
-import { ImageGenerationPreviewDialog, type PreviewData } from './ImageGenerationPreviewDialog';
+import type { PreviewData } from './ImageGenerationPreviewDialog';
 import { SceneCharacterSelector } from './SceneCharacterSelector';
 import { SceneElementSelector } from './SceneElementSelector';
+import { SceneImageGenerator } from './SceneImageGenerator';
+import { ScenePromptPreview } from './ScenePromptPreview';
 
 /**
  * Calculate the minimum height needed for a text panel based on content
@@ -183,13 +184,9 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     lineCount: number;
     currentHeightPercentage: number;
   } | null>(null);
-  const [modelSelectionOpen, setModelSelectionOpen] = useState(false);
   const [panelConfigDialogOpen, setPanelConfigDialogOpen] = useState(false);
   const [editingPanelConfig, setEditingPanelConfig] = useState<PanelConfig>(DEFAULT_PANEL_CONFIG);
   const [layoutEditorOpen, setLayoutEditorOpen] = useState(false);
-  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
-  const [previewData, setPreviewData] = useState<PreviewData | null>(null);
-  const [pendingModelForGeneration, setPendingModelForGeneration] = useState<string | null>(null);
   
   const textPanelFieldRef = React.useRef<HTMLTextAreaElement>(null);
   const lastNotifiedImageUrl = useRef<string | null>(null);
@@ -826,24 +823,27 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     }
   };
 
-  const handleCopyPrompt = async () => {
-    const prompt = await generatePrompt();
-    try {
-      await navigator.clipboard.writeText(prompt);
-      setSnackbarMessage('Prompt copied to clipboard!');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-    } catch (error) {
-      console.error('Failed to copy prompt:', error);
-      setSnackbarMessage('Failed to copy prompt');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    }
+
+
+  // Handlers for SceneImageGenerator component
+  const handleImageGenerationStart = () => {
+    setIsGeneratingImage(true);
+    setGeneratedImageUrl(null);
   };
 
-  // Show model selection dialog when Generate Image is clicked
-  const handleGenerateImage = () => {
-    setModelSelectionOpen(true);
+  const handleImageGenerationComplete = (imageUrl: string) => {
+    setGeneratedImageUrl(imageUrl);
+    setIsGeneratingImage(false);
+  };
+
+  const handleImageGenerationError = (error: Error) => {
+    setIsGeneratingImage(false);
+    setErrorDialogMessage(
+      error instanceof Error 
+        ? `An unexpected error occurred:\n\n${error.message}\n\n${error.stack || ''}` 
+        : 'An unexpected error occurred'
+    );
+    setErrorDialogOpen(true);
   };
 
   // Open layout editor
@@ -1260,25 +1260,13 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     };
   };
 
-  // Show preview dialog after model selection
-  const handleShowPreview = async (modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini') => {
-    try {
-      setPendingModelForGeneration(modelName);
-      const preview = await buildPreviewData(modelName, promptStrategy);
-      setPreviewData(preview);
-      setPreviewDialogOpen(true);
-      setModelSelectionOpen(false);
-      console.log(`Preview using strategy: ${promptStrategy || 'auto'}`);
-    } catch (error) {
-      console.error('Failed to build preview:', error);
-      setSnackbarMessage(`Failed to build preview: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    }
+  // Build preview data for SceneImageGenerator
+  const handleBuildPreview = async (modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini'): Promise<PreviewData> => {
+    return await buildPreviewData(modelName, promptStrategy);
   };
 
-  // Actually perform the image generation with the selected model
-  const performImageGeneration = async (modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini') => {
+  // Perform image generation for SceneImageGenerator
+  const handlePerformImageGeneration = async (modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini') => {
     // Store the selected model for potential retry
     lastSelectedModel.current = modelName;
     
@@ -1331,9 +1319,6 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         return; // Don't proceed with generation
       }
     }
-
-    setIsGeneratingImage(true);
-    setGeneratedImageUrl(null);
 
     try {
       // Use unified SceneImageGenerationService which handles layout detection
@@ -1391,10 +1376,10 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             // This prevents issues with blob URLs becoming invalid
             const persistedImageUrl = await ImageStorageService.getImage(imageId);
             if (persistedImageUrl) {
-              setGeneratedImageUrl(persistedImageUrl);
+              handleImageGenerationComplete(persistedImageUrl);
             } else {
               console.warn('Failed to load newly stored image from filesystem, using original URL');
-              setGeneratedImageUrl(finalImageUrl);
+              handleImageGenerationComplete(finalImageUrl);
             }
             
             const updatedStories = activeBookData.stories.map(s => {
@@ -1457,14 +1442,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Error generating image:', error);
-      setErrorDialogMessage(
-        error instanceof Error 
-          ? `An unexpected error occurred:\n\n${error.message}\n\n${error.stack || ''}` 
-          : 'An unexpected error occurred'
-      );
-      setErrorDialogOpen(true);
-    } finally {
-      setIsGeneratingImage(false);
+      throw error; // Re-throw to be handled by SceneImageGenerator
     }
   };
 
@@ -1580,21 +1558,18 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             />
           </Box>
           <Box display="flex" gap={1}>
-            <Button
-              variant="outlined"
-              startIcon={<CopyIcon />}
-              onClick={handleCopyPrompt}
-            >
-              Get Prompt
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={isGeneratingImage ? <CircularProgress size={20} color="inherit" /> : <ImageIcon />}
-              onClick={handleGenerateImage}
-              disabled={isGeneratingImage}
-            >
-              {isGeneratingImage ? 'Generating...' : 'Generate Image'}
-            </Button>
+            {currentScene && story && (
+              <SceneImageGenerator
+                scene={currentScene}
+                story={story}
+                onGenerationStart={handleImageGenerationStart}
+                onGenerationComplete={handleImageGenerationComplete}
+                onGenerationError={handleImageGenerationError}
+                onBuildPreview={handleBuildPreview}
+                onPerformGeneration={handlePerformImageGeneration}
+                isGenerating={isGeneratingImage}
+              />
+            )}
             <Tooltip title="Configure scene layout (comic book style, overlay, etc.)">
               <Button
                 variant="outlined"
@@ -1813,6 +1788,19 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         onSelectionChange={handleElementSelectionChange}
       />
 
+      {/* Prompt Preview - Extracted Component */}
+      <ScenePromptPreview
+        scene={currentScene}
+        story={story}
+        activeBook={activeBook}
+        availableCharacters={availableCharacters}
+        availableElements={availableElements}
+        selectedCharacters={selectedCharacters}
+        selectedElements={selectedElements}
+        textPanelContent={textPanel}
+        onInsertMacro={insertMacroToTextPanel}
+      />
+
       {/* Diagram Preview Dialog */}
       <Dialog
         open={diagramPreviewOpen}
@@ -1923,18 +1911,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           >
             Copy Error
           </Button>
-          <Button onClick={() => setErrorDialogOpen(false)}>
+          <Button onClick={() => setErrorDialogOpen(false)} variant="contained">
             OK
-          </Button>
-          <Button 
-            onClick={() => {
-              setErrorDialogOpen(false);
-              handleGenerateImage();
-            }} 
-            variant="contained"
-            disabled={isGeneratingImage}
-          >
-            Retry
           </Button>
         </DialogActions>
       </Dialog>
@@ -2006,30 +1984,6 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Model Selection Dialog */}
-      <ModelSelectionDialog
-        open={modelSelectionOpen}
-        onClose={() => setModelSelectionOpen(false)}
-        onConfirm={performImageGeneration}
-        onPreview={handleShowPreview}
-      />
-
-      {/* Image Generation Preview Dialog */}
-      <ImageGenerationPreviewDialog
-        open={previewDialogOpen}
-        onClose={() => {
-          setPreviewDialogOpen(false);
-          setPreviewData(null);
-          setPendingModelForGeneration(null);
-        }}
-        onGenerate={() => {
-          if (pendingModelForGeneration) {
-            performImageGeneration(pendingModelForGeneration);
-          }
-        }}
-        previewData={previewData}
-      />
 
       {/* Panel Config Dialog */}
       <PanelConfigDialog

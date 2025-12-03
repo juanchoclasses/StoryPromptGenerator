@@ -1,7 +1,12 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-const path = require('path');
-const fs = require('fs').promises;
-const Store = require('electron-store');
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import path from 'path';
+import { promises as fs } from 'fs';
+import Store from 'electron-store';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Initialize electron-store for persistent storage
 const store = new Store();
@@ -13,7 +18,7 @@ function createWindow() {
     width: 1400,
     height: 900,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false
@@ -22,8 +27,9 @@ function createWindow() {
   });
 
   // Load the app
-  if (process.env.NODE_ENV === 'development' || process.env.ELECTRON_DEV === 'true') {
-    mainWindow.loadURL('http://localhost:5173');
+  if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
+    // In development, load from Vite dev server with base path
+    mainWindow.loadURL('http://localhost:5173/StoryPromptGenerator/');
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));

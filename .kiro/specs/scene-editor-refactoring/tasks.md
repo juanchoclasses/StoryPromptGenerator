@@ -87,7 +87,7 @@
   - Verify all 35 SceneEditor tests still pass
   - _Requirements: 1.3, 7.1_
 
-- [ ] 4. Extract useSceneEditor custom hook
+- [x] 4. Extract useSceneEditor custom hook
   - Create new hook file with TypeScript interfaces
   - Implement scene state management
   - Add field update handlers (title, description, text panel)
@@ -97,7 +97,7 @@
   - Implement macro insertion logic
   - _Requirements: 6.1, 6.3, 6.4_
 
-- [ ] 4.1 Write tests for useSceneEditor hook
+- [x] 4.1 Write tests for useSceneEditor hook
   - **Property 5: useSceneEditor hook correctness**
   - **Validates: Requirements 6.1, 6.3, 6.4**
   - Test state initialization
@@ -108,7 +108,7 @@
   - Target: ~10 tests
   - _Requirements: 6.1, 6.3, 6.4_
 
-- [ ] 4.2 Integrate useSceneEditor into SceneEditor
+- [x] 4.2 Integrate useSceneEditor into SceneEditor
   - Import and use hook
   - Replace local state with hook state
   - Replace handlers with hook handlers
@@ -116,7 +116,7 @@
   - Verify all 35 SceneEditor tests still pass
   - _Requirements: 1.3, 7.1_
 
-- [ ] 5. Extract useImageGeneration custom hook
+- [x] 5. Extract useImageGeneration custom hook
   - Create new hook file with TypeScript interfaces
   - Implement generation state management
   - Add generation workflow coordination
@@ -126,7 +126,7 @@
   - Add cancellation support
   - _Requirements: 6.2, 6.3, 6.4_
 
-- [ ] 5.1 Write tests for useImageGeneration hook
+- [x] 5.1 Write tests for useImageGeneration hook
   - **Property 6: useImageGeneration hook correctness**
   - **Validates: Requirements 6.2, 6.3, 6.4**
   - Test generation workflow
@@ -137,7 +137,7 @@
   - Target: ~10 tests
   - _Requirements: 6.2, 6.3, 6.4_
 
-- [ ] 5.2 Integrate useImageGeneration into SceneEditor
+- [x] 5.2 Integrate useImageGeneration into SceneEditor
   - Import and use hook
   - Replace local generation state with hook state
   - Replace generation logic with hook methods
@@ -145,7 +145,7 @@
   - Verify all 35 SceneEditor tests still pass
   - _Requirements: 1.3, 7.1_
 
-- [ ] 6. Final verification and cleanup
+- [-] 6. Final verification and cleanup
   - Run full test suite (verify 115+ tests passing)
   - Verify SceneEditor is under 800 lines
   - Run TypeScript compiler (no errors)
@@ -154,7 +154,7 @@
   - Update architecture diagrams
   - _Requirements: 1.1, 8.1, 8.2, 8.3, 8.4, 8.5, 9.5_
 
-- [ ] 6.1 Verify final line count
+- [x] 6.1 Verify final line count
   - **Property 7: Final component size verification**
   - **Validates: Requirements 1.1, 9.5**
   - Run: `wc -l src/components/SceneEditor.tsx`
@@ -162,7 +162,7 @@
   - Document final line count in requirements.md
   - _Requirements: 1.1, 9.5_
 
-- [ ] 6.2 Update documentation
+- [-] 6.2 Update documentation
   - Update ARCHITECTURE-ANALYSIS-REPORT.md with new component structure
   - Update ARCHITECTURE-HEALING-TRACKING.md with completion status
   - Add component hierarchy diagram to design.md

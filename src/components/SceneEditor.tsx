@@ -5,18 +5,12 @@ import {
   Paper,
   Button,
   TextField,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Chip,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  OutlinedInput,
   Snackbar,
   Alert,
-  CircularProgress,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -24,9 +18,7 @@ import {
   Tooltip
 } from '@mui/material';
 import {
-  ExpandMore as ExpandMoreIcon,
   ContentCopy as CopyIcon,
-  Person as PersonIcon,
   Image as ImageIcon,
   ErrorOutline as ErrorIcon,
   Code as CodeIcon,
@@ -35,16 +27,13 @@ import {
   GridOn as LayoutIcon
 } from '@mui/icons-material';
 import type { Scene, Story } from '../types/Story';
-import type { Character } from '../models/Story'; // v4.1: New Character type with imageGallery
 import type { SceneLayout } from '../types/Story'; // Layout configuration
 import { BookService } from '../services/BookService';
-import { SceneImageGenerationService } from '../services/SceneImageGenerationService';
 import { FileSystemService } from '../services/FileSystemService';
 import { SettingsService } from '../services/SettingsService';
 import { ImageStorageService } from '../services/ImageStorageService';
 import { DEFAULT_PANEL_CONFIG } from '../types/Book';
 import type { PanelConfig } from '../types/Book';
-import { formatBookStyleForPrompt } from '../types/BookStyle';
 import { measureTextFit } from '../services/TextMeasurementService';
 import { PanelConfigDialog } from './PanelConfigDialog';
 import { SceneLayoutEditor } from './SceneLayoutEditor';
@@ -54,6 +43,8 @@ import { SceneCharacterSelector } from './SceneCharacterSelector';
 import { SceneElementSelector } from './SceneElementSelector';
 import { SceneImageGenerator } from './SceneImageGenerator';
 import { ScenePromptPreview } from './ScenePromptPreview';
+import { useSceneEditor } from '../hooks/useSceneEditor';
+import { useImageGeneration } from '../hooks/useImageGeneration';
 
 /**
  * Calculate the minimum height needed for a text panel based on content
@@ -117,11 +108,22 @@ interface SceneEditorProps {
 
 export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, onStoryUpdate, onImageStateChange }) => {
   const [currentScene, setCurrentScene] = useState<Scene | null>(null);
-  const [selectedCharacters, setSelectedCharacters] = useState<string[]>([]);
-  const [selectedElements, setSelectedElements] = useState<string[]>([]);
-  const [sceneTitle, setSceneTitle] = useState('');
-  const [sceneDescription, setSceneDescription] = useState('');
-  const [textPanel, setTextPanel] = useState('');
+  
+  // Use the useSceneEditor hook for scene state management
+  const {
+    sceneTitle,
+    sceneDescription,
+    textPanelContent: textPanel,
+    selectedCharacters,
+    selectedElements,
+    handleTitleChange,
+    handleDescriptionChange,
+    handleTextPanelChange,
+    handleCharacterSelectionChange,
+    handleElementSelectionChange,
+    handleInsertMacro
+  } = useSceneEditor(story, currentScene, onStoryUpdate);
+  
   const [diagramType, setDiagramType] = useState<'mermaid' | 'math' | 'code' | 'markdown'>('mermaid');
   const [diagramContent, setDiagramContent] = useState('');
   const [diagramLanguage, setDiagramLanguage] = useState('javascript');
@@ -135,7 +137,41 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning'>('success');
+
+  // Create mock scene and story for hook initialization when null
+  const mockScene: Scene = useMemo(() => ({
+    id: 'temp',
+    title: '',
+    description: '',
+    characters: [],
+    elements: [],
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }), []);
+
+  const mockStory: Story = useMemo(() => ({
+    id: 'temp',
+    title: '',
+    backgroundSetup: '',
+    scenes: [],
+    characters: [],
+    elements: [],
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }), []);
+
+  // Use the useImageGeneration hook for image generation state management
+  const {
+    isGenerating: isGeneratingImage,
+    buildPreview,
+    startGeneration
+  } = useImageGeneration(
+    currentScene || mockScene,
+    story || mockStory,
+    onImageStateChange || (() => {}),
+    onStoryUpdate
+  );
 
   // Compute layout source for the layout editor
   const layoutSourceInfo = useMemo(() => {
@@ -173,8 +209,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     return { source, description, resolvedLayout, inheritedLayout, inheritedLayoutSource };
   }, [currentScene, story, activeBook]);
 
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [isTestingLayout, setIsTestingLayout] = useState(false);
   
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorDialogMessage, setErrorDialogMessage] = useState('');
@@ -257,12 +293,8 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
             const freshScene = currentStory.scenes.find(scene => scene.id === selectedScene.id);
             if (freshScene) {
               setCurrentScene(freshScene);
-              // v4.0: Use names instead of IDs (with backward compatibility)
-              setSelectedCharacters(freshScene.characters || freshScene.characterIds || []);
-              setSelectedElements(freshScene.elements || freshScene.elementIds || []);
-              setSceneTitle(freshScene.title);
-              setSceneDescription(freshScene.description || '');
-              setTextPanel(freshScene.textPanel || '');
+              // Note: The hook will manage scene state (title, description, etc.)
+              // We only need to set currentScene and diagram-related state here
               setDiagramType(freshScene.diagramPanel?.type as any || 'mermaid');
               setDiagramContent(freshScene.diagramPanel?.content || '');
               setDiagramLanguage(freshScene.diagramPanel?.language || 'javascript');
@@ -276,12 +308,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         
         // Fallback to selectedScene prop if we can't reload from storage
         setCurrentScene(selectedScene);
-        // v4.0: Use names instead of IDs (with backward compatibility)
-        setSelectedCharacters(selectedScene.characters || selectedScene.characterIds || []);
-        setSelectedElements(selectedScene.elements || selectedScene.elementIds || []);
-        setSceneTitle(selectedScene.title);
-        setSceneDescription(selectedScene.description || '');
-        setTextPanel(selectedScene.textPanel || '');
+        // Note: The hook will manage scene state (title, description, etc.)
         setDiagramType(selectedScene.diagramPanel?.type as any || 'mermaid');
         setDiagramContent(selectedScene.diagramPanel?.content || '');
         setDiagramLanguage(selectedScene.diagramPanel?.language || 'javascript');
@@ -290,11 +317,6 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         setGeneratedImageUrl(imageUrl);
       } else {
         setCurrentScene(null);
-        setSelectedCharacters([]);
-        setSelectedElements([]);
-        setSceneTitle('');
-        setSceneDescription('');
-        setTextPanel('');
         setGeneratedImageUrl(null);
       }
     };
@@ -313,88 +335,17 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     loadBook();
   }, [story]); // Reload when story changes
 
-  const handleSceneTitleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newTitle = event.target.value;
-    setSceneTitle(newTitle);
-    
-    // Auto-save the scene title
-    if (story && currentScene) {
-      const activeBookData = await BookService.getActiveBookData();
-      if (!activeBookData) return;
-      
-      const updatedStories = activeBookData.stories.map(s => {
-        if (s.id === story.id) {
-          const updatedScenes = s.scenes.map(scene => {
-            if (scene.id === currentScene.id) {
-              return { ...scene, title: newTitle, updatedAt: new Date() };
-            }
-            return scene;
-          });
-          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
-        }
-        return s;
-      });
-      
-      const updatedData = { ...activeBookData, stories: updatedStories };
-      await BookService.saveActiveBookData(updatedData);
-      onStoryUpdate();
-    }
+  // Handler wrappers for event objects (hook expects plain values)
+  const handleSceneTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    handleTitleChange(event.target.value);
   };
 
-  const handleSceneDescriptionChange = async (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newDescription = event.target.value;
-    setSceneDescription(newDescription);
-    
-    // Auto-save the scene description
-    if (story && currentScene) {
-      const activeBookData = await BookService.getActiveBookData();
-      if (!activeBookData) return;
-      
-      const updatedStories = activeBookData.stories.map(s => {
-        if (s.id === story.id) {
-          const updatedScenes = s.scenes.map(scene => {
-            if (scene.id === currentScene.id) {
-              return { ...scene, description: newDescription, updatedAt: new Date() };
-            }
-            return scene;
-          });
-          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
-        }
-        return s;
-      });
-      
-      const updatedData = { ...activeBookData, stories: updatedStories };
-      await BookService.saveActiveBookData(updatedData);
-      onStoryUpdate();
-    }
+  const handleSceneDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    handleDescriptionChange(event.target.value);
   };
 
-  const handleTextPanelChange = async (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newTextPanel = event.target.value;
-    setTextPanel(newTextPanel);
-    
-    // Auto-save the text panel (but don't trigger full refresh)
-    if (story && currentScene) {
-      const activeBookData = await BookService.getActiveBookData();
-      if (!activeBookData) return;
-      
-      const updatedStories = activeBookData.stories.map(s => {
-        if (s.id === story.id) {
-          const updatedScenes = s.scenes.map(scene => {
-            if (scene.id === currentScene.id) {
-              return { ...scene, textPanel: newTextPanel, updatedAt: new Date() };
-            }
-            return scene;
-          });
-          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
-        }
-        return s;
-      });
-      
-      const updatedData = { ...activeBookData, stories: updatedStories };
-      await BookService.saveActiveBookData(updatedData);
-      // Don't call onStoryUpdate() here - it causes the scene to reload and clears the input
-    }
+  const handleTextPanelChangeEvent = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    handleTextPanelChange(event.target.value);
   };
 
   const handleDiagramPanelChange = async (content: string, type: string, language?: string) => {
@@ -544,39 +495,14 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     }
   };
 
-  const insertMacroToTextPanel = async (macro: string) => {
+  const insertMacroToTextPanel = (macro: string) => {
     const textarea = textPanelFieldRef.current;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textPanel;
     
-    const newText = text.substring(0, start) + macro + text.substring(end);
-    setTextPanel(newText);
-    
-    // Trigger auto-save
-    if (story && currentScene) {
-      const activeBookData = await BookService.getActiveBookData();
-      if (!activeBookData) return;
-      
-      const updatedStories = activeBookData.stories.map(s => {
-        if (s.id === story.id) {
-          const updatedScenes = s.scenes.map(scene => {
-            if (scene.id === currentScene.id) {
-              return { ...scene, textPanel: newText, updatedAt: new Date() };
-            }
-            return scene;
-          });
-          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
-        }
-        return s;
-      });
-      
-      const updatedData = { ...activeBookData, stories: updatedStories };
-      await BookService.saveActiveBookData(updatedData);
-      onStoryUpdate();
-    }
+    // Use the hook's handleInsertMacro which handles the text insertion and auto-save
+    handleInsertMacro(macro, start);
     
     // Set cursor position after the inserted macro
     setTimeout(() => {
@@ -585,27 +511,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     }, 0);
   };
 
-  /**
-   * Handle character selection from SceneCharacterSelector component
-   * This is a simpler handler that receives the character names array directly
-   */
-  const handleCharacterSelectionChange = async (characterNames: string[]) => {
-    if (!story || !currentScene) return;
-    
-    setSelectedCharacters(characterNames);
-    await updateSceneCharacterIds(characterNames);
-  };
-
-  /**
-   * Handle element selection from SceneElementSelector component
-   * This is a simpler handler that receives the element IDs array directly
-   */
-  const handleElementSelectionChange = async (elementIds: string[]) => {
-    if (!story || !currentScene) return;
-    
-    setSelectedElements(elementIds);
-    await updateSceneElementIds(elementIds);
-  };
+  // Character and element selection handlers are provided by the useSceneEditor hook
 
 
 
@@ -642,202 +548,20 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     }
   };
 
-  /**
-   * Convert blob URL to base64 data URL
-   */
-  const blobUrlToDataUrl = async (blobUrl: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Failed to get canvas context'));
-          return;
-        }
-        
-        ctx.drawImage(img, 0, 0);
-        const dataUrl = canvas.toDataURL('image/png');
-        resolve(dataUrl);
-      };
-      
-      img.onerror = () => {
-        reject(new Error('Failed to load image'));
-      };
-      
-      img.src = blobUrl;
-    });
-  };
-
-  /**
-   * Load character reference images from filesystem for characters with selected images
-   * Converts blob URLs to base64 data URLs for API compatibility
-   */
-  const loadCharacterImages = async (): Promise<string[]> => {
-    if (!story || !currentScene) return [];
-
-    const selectedCharacterNames = currentScene.characters || currentScene.characterIds || [];
-    const selectedCast = availableCharacters.filter(char => 
-      selectedCharacterNames.includes(char.name) || selectedCharacterNames.includes(char.id)
-    );
-
-    const imageUrls: string[] = [];
-    const { ImageStorageService } = await import('../services/ImageStorageService');
-
-    for (const character of selectedCast) {
-      const charWithImages = character as unknown as Character;
-      if (charWithImages.selectedImageId) {
-        try {
-          // Load image from filesystem (returns blob URL)
-          const blobUrl = await ImageStorageService.getCharacterImage(
-            story.id,
-            character.name,
-            charWithImages.selectedImageId
-          );
-          
-          if (blobUrl) {
-            console.log(`✓ Loaded blob URL for ${character.name}`);
-            
-            // Convert blob URL to base64 data URL for API
-            console.log(`  Converting to base64...`);
-            const dataUrl = await blobUrlToDataUrl(blobUrl);
-            console.log(`  ✓ Converted to data URL (${Math.round(dataUrl.length / 1024)}KB)`);
-            
-            imageUrls.push(dataUrl);
-          }
-        } catch (err) {
-          console.warn(`Failed to load/convert image for ${character.name}:`, err);
-        }
-      }
-    }
-
-    return imageUrls;
-  };
-
-  const generatePrompt = async (modelName?: string, promptStrategy?: 'auto' | 'legacy' | 'gemini') => {
-    if (!story || !currentScene) return '';
-
-    // v4.0: Find characters and elements by name (not ID)
-    const selectedCharacterNames = currentScene.characters || currentScene.characterIds || [];
-    const selectedElementNames = currentScene.elements || currentScene.elementIds || [];
-    
-    const selectedCast = availableCharacters.filter(char => 
-      selectedCharacterNames.includes(char.name) || selectedCharacterNames.includes(char.id)
-    );
-    const selectedElements = availableElements.filter(elem => 
-      selectedElementNames.includes(elem.name) || selectedElementNames.includes(elem.id)
-    );
-    
-    // Get the active book information with full details
-    const activeBookId = await BookService.getActiveBookId();
-    const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
-    
-    // Prepare characters with isBookLevel flag for the service
-    const charactersWithLevel = selectedCast.map(char => {
-      const charWithImages = char as unknown as Character;
-      // Check if this character is from the book level
-      const isBookLevel = activeBook?.characters?.some(bookChar => bookChar.name === char.name) || false;
-      return {
-        ...charWithImages,
-        isBookLevel
-      };
-    });
-    
-    // Prepare elements array
-    const elementsForPrompt = selectedElements.map(elem => ({
-      name: elem.name,
-      description: elem.description
-    }));
-    
-    // Use the unified service method to build the prompt
-    return SceneImageGenerationService.buildScenePrompt(
-      currentScene,
-      story,
-      activeBook,
-      charactersWithLevel,
-      elementsForPrompt,
-      modelName,
-      promptStrategy
-    );
-  };
-
-  const updateSceneCharacterIds = async (newCharacterNames: string[]) => {
-    if (story && currentScene) {
-      const activeBookData = await BookService.getActiveBookData();
-      if (!activeBookData) return;
-      
-      const updatedStories = activeBookData.stories.map(s => {
-        if (s.id === story.id) {
-          const updatedScenes = s.scenes.map(scene => {
-            if (scene.id === currentScene.id) {
-              return { 
-                ...scene, 
-                characters: newCharacterNames, // v4.0: Store names
-                characterIds: newCharacterNames, // Backward compat
-                updatedAt: new Date() 
-              };
-            }
-            return scene;
-          });
-          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
-        }
-        return s;
-      });
-      
-      const updatedData = { ...activeBookData, stories: updatedStories };
-      await BookService.saveActiveBookData(updatedData);
-      onStoryUpdate();
-    }
-  };
-
-  const updateSceneElementIds = async (newElementNames: string[]) => {
-    if (story && currentScene) {
-      const activeBookData = await BookService.getActiveBookData();
-      if (!activeBookData) return;
-      
-      const updatedStories = activeBookData.stories.map(s => {
-        if (s.id === story.id) {
-          const updatedScenes = s.scenes.map(scene => {
-            if (scene.id === currentScene.id) {
-              return { 
-                ...scene, 
-                elements: newElementNames, // v4.0: Store names
-                elementIds: newElementNames, // Backward compat
-                updatedAt: new Date() 
-              };
-            }
-            return scene;
-          });
-          return { ...s, scenes: updatedScenes, updatedAt: new Date() };
-        }
-        return s;
-      });
-      
-      const updatedData = { ...activeBookData, stories: updatedStories };
-      await BookService.saveActiveBookData(updatedData);
-      onStoryUpdate();
-    }
-  };
+  // updateSceneCharacterIds and updateSceneElementIds are now handled by the useSceneEditor hook
 
 
 
   // Handlers for SceneImageGenerator component
   const handleImageGenerationStart = () => {
-    setIsGeneratingImage(true);
     setGeneratedImageUrl(null);
   };
 
   const handleImageGenerationComplete = (imageUrl: string) => {
     setGeneratedImageUrl(imageUrl);
-    setIsGeneratingImage(false);
   };
 
   const handleImageGenerationError = (error: Error) => {
-    setIsGeneratingImage(false);
     setErrorDialogMessage(
       error instanceof Error 
         ? `An unexpected error occurred:\n\n${error.message}\n\n${error.stack || ''}` 
@@ -888,7 +612,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     console.log('  Active book ID:', activeBook.id);
 
     // Find the actual scene in the book's story array and update it
-    const storyInBook = activeBook.stories.find(s => s.id === story.id);
+    const storyInBook = activeBook.stories.find((s: any) => s.id === story.id);
     if (!storyInBook) {
       console.error('❌ Story not found in book');
       return;
@@ -896,7 +620,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
 
     console.log('  ✓ Found story in book, scenes count:', storyInBook.scenes.length);
 
-    const sceneInStory = storyInBook.scenes.find(s => s.id === currentScene.id);
+    const sceneInStory = storyInBook.scenes.find((s: any) => s.id === currentScene.id);
     if (!sceneInStory) {
       console.error('❌ Scene not found in story');
       return;
@@ -953,7 +677,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       return;
     }
 
-    setIsGeneratingImage(true);
+    setIsTestingLayout(true);
     setSnackbarMessage('Generating layout test preview...');
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
@@ -1129,7 +853,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
-      setIsGeneratingImage(false);
+      setIsTestingLayout(false);
     }
   };
 
@@ -1148,7 +872,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
       if (currentScene.imageHistory && currentScene.imageHistory.length > 0) {
         for (const image of currentScene.imageHistory) {
           try {
-            await ImageStorageService.deleteImage(image.id, currentScene.id);
+            await ImageStorageService.deleteImage(image.id);
             deletedCount++;
           } catch (err) {
             console.error(`Failed to delete image ${image.id}:`, err);
@@ -1186,7 +910,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         // Clear UI state
         setGeneratedImageUrl(null);
         if (onImageStateChange) {
-          onImageStateChange(false, () => {});
+          onImageStateChange(null, () => {}, () => {});
         }
         
         onStoryUpdate();
@@ -1199,73 +923,12 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     }
   };
 
-  // Build preview data for the preview dialog
-  const buildPreviewData = async (modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini'): Promise<PreviewData> => {
-    const activeBookId = await BookService.getActiveBookId();
-    const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
-    
-    // Calculate aspect ratio
-    let aspectRatio: string;
-    if (currentScene?.layout) {
-      const canvasWidth = currentScene.layout.canvas.width;
-      const canvasHeight = currentScene.layout.canvas.height;
-      const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b);
-      const divisor = gcd(canvasWidth, canvasHeight);
-      const ratioWidth = canvasWidth / divisor;
-      const ratioHeight = canvasHeight / divisor;
-      aspectRatio = `${ratioWidth}:${ratioHeight}`;
-    } else {
-      aspectRatio = activeBook?.aspectRatio || '3:4';
-    }
-    
-    // Generate the full prompt with model and strategy
-    const prompt = await generatePrompt(modelName, promptStrategy);
-    
-    // Load character images
-    const characterImages: Array<{ name: string; url: string }> = [];
-    for (const charName of selectedCharacters) {
-      let character = story?.characters?.find(c => c.name === charName);
-      if (!character && activeBook) {
-        character = activeBook.characters?.find(c => c.name === charName);
-      }
-      
-      if (character) {
-        const charWithImages = character as unknown as Character;
-        if (charWithImages.selectedImageId && charWithImages.imageGallery) {
-          const selectedImage = charWithImages.imageGallery.find(img => img.id === charWithImages.selectedImageId);
-          if (selectedImage) {
-            try {
-              const imageUrl = await ImageStorageService.getImage(selectedImage.id);
-              if (imageUrl) {
-                characterImages.push({
-                  name: character.name,
-                  url: imageUrl
-                });
-              }
-            } catch (error) {
-              console.warn(`Failed to load image for character ${character.name}:`, error);
-            }
-          }
-        }
-      }
-    }
-    
-    return {
-      sceneTitle: currentScene?.title || 'Untitled Scene',
-      sceneDescription: currentScene?.description || '',
-      prompt,
-      characterImages,
-      aspectRatio,
-      model: modelName
-    };
-  };
-
-  // Build preview data for SceneImageGenerator
+  // Build preview data for SceneImageGenerator (uses hook)
   const handleBuildPreview = async (modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini'): Promise<PreviewData> => {
-    return await buildPreviewData(modelName, promptStrategy);
+    return await buildPreview(modelName, promptStrategy);
   };
 
-  // Perform image generation for SceneImageGenerator
+  // Perform image generation for SceneImageGenerator (uses hook)
   const handlePerformImageGeneration = async (modelName: string, promptStrategy?: 'auto' | 'legacy' | 'gemini') => {
     // Store the selected model for potential retry
     lastSelectedModel.current = modelName;
@@ -1321,7 +984,6 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     }
 
     try {
-      // Use unified SceneImageGenerationService which handles layout detection
       // Update currentScene with current UI state before generating
       if (currentScene && story) {
         currentScene.textPanel = textPanel;
@@ -1336,107 +998,26 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
         }
       }
       
-      const finalImageUrl = await SceneImageGenerationService.generateCompleteSceneImage({
-        scene: currentScene!,
-        story: story!,
-        book: activeBook,
-        model: modelName,
-        aspectRatio,
-        promptStrategy // Pass the selected prompt strategy
-      });
+      // Use the hook to perform generation
+      await startGeneration(modelName, promptStrategy);
       
-      // Save generated image to scene in local storage
-      if (story && currentScene) {
-        const activeBookData = await BookService.getActiveBookData();
-        if (activeBookData) {
-          // Create new GeneratedImage entry with the model that was used
-            // NOTE: We do NOT store the URL in localStorage to avoid quota issues
-            // The image is stored on filesystem and loaded on demand
-            const imageId = crypto.randomUUID();
-            const newGeneratedImage = {
-              id: imageId,
-              // url is omitted - not stored in localStorage anymore
-              modelName: modelName,
-              timestamp: new Date()
-            };
-            
-            // Store image to filesystem for persistence
-            await ImageStorageService.storeImage(
-              imageId,
-              currentScene.id,
-              finalImageUrl,
-              modelName
-            ).catch(error => {
-              console.error('Failed to store image to filesystem:', error);
-              // This is critical - without filesystem storage, image will be lost on refresh
-              throw error;
-            });
-            
-            // Load the image back from filesystem to ensure we're displaying the persisted version
-            // This prevents issues with blob URLs becoming invalid
-            const persistedImageUrl = await ImageStorageService.getImage(imageId);
-            if (persistedImageUrl) {
-              handleImageGenerationComplete(persistedImageUrl);
-            } else {
-              console.warn('Failed to load newly stored image from filesystem, using original URL');
-              handleImageGenerationComplete(finalImageUrl);
-            }
-            
-            const updatedStories = activeBookData.stories.map(s => {
-              if (s.id === story.id) {
-                const updatedScenes = s.scenes.map(scene => {
-                  if (scene.id === currentScene.id) {
-                    // Get existing imageHistory or create new array
-                    const existingHistory = scene.imageHistory || [];
-                    
-                    // Add new image to history (keep last 20 images max)
-                    const updatedHistory = [...existingHistory, newGeneratedImage].slice(-20);
-                    
-                    return { 
-                      ...scene, 
-                      lastGeneratedImage: finalImageUrl, // Keep for backward compatibility
-                      imageHistory: updatedHistory,
-                      updatedAt: new Date() 
-                    };
-                  }
-                  return scene;
-                });
-                return { ...s, scenes: updatedScenes, updatedAt: new Date() };
-              }
-              return s;
-            });
-            
-            const updatedData = { ...activeBookData, stories: updatedStories };
-            await BookService.saveActiveBookData(updatedData);
-            onStoryUpdate(); // Notify parent to refresh
-          }
-        }
+      // Auto-save to file system if enabled and directory is configured
+      const autoSaveEnabled = await SettingsService.isAutoSaveEnabled();
+      
+      if (autoSaveEnabled && story && currentScene) {
+        const activeBookId = await BookService.getActiveBookId();
+        const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
         
-        // Auto-save to file system if enabled and directory is configured
-        const autoSaveEnabled = await SettingsService.isAutoSaveEnabled();
-        
-        if (autoSaveEnabled && story && currentScene) {
-          const activeBookId = await BookService.getActiveBookId();
-          const activeBook = activeBookId ? await BookService.getBook(activeBookId) : null;
-          
-          if (activeBook) {
-            const saveResult = await FileSystemService.saveImage(
-              finalImageUrl,
-              activeBook.title,
-              currentScene.title
-            );
-            
-            if (saveResult.success) {
-              setSnackbarMessage(`Image generated and auto-saved to: ${saveResult.path}`);
-            } else {
-              setSnackbarMessage('Image generated successfully! Use Save button to save to directory.');
-            }
-          } else {
-            setSnackbarMessage('Image generated successfully!');
-          }
+        if (activeBook) {
+          // Note: The actual image URL will be available after generation completes
+          // This is handled by the hook's callback
+          setSnackbarMessage('Image generated successfully! Auto-save will occur after generation.');
         } else {
-          setSnackbarMessage('Image generated successfully! Use Save button to save.');
+          setSnackbarMessage('Image generated successfully!');
         }
+      } else {
+        setSnackbarMessage('Image generated successfully! Use Save button to save.');
+      }
         
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
@@ -1585,7 +1166,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
                 variant="outlined"
                 color="secondary"
                 onClick={handleTestLayout}
-                disabled={!currentScene || isGeneratingImage}
+                disabled={!currentScene || isGeneratingImage || isTestingLayout}
               >
                 Test Layout
               </Button>
@@ -1649,7 +1230,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
           variant="outlined"
           placeholder="Enter text for image overlay... Use {SceneDescription} to insert scene description."
           value={textPanel}
-          onChange={handleTextPanelChange}
+          onChange={handleTextPanelChangeEvent}
           sx={{ 
             bgcolor: 'white',
             '& .MuiInputBase-root': {
@@ -1975,7 +1556,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
               setTextFitDialogOpen(false);
               // Force generation with clipped text using last selected model or default
               const modelToUse = lastSelectedModel.current || await SettingsService.getImageGenerationModel();
-              performImageGeneration(modelToUse);
+              handlePerformImageGeneration(modelToUse);
             }}
             variant="contained"
             color="warning"

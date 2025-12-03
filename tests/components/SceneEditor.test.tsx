@@ -18,7 +18,9 @@ vi.mock('../../src/services/BookService', () => ({
 
 vi.mock('../../src/services/SceneImageGenerationService', () => ({
   SceneImageGenerationService: {
-    generateSceneImage: vi.fn()
+    generateSceneImage: vi.fn(),
+    buildScenePrompt: vi.fn().mockResolvedValue('Test prompt'),
+    generateCompleteSceneImage: vi.fn().mockResolvedValue('data:image/png;base64,test')
   }
 }));
 

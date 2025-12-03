@@ -45,7 +45,7 @@ This plan extracts 3 high-value features from SceneEditor to reduce it from 1,68
   - Verify all 35 SceneEditor tests still pass
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 2. Extract SceneTextPanel component
+- [x] 2. Extract SceneTextPanel component
   - Create new component file with TypeScript interfaces
   - Implement text content editing with monospace font
   - Add macro insertion buttons
@@ -67,7 +67,7 @@ This plan extracts 3 high-value features from SceneEditor to reduce it from 1,68
   - Target: ~12 tests
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 2.2 Integrate SceneTextPanel into SceneEditor
+- [x] 2.2 Integrate SceneTextPanel into SceneEditor
   - Import component
   - Replace existing text panel code
   - Wire up props and callbacks

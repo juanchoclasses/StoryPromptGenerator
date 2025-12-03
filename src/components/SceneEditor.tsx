@@ -16,8 +16,6 @@ import {
 import {
   ContentCopy as CopyIcon,
   ErrorOutline as ErrorIcon,
-  Code as CodeIcon,
-  TextFields as TextFieldsIcon,
   DeleteSweep as ClearImagesIcon,
   GridOn as LayoutIcon
 } from '@mui/icons-material';
@@ -39,6 +37,7 @@ import { SceneElementSelector } from './SceneElementSelector';
 import { SceneImageGenerator } from './SceneImageGenerator';
 import { ScenePromptPreview } from './ScenePromptPreview';
 import { SceneDiagramPanel } from './SceneDiagramPanel';
+import { SceneTextPanel } from './SceneTextPanel';
 import { useSceneEditor } from '../hooks/useSceneEditor';
 import { useImageGeneration } from '../hooks/useImageGeneration';
 
@@ -340,9 +339,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     handleDescriptionChange(event.target.value);
   };
 
-  const handleTextPanelChangeEvent = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    handleTextPanelChange(event.target.value);
-  };
+
 
   const handleDiagramPanelChange = async (content: string, type: string, language?: string) => {
     setDiagramContent(content);
@@ -1193,58 +1190,14 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
 
       </Box>
 
-      {/* Text Panel Section */}
-      <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
-        <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
-          <Box display="flex" alignItems="center" gap={1}>
-            <TextFieldsIcon color="primary" />
-            <Typography variant="h6">
-              Text Panel (for image overlay)
-            </Typography>
-          </Box>
-          <Tooltip title="Insert Scene Description macro">
-            <Button
-              size="small"
-              startIcon={<CodeIcon />}
-              onClick={() => insertMacroToTextPanel('{SceneDescription}')}
-              variant="outlined"
-            >
-              {'{SceneDescription}'}
-            </Button>
-          </Tooltip>
-        </Box>
-        
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-          Text to display on the generated image. Use macros like {'{SceneDescription}'} for dynamic content.
-        </Typography>
-
-        <TextField
-          inputRef={textPanelFieldRef}
-          fullWidth
-          multiline
-          rows={4}
-          variant="outlined"
-          placeholder="Enter text for image overlay... Use {SceneDescription} to insert scene description."
-          value={textPanel}
-          onChange={handleTextPanelChangeEvent}
-          sx={{ 
-            bgcolor: 'white',
-            '& .MuiInputBase-root': {
-              fontFamily: 'monospace',
-              fontSize: '0.9rem'
-            }
-          }}
-        />
-        
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={handlePreviewTextPanel}
-          sx={{ mt: 2 }}
-        >
-          Preview Text Panel
-        </Button>
-      </Box>
+      {/* Text Panel Section - Extracted Component */}
+      <SceneTextPanel
+        textPanelContent={textPanel}
+        onTextPanelChange={handleTextPanelChange}
+        onInsertMacro={insertMacroToTextPanel}
+        onPreview={handlePreviewTextPanel}
+        textPanelFieldRef={textPanelFieldRef}
+      />
 
       {/* Diagram Panel Section - Extracted Component */}
       <SceneDiagramPanel

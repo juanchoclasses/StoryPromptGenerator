@@ -30,7 +30,6 @@ import type { PanelConfig } from '../types/Book';
 import { measureTextFit } from '../services/TextMeasurementService';
 import { PanelConfigDialog } from './PanelConfigDialog';
 import { SceneLayoutEditor } from './SceneLayoutEditor';
-import { LayoutResolver } from '../services/LayoutResolver';
 import type { PreviewData } from './ImageGenerationPreviewDialog';
 import { SceneCharacterSelector } from './SceneCharacterSelector';
 import { SceneElementSelector } from './SceneElementSelector';
@@ -40,6 +39,7 @@ import { SceneDiagramPanel } from './SceneDiagramPanel';
 import { SceneTextPanel } from './SceneTextPanel';
 import { useSceneEditor } from '../hooks/useSceneEditor';
 import { useImageGeneration } from '../hooks/useImageGeneration';
+import { useLayoutManagement } from '../hooks/useLayoutManagement';
 
 /**
  * Calculate the minimum height needed for a text panel based on content
@@ -126,13 +126,18 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   const [diagramPreviewUrl, setDiagramPreviewUrl] = useState<string | null>(null);
   const [textPanelPreviewOpen, setTextPanelPreviewOpen] = useState(false);
   const [textPanelPreviewUrl, setTextPanelPreviewUrl] = useState<string | null>(null);
-  const [layoutTestPreviewOpen, setLayoutTestPreviewOpen] = useState(false);
-  const [layoutTestPreviewUrl, setLayoutTestPreviewUrl] = useState<string | null>(null);
   const [activeBook, setActiveBook] = useState<any>(null); // Book instance for book-level characters
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning'>('success');
+
+  // Snackbar helper function
+  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning') => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
 
   // Create mock scene and story for hook initialization when null
   const mockScene: Scene = useMemo(() => ({
@@ -168,44 +173,23 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     onStoryUpdate
   );
 
-  // Compute layout source for the layout editor
-  const layoutSourceInfo = useMemo(() => {
-    if (!currentScene || !story || !activeBook) {
-      return { 
-        source: 'default' as const, 
-        description: 'System default (overlay)',
-        resolvedLayout: undefined,
-        inheritedLayout: undefined,
-        inheritedLayoutSource: undefined
-      };
-    }
-    
-    const source = LayoutResolver.getLayoutSource(currentScene, story, activeBook);
-    const description = LayoutResolver.getLayoutSourceDescription(currentScene, story, activeBook);
-    
-    // Get the resolved layout (what's actually being used)
-    const resolvedLayout = LayoutResolver.resolveLayout(currentScene, story, activeBook);
-    
-    // Calculate inherited layout (what would be used if scene layout is cleared)
-    let inheritedLayout: SceneLayout | undefined;
-    let inheritedLayoutSource: string | undefined;
-    
-    if (source === 'scene') {
-      // Scene has its own layout, so inherited would be story or book
-      if (story.layout) {
-        inheritedLayout = story.layout;
-        inheritedLayoutSource = 'Story';
-      } else if (activeBook.defaultLayout) {
-        inheritedLayout = activeBook.defaultLayout;
-        inheritedLayoutSource = 'Book';
-      }
-    }
-    
-    return { source, description, resolvedLayout, inheritedLayout, inheritedLayoutSource };
-  }, [currentScene, story, activeBook]);
+  // Use the useLayoutManagement hook for layout operations
+  const {
+    layoutSourceInfo,
+    layoutEditorOpen,
+    layoutTestPreviewOpen,
+    layoutTestPreviewUrl,
+    isTestingLayout,
+    handleEditLayout,
+    handleSaveLayout,
+    handleClearSceneLayout,
+    handleTestLayout,
+    setLayoutEditorOpen,
+    setLayoutTestPreviewOpen,
+    setLayoutTestPreviewUrl
+  } = useLayoutManagement(currentScene, story, activeBook, onStoryUpdate, showSnackbar);
 
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
-  const [isTestingLayout, setIsTestingLayout] = useState(false);
   
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorDialogMessage, setErrorDialogMessage] = useState('');
@@ -217,7 +201,6 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
   } | null>(null);
   const [panelConfigDialogOpen, setPanelConfigDialogOpen] = useState(false);
   const [editingPanelConfig, setEditingPanelConfig] = useState<PanelConfig>(DEFAULT_PANEL_CONFIG);
-  const [layoutEditorOpen, setLayoutEditorOpen] = useState(false);
   
   const textPanelFieldRef = React.useRef<HTMLTextAreaElement>(null);
   const lastNotifiedImageUrl = useRef<string | null>(null);
@@ -563,292 +546,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ story, selectedScene, 
     setErrorDialogOpen(true);
   };
 
-  // Open layout editor
-  const handleEditLayout = () => {
-    setLayoutEditorOpen(true);
-  };
 
-  // Clear scene layout (to fall back to story/book layout)
-  const handleClearSceneLayout = async () => {
-    if (!currentScene || !activeBook || !story) return;
-
-    console.log('🗑️ Clearing scene-specific layout');
-    
-    const storyInBook = activeBook.stories.find((s: any) => s.id === story.id);
-    if (!storyInBook) return;
-    
-    const sceneInStory = storyInBook.scenes.find((s: any) => s.id === currentScene.id);
-    if (!sceneInStory) return;
-    
-    // Remove scene-specific layout
-    sceneInStory.layout = undefined;
-    sceneInStory.updatedAt = new Date();
-    
-    await BookService.saveBook(activeBook);
-    console.log('✓ Scene layout cleared - will now use inherited layout');
-    
-    onStoryUpdate();
-    setLayoutEditorOpen(false);
-    
-    setSnackbarMessage('Scene layout cleared - using inherited layout');
-    setSnackbarSeverity('success');
-    setSnackbarOpen(true);
-  };
-
-  // Save layout configuration
-  const handleSaveLayout = async (layout: SceneLayout) => {
-    if (!currentScene || !activeBook || !story) return;
-
-    console.log('💾 Saving layout configuration:', layout);
-    console.log('  Current scene ID:', currentScene.id);
-    console.log('  Story ID:', story.id);
-    console.log('  Active book ID:', activeBook.id);
-
-    // Find the actual scene in the book's story array and update it
-    const storyInBook = activeBook.stories.find((s: any) => s.id === story.id);
-    if (!storyInBook) {
-      console.error('❌ Story not found in book');
-      return;
-    }
-
-    console.log('  ✓ Found story in book, scenes count:', storyInBook.scenes.length);
-
-    const sceneInStory = storyInBook.scenes.find((s: any) => s.id === currentScene.id);
-    if (!sceneInStory) {
-      console.error('❌ Scene not found in story');
-      return;
-    }
-
-    console.log('  ✓ Found scene in story');
-    console.log('  Scene before update:', { 
-      id: sceneInStory.id, 
-      title: sceneInStory.title,
-      hasLayout: !!sceneInStory.layout 
-    });
-
-    // Update the scene in the book's data structure
-    sceneInStory.layout = layout;
-    sceneInStory.updatedAt = new Date();
-
-    console.log('  ✓ Layout assigned to scene');
-    console.log('  Scene after update:', { 
-      id: sceneInStory.id, 
-      title: sceneInStory.title,
-      hasLayout: !!sceneInStory.layout,
-      layoutType: sceneInStory.layout?.type 
-    });
-
-    // Save book
-    await BookService.saveBook(activeBook);
-    console.log('✓ Book saved to filesystem');
-    
-    // Verify the layout was saved by reloading
-    const reloadedBook = await BookService.getActiveBookData();
-    if (reloadedBook) {
-      const reloadedStory = reloadedBook.stories.find(s => s.id === story.id);
-      const reloadedScene = reloadedStory?.scenes.find(s => s.id === currentScene.id);
-      console.log('  Verification - Scene after reload:', {
-        hasLayout: !!reloadedScene?.layout,
-        layoutType: reloadedScene?.layout?.type
-      });
-    }
-    
-    onStoryUpdate();
-    setLayoutEditorOpen(false);
-
-    setSnackbarMessage('Layout saved successfully');
-    setSnackbarSeverity('success');
-    setSnackbarOpen(true);
-  };
-
-  // Test layout with placeholder image
-  const handleTestLayout = async () => {
-    if (!currentScene || !activeBook || !story) {
-      setSnackbarMessage('Please select a scene first');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      return;
-    }
-
-    setIsTestingLayout(true);
-    setSnackbarMessage('Generating layout test preview...');
-    setSnackbarSeverity('success');
-    setSnackbarOpen(true);
-
-    try {
-      console.log('🧪 Testing layout with placeholder image');
-
-      // Use LayoutResolver to get the effective layout
-      const { LayoutResolver } = await import('../services/LayoutResolver');
-      const resolvedLayout = LayoutResolver.resolveLayout(currentScene, story, activeBook);
-      const layoutSource = LayoutResolver.getLayoutSourceDescription(currentScene, story, activeBook);
-      
-      console.log(`📐 Layout source: ${layoutSource}`);
-      
-      // If no layout resolved, create a default one
-      const defaultAspectRatio = activeBook.aspectRatio || '3:4';
-      let layout = resolvedLayout || {
-        type: 'overlay',
-        canvas: {
-          width: 1080,
-          height: 1440,
-          aspectRatio: defaultAspectRatio
-        },
-        elements: {
-          image: { x: 0, y: 0, width: 100, height: 100, zIndex: 1 },
-          textPanel: { x: 5, y: 78, width: 90, height: 17, zIndex: 2 },
-          diagramPanel: { x: 5, y: 5, width: 60, height: 40, zIndex: 3 }
-        }
-      };
-
-      // Create placeholder image with correct aspect ratio
-      // Use the aspect ratio from the image element or fall back to book's aspect ratio
-      const imageElement = layout.elements.image;
-      const imageAspectRatioStr = (imageElement && 'aspectRatio' in imageElement && imageElement.aspectRatio) 
-        ? imageElement.aspectRatio 
-        : defaultAspectRatio;
-      const [ratioWidth, ratioHeight] = imageAspectRatioStr.split(':').map(Number);
-      const imageAspectRatio = ratioWidth / ratioHeight;
-      
-      // Calculate actual image dimensions based on aspect ratio
-      // The image will be scaled by LayoutCompositionService, but we need to create it at the right aspect ratio
-      let imageWidth: number;
-      let imageHeight: number;
-      
-      if (imageAspectRatio > 1) {
-        // Landscape - use a standard width
-        imageWidth = 1920;
-        imageHeight = Math.round(imageWidth / imageAspectRatio);
-      } else {
-        // Portrait - use a standard height
-        imageHeight = 1920;
-        imageWidth = Math.round(imageHeight * imageAspectRatio);
-      }
-      
-      const placeholderCanvas = document.createElement('canvas');
-      placeholderCanvas.width = imageWidth;
-      placeholderCanvas.height = imageHeight;
-      const ctx = placeholderCanvas.getContext('2d');
-      
-      if (ctx) {
-        // Fill with a gradient
-        const gradient = ctx.createLinearGradient(0, 0, imageWidth, imageHeight);
-        gradient.addColorStop(0, '#667eea');
-        gradient.addColorStop(1, '#764ba2');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, imageWidth, imageHeight);
-        
-        // Add "PLACEHOLDER" text
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-        const fontSize = Math.min(imageWidth, imageHeight) / 20;
-        ctx.font = `bold ${fontSize}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('AI IMAGE PLACEHOLDER', imageWidth / 2, imageHeight / 2);
-        
-        // Add aspect ratio text
-        ctx.font = `${fontSize * 0.6}px Arial`;
-        ctx.fillText(imageAspectRatioStr, imageWidth / 2, imageHeight / 2 + fontSize * 1.5);
-      }
-      
-      const placeholderImageUrl = placeholderCanvas.toDataURL('image/png');
-
-      // Import services
-      const { createTextPanel } = await import('../services/OverlayService');
-      const { renderDiagramToCanvas } = await import('../services/DiagramRenderService');
-      const { composeSceneWithLayout } = await import('../services/LayoutCompositionService');
-      const { DEFAULT_PANEL_CONFIG } = await import('../types/Book');
-
-      let textPanelDataUrl: string | null = null;
-      let diagramPanelDataUrl: string | null = null;
-      let textPanelHeight = 0; // Track for bottom-anchoring
-
-      // Render text panel if present
-      if (currentScene.textPanel && layout.elements.textPanel) {
-        console.log('  Rendering text panel...');
-        const panelConfig = activeBook.style?.panelConfig || DEFAULT_PANEL_CONFIG;
-        
-        const textPanelWidth = Math.round((layout.elements.textPanel.width / 100) * layout.canvas.width);
-        
-        // Calculate the actual height needed for the text content
-        textPanelHeight = calculateTextPanelHeight(currentScene.textPanel, textPanelWidth, panelConfig);
-        console.log(`  Text panel auto-calculated height: ${textPanelHeight}px`);
-        
-        const textPanelBitmap = await createTextPanel(currentScene.textPanel, {
-          width: textPanelWidth,
-          height: textPanelHeight,
-          bgColor: panelConfig.backgroundColor,
-          borderColor: panelConfig.borderColor,
-          borderWidth: panelConfig.borderWidth,
-          borderRadius: panelConfig.borderRadius,
-          padding: panelConfig.padding,
-          fontFamily: panelConfig.fontFamily,
-          fontSize: panelConfig.fontSize,
-          fontColor: panelConfig.fontColor,
-          textAlign: panelConfig.textAlign as CanvasTextAlign
-        });
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = textPanelBitmap.width;
-        canvas.height = textPanelBitmap.height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(textPanelBitmap, 0, 0);
-          textPanelDataUrl = canvas.toDataURL('image/png');
-        }
-      }
-
-      // Render diagram panel if present
-      if (currentScene.diagramPanel && layout.elements.diagramPanel) {
-        console.log('  Rendering diagram panel...');
-        const diagramStyle = story.diagramStyle;
-        
-        if (diagramStyle) {
-          const diagramPanelWidth = Math.round((layout.elements.diagramPanel.width / 100) * layout.canvas.width);
-          const diagramPanelHeight = Math.round((layout.elements.diagramPanel.height / 100) * layout.canvas.height);
-          
-          const diagramCanvas = await renderDiagramToCanvas(
-            currentScene.diagramPanel,
-            diagramStyle,
-            diagramPanelWidth,
-            diagramPanelHeight
-          );
-          
-          diagramPanelDataUrl = diagramCanvas.toDataURL('image/png');
-        }
-      }
-
-      // Compose the final image
-      console.log('  Composing layout test image...');
-      // Adjust text panel Y position if it's bottom-anchored (use shared logic)
-      const { SceneImageGenerationService } = await import('../services/SceneImageGenerationService');
-      layout = SceneImageGenerationService.adjustBottomAnchoredTextPanel(layout, textPanelHeight);
-
-      const composedImageUrl = await composeSceneWithLayout(
-        placeholderImageUrl,
-        textPanelDataUrl,
-        diagramPanelDataUrl,
-        layout
-      );
-      console.log('  ✓ Layout test preview created');
-
-      // Set preview URL and open dialog
-      setLayoutTestPreviewUrl(composedImageUrl);
-      setLayoutTestPreviewOpen(true);
-      
-      setSnackbarMessage('Layout test preview ready!');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-
-    } catch (error) {
-      console.error('Error testing layout:', error);
-      setSnackbarMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    } finally {
-      setIsTestingLayout(false);
-    }
-  };
 
   // Clear all images for the current scene
   const handleClearSceneImages = async () => {

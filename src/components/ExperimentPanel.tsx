@@ -19,7 +19,7 @@ import {
   Chip,
   Divider
 } from '@mui/material';
-import { ImageGenerationService } from '../services/imageGenerationService';
+import { ImageGenerationService } from '../services/ImageGenerationService';
 
 interface AspectRatio {
   id: string;

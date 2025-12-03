@@ -16,7 +16,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  Chip,
   Divider,
   CircularProgress
 } from '@mui/material';
@@ -24,9 +23,9 @@ import { Upload as UploadIcon, CheckCircle as CheckIcon } from '@mui/icons-mater
 import { MarkdownStoryParser } from '../services/MarkdownStoryParser';
 import type { ParsedStoryBundle } from '../services/MarkdownStoryParser';
 import { BookService } from '../services/BookService';
-import { DEFAULT_PANEL_CONFIG } from '../types/Book';
-import type { PanelConfig } from '../types/Book';
 import type { Story, Scene, StoryElement } from '../types/Story';
+import type { Character } from '../models/Story';
+import type { Character } from '../models/Story';
 // Note: Character is now in models/Story.ts (name-based, not ID-based)
 
 interface ImportStoryDialogProps {

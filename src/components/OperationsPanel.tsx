@@ -20,7 +20,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Divider,
   LinearProgress
 } from '@mui/material';
 import {
@@ -37,7 +36,6 @@ import {
 } from '@mui/icons-material';
 import { BookService } from '../services/BookService';
 import { ImageStorageService } from '../services/ImageStorageService';
-import type { Character } from '../models/Story';
 
 interface DiagnosticResult {
   timestamp: Date;
@@ -291,12 +289,6 @@ export const OperationsPanel: React.FC = () => {
           if (!character) continue;
           
           console.log(`Rebuilding imageGallery for ${characterName} (book-level)...`);
-          
-          // Get all images from IndexedDB
-          const imageMap = await ImageStorageService.getAllBookCharacterImages(
-            details.bookId,
-            characterName
-          );
           
           // Rebuild imageGallery from IndexedDB
           character.imageGallery = details.imageIds.map(imageId => ({

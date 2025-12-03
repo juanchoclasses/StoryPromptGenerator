@@ -75,7 +75,7 @@ This plan extracts 3 high-value features from SceneEditor to reduce it from 1,68
   - Verify all 35 SceneEditor tests still pass
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 3. Extract useLayoutManagement hook
+- [x] 3. Extract useLayoutManagement hook
   - Create new hook file with TypeScript interfaces
   - Implement layout source calculation
   - Implement layout resolution with LayoutResolver
@@ -87,7 +87,7 @@ This plan extracts 3 high-value features from SceneEditor to reduce it from 1,68
   - Add error handling for save/test failures
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ]* 3.1 Write tests for useLayoutManagement hook
+- [x] 3.1 Write tests for useLayoutManagement hook
   - **Property 3: useLayoutManagement hook correctness**
   - **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5**
   - Test layout source calculation (scene/story/book/default)
@@ -103,7 +103,7 @@ This plan extracts 3 high-value features from SceneEditor to reduce it from 1,68
   - Target: ~15 tests
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 3.2 Integrate useLayoutManagement into SceneEditor
+- [x] 3.2 Integrate useLayoutManagement into SceneEditor
   - Import and use hook
   - Replace local layout state with hook state
   - Replace layout handlers with hook methods
@@ -111,7 +111,7 @@ This plan extracts 3 high-value features from SceneEditor to reduce it from 1,68
   - Verify all 35 SceneEditor tests still pass
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 4. Final verification and cleanup
+- [x] 4. Final verification and cleanup
   - Run full test suite (verify 784+ tests passing)
   - Verify SceneEditor is approximately 1,030 lines
   - Run TypeScript compiler (no errors)
@@ -120,14 +120,14 @@ This plan extracts 3 high-value features from SceneEditor to reduce it from 1,68
   - Update architecture diagrams
   - _Requirements: 5.5, 6.1, 6.2, 6.3, 6.4, 6.5, 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 4.1 Verify final line count
+- [x] 4.1 Verify final line count
   - Run: `wc -l src/components/SceneEditor.tsx`
   - Verify result is approximately 1,030 lines
   - Document final line count in requirements.md
   - Calculate total reduction from original (2,305 → 1,030 = 55%)
   - _Requirements: 7.4, 7.5_
 
-- [ ] 4.2 Update documentation
+- [x] 4.2 Update documentation
   - Update ARCHITECTURE-ANALYSIS-REPORT.md with Phase 2 results
   - Update ARCHITECTURE-HEALING-TRACKING.md with completion status
   - Update SCENE-EDITOR-REFACTORING-ANALYSIS.md with actual results
@@ -135,7 +135,7 @@ This plan extracts 3 high-value features from SceneEditor to reduce it from 1,68
   - Update README if needed
   - _Requirements: 6.1, 6.2, 6.3, 6.5_
 
-- [ ] 5. Checkpoint - Ensure all tests pass, ask the user if questions arise
+- [x] 5. Checkpoint - Ensure all tests pass, ask the user if questions arise
 
 ---
 

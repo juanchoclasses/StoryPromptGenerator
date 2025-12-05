@@ -1,0 +1,354 @@
+{
+  "story": {
+    "title": "UX Design: Building for Humans",
+    "backgroundSetup": "A vibrant design studio called The Human Interface Lab, where massive interactive screens display user journey maps, wireframes, and prototype interfaces. Professor Mrjana, warm and energetic with her signature colorful scarves and paint-splattered sneakers, teaches students about the art and science of user experience design. The room has a Prototype Wall showing evolving designs, a User Empathy Station with personas and journey maps, and a Usability Testing Corner with observation screens. Holographic projections demonstrate both delightful and frustrating interfaces, showing the real impact of design choices on human behavior. IMPORTANT: All characters (Professor Mrjana and students) should be positioned in the BOTTOM HALF of the image, with the design walls, prototypes, and visual demonstrations in the top half.",
+    "description": "An inspiring exploration of user experience design principles, where Professor Mrjana guides students to understand that great design is invisible—it just works—while bad design creates friction, frustration, and failure."
+  },
+  "characters": [
+    {
+      "name": "Professor Mrjana",
+      "description": "A warm, energetic woman with an infectious enthusiasm for human-centered design. She wears flowing, colorful scarves that seem to change with her mood—bold reds when passionate, calming blues when thoughtful. Her paint-splattered sneakers hint at her hands-on approach to design. She has curly auburn hair often held back with a pencil, and her eyes light up when students have 'aha' moments. She gestures expressively, often sketching ideas in the air with her hands. Her teaching style blends empathy, creativity, and practical wisdom, and she's known for her catchphrase: 'Design for humans, not for yourself.'"
+    },
+    {
+      "name": "Student Eager Noodler",
+      "description": "A small, round student with a head shaped like a perfectly smooth, bright green apple, from which two long, springy antennae sprout, constantly twitching with curiosity. They wear an oversized, striped scarf that wraps around them multiple times, ending in a tassel that bounces as they nod vigorously. Their eyes are wide and perpetually amazed, and they often have a tiny, wobbly pencil clutched in a three-fingered hand, ready to scribble notes."
+    },
+    {
+      "name": "Student Thoughtful Giggler",
+      "description": "A tall, lanky student with a head that's a stack of three wobbly, different-sized spheres, each a different shade of blue. They have enormous, floppy ears that droop when they're confused and perk up when they understand. Their smile is wide and stretches almost ear to ear, and they often emit soft, bubbling giggles as they ponder concepts. They wear pants that are far too short, revealing long, segmented legs that end in enormous, flat feet."
+    },
+    {
+      "name": "Student Zippy Zapper",
+      "description": "A vibrant, energetic student whose body is a series of interconnected, brightly colored zig-zags, always in motion. Their hair is a burst of spiky yellow and orange, standing straight up as if charged with static. They have four small, quick-moving arms, each ending in a suction cup, and their large, round eyes dart around, taking everything in. They have no discernible mouth but communicate through a series of enthusiastic 'boings' and 'zings'"
+    },
+    {
+      "name": "Student Quiet Observer",
+      "description": "A shy, somewhat squarish student with a soft, fuzzy purple body and tiny, barely visible legs. Their head is a perfect cube, and instead of eyes, they have two large, circular lenses that slowly adjust, observing everything with intense focus. They carry a small, portable periscope that they often peer through, even in class. They rarely speak, but when they do, it's in a gentle, melodious hum, and they often sketch intricate diagrams in a tiny notebook."
+    }
+  ],
+  "elements": [
+    {
+      "name": "The Human Interface Lab",
+      "description": "A creative, open design studio with adjustable standing desks, whiteboards covering every wall, and colorful sticky notes everywhere. Large screens display user research data, wireframes, and prototype animations. The space feels warm and inviting, with comfortable seating areas for collaborative work and a 'failure wall' celebrating lessons learned from design mistakes.",
+      "category": "Rooms"
+    },
+    {
+      "name": "Prototype Wall",
+      "description": "A massive interactive display showing the evolution of designs from rough sketches to polished interfaces. Users can see before-and-after comparisons, with annotations explaining each design decision. The wall can animate transitions between design iterations, showing how feedback shaped the final product.",
+      "category": "Set Pieces"
+    },
+    {
+      "name": "User Empathy Station",
+      "description": "A dedicated area with persona cards, empathy maps, and user journey visualizations. Life-sized holographic users appear, representing different demographics, abilities, and contexts. The station helps designers step into users' shoes and understand their needs, frustrations, and goals.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Usability Testing Corner",
+      "description": "A observation area with screens showing real users interacting with interfaces. Heat maps display where users click, scroll, and get stuck. Facial recognition shows emotional responses—confusion, delight, frustration. The corner reveals the gap between designer intentions and user reality.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Friction Detector",
+      "description": "A diagnostic tool that measures user friction in any interface. It highlights pain points with red warnings, smooth flows with green indicators, and cognitive load with intensity meters. The detector can simulate how different users experience the same interface differently.",
+      "category": "Machinery"
+    },
+    {
+      "name": "Accessibility Simulator",
+      "description": "A device that lets designers experience interfaces as users with different abilities—color blindness filters, screen reader audio, motor impairment simulations, cognitive load adjustments. It transforms abstract accessibility guidelines into visceral, personal experiences.",
+      "category": "Machinery"
+    }
+  ],
+  "scenes": [
+    {
+      "title": "Welcome: Design is Everywhere",
+      "description": "Professor Mrjana stands in the center of The Human Interface Lab, her red scarf flowing as she gestures enthusiastically at the Prototype Wall. Her paint-splattered sneakers tap with energy as she welcomes students. The wall displays everyday objects—doors, faucets, elevator buttons—alongside digital interfaces. Student Eager Noodler's antennae twitch with excitement while Student Thoughtful Giggler's ears perk up. Professor Mrjana's eyes sparkle as she reveals: everything around us is designed, and design shapes human behavior.",
+      "textPanel": "\"Welcome, dear students, to design's grand art,\nWhere every choice plays a crucial part.\nFrom doorknobs to apps, from signs to screens,\nDesign shapes our lives in ways unseen.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# What is UX Design?\n\n## User Experience = How It Feels to Use Something\n\n**UX is everywhere:**\n- Physical: Doors, faucets, light switches\n- Digital: Apps, websites, software\n- Services: Hospitals, restaurants, airports\n- Systems: Voting, banking, transportation\n\n```\nGood UX: \"That just worked!\"\nBad UX:  \"Why is this so frustrating?!\"\n```\n\n**The Core Principle:**\n> Design is not about making things pretty.\n> Design is about making things *work* for humans.\n\n**UX Designer's Job:**\n1. Understand users deeply\n2. Identify their needs and pain points\n3. Design solutions that feel effortless\n4. Test, learn, iterate, repeat",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#1a365d",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#ed8936",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 15,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mrjana", "Student Eager Noodler", "Student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet Observer"],
+      "elements": ["The Human Interface Lab", "Prototype Wall"]
+    },
+    {
+      "title": "The User is Not You",
+      "description": "Professor Mrjana walks to the User Empathy Station, her blue scarf now matching her thoughtful mood. She activates holographic users—an elderly person with arthritis, a busy parent holding a baby, a user with low vision, someone in bright sunlight. Her expression becomes serious as she explains the cardinal sin of design: assuming everyone thinks like you. Student Zippy Zapper's zig-zag body stills momentarily. Student Quiet Observer adjusts their lenses, capturing every detail of the diverse user holograms.",
+      "textPanel": "\"The first rule of design, remember it well:\nYou are not your user—break free from that spell.\nWhat seems obvious to you, clear as the day,\nMay confuse and frustrate users in every way.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Rule #1: You Are Not Your User\n\n## The Designer's Trap:\n\n```\nDesigner thinks: \"This is intuitive!\"\nUser thinks:    \"Where do I even start?\"\n\nDesigner thinks: \"Everyone knows this icon means settings\"\nUser thinks:    \"Is that a gear? A flower? What?\"\n```\n\n## Why This Happens:\n\n| Designer | Real User |\n|----------|----------|\n| Sees design daily | First time seeing it |\n| Knows all features | Discovers features |\n| Uses latest devices | May have old phone |\n| Fast internet | May have slow connection |\n| Tech-savvy | Varying tech skills |\n| Young, healthy | All ages, abilities |\n\n**The Fix:**\n> Get out of the building. Watch real users.\n> Their confusion is your education.",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#1a365d",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#ed8936",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mrjana", "Student Eager Noodler", "Student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet Observer"],
+      "elements": ["User Empathy Station", "The Human Interface Lab"]
+    },
+    {
+      "title": "Friction: The Silent Killer",
+      "description": "Professor Mrjana activates the Friction Detector and displays a poorly designed checkout flow. Red warnings flash everywhere—too many form fields, confusing buttons, hidden costs revealed late. Her scarf shifts to an alarmed orange. She shows the dropout rates: 70% of users abandon before completing. Student Thoughtful Giggler's ears droop with each friction point revealed. Professor Mrjana explains that every moment of friction is an opportunity for users to give up.",
+      "textPanel": "\"Friction's the enemy, silent but strong,\nEach extra click where things go wrong.\nUsers don't fight through confusing design,\nThey simply leave—and that's your bottom line.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Friction: Every Click Costs You Users\n\n## The Friction Formula:\n\n```\nFriction = Effort Required - User Motivation\n\nIf Friction > Motivation → User Leaves\nIf Friction < Motivation → User Continues\n```\n\n## Common Friction Points:\n\n❌ **Forms:** Too many fields\n❌ **Navigation:** Can't find things\n❌ **Loading:** Slow performance\n❌ **Registration:** Required before value shown\n❌ **Choices:** Too many options (paradox of choice)\n❌ **Language:** Jargon, unclear labels\n❌ **Errors:** Unhelpful error messages\n\n## The Dropout Reality:\n\n```\n100 users start checkout\n ↓ (−20) Confused by form\n80 users continue\n ↓ (−15) Surprised by shipping cost\n65 users continue\n ↓ (−25) Required account creation\n40 users continue\n ↓ (−10) Payment issues\n30 users complete ← Only 30%!\n```\n\n**Every friction point bleeds users**",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#1a365d",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#ed8936",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 13,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mrjana", "Student Eager Noodler", "Student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet Observer"],
+      "elements": ["Friction Detector", "Usability Testing Corner"]
+    },
+    {
+      "title": "The Power of Conventions",
+      "description": "Professor Mrjana displays familiar interface patterns on the Prototype Wall—the hamburger menu, the shopping cart icon, the search magnifying glass. Her green scarf suggests growth and learning. She explains that users bring expectations from every other interface they've used. Breaking conventions without reason creates confusion. Student Eager Noodler scribbles furiously, antennae bobbing. Professor Mrjana emphasizes: innovation should reduce friction, not create it.",
+      "textPanel": "\"Conventions exist for a powerful reason,\nThey're patterns users know every season.\nThe cart, the menu, the search icon too,\nBreak them with purpose, or users won't get through.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Conventions: Don't Reinvent the Wheel\n\n## Universal Patterns Users Know:\n\n| Icon/Pattern | Universal Meaning |\n|--------------|-------------------|\n| 🔍 Magnifying glass | Search |\n| 🛒 Shopping cart | Purchase/checkout |\n| ☰ Hamburger menu | Navigation |\n| ❌ X button | Close/cancel |\n| ← Back arrow | Go back |\n| ⚙️ Gear | Settings |\n| 🏠 House | Home/main page |\n\n## Why Conventions Work:\n\n```python\n# User's mental process\nif pattern == familiar:\n    instant_understanding()  # No thinking required\nelse:\n    confusion()              # \"What does this do?\"\n    trial_and_error()        # Frustrating\n    maybe_give_up()          # Lost user\n```\n\n**The Rule:**\n> Innovate where it adds value.\n> Use conventions where understanding matters.\n\n*Don't make users think about things that don't matter*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#1a365d",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#ed8936",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mrjana", "Student Eager Noodler", "Student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet Observer"],
+      "elements": ["Prototype Wall", "The Human Interface Lab"]
+    },
+    {
+      "title": "Accessibility is Not Optional",
+      "description": "Professor Mrjana leads students to the Accessibility Simulator. Her scarf is now a rainbow of colors—representing all users. She has students experience interfaces through different lenses: color blindness, screen readers, motor impairments. Student Zippy Zapper tries navigating with simulated tremors—their four arms struggling with tiny buttons. The experience is transformative. Professor Mrjana's voice is firm: accessibility isn't charity, it's good design.",
+      "textPanel": "\"Accessibility's not a feature to add at the end,\nIt's a foundation on which great designs depend.\nWhen you design for all, including those with different ways,\nYou build better products that everyone can praise.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Accessibility: Design for Everyone\n\n## The Numbers:\n\n- **1 billion+** people have disabilities worldwide\n- **15%** of global population\n- **100%** of us will experience disability (aging, injury, situation)\n\n## Types of Accessibility:\n\n| Type | Permanent | Temporary | Situational |\n|------|-----------|-----------|-------------|\n| Visual | Blind | Eye infection | Bright sunlight |\n| Motor | Paralysis | Broken arm | Holding baby |\n| Hearing | Deaf | Ear infection | Loud environment |\n| Cognitive | Learning disability | Concussion | Stressed/distracted |\n\n## The Curb Cut Effect:\n\n```\nDesigned for: Wheelchair users\nAlso helps:   Parents with strollers\n              Travelers with luggage\n              Delivery workers\n              Elderly with walkers\n              EVERYONE\n```\n\n**Key Insight:**\n> Accessible design improves experience for ALL users.\n> It's not a burden—it's better design.",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#1a365d",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#ed8936",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 13,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mrjana", "Student Eager Noodler", "Student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet Observer"],
+      "elements": ["Accessibility Simulator", "User Empathy Station"]
+    },
+    {
+      "title": "Test Early, Test Often",
+      "description": "Professor Mrjana stands at the Usability Testing Corner, displaying recordings of real users struggling with interfaces. Her yellow scarf radiates energy and urgency. Heat maps show where users clicked in confusion, facial analysis reveals frustration. She shows how one hour of user testing reveals more than months of internal debate. Student Thoughtful Giggler giggles nervously watching a user completely miss an 'obvious' button. The lesson is clear: assumptions are expensive.",
+      "textPanel": "\"Don't wait until launch to learn if it works,\nTest with real users—find all the quirks.\nOne hour of testing beats weeks of debate,\nWatch real users struggle before it's too late.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Usability Testing: Reality Check\n\n## The Testing Truth:\n\n```\n5 users find 85% of usability problems\n\nCost of testing:     $500 and 1 day\nCost of NOT testing: $50,000+ fixes after launch\n                     + Lost users\n                     + Damaged reputation\n```\n\n## What Testing Reveals:\n\n| What Designers Think | What Users Do |\n|---------------------|---------------|\n| \"Button is obvious\" | Never sees it |\n| \"Flow is intuitive\" | Gets lost immediately |\n| \"Copy is clear\" | Completely misunderstands |\n| \"Feature is valuable\" | Ignores it entirely |\n\n## The Testing Loop:\n\n```\n1. Build rough prototype (not polished!)\n2. Test with 5 real users\n3. Watch silently (don't help!)\n4. Note where they struggle\n5. Fix the biggest problems\n6. Repeat\n```\n\n**The Mantra:**\n> If you're not embarrassed by your first prototype,\n> you launched too late.",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#1a365d",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#ed8936",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 13,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mrjana", "Student Eager Noodler", "Student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet Observer"],
+      "elements": ["Usability Testing Corner", "Friction Detector"]
+    },
+    {
+      "title": "Less is More",
+      "description": "Professor Mrjana displays two versions of the same interface on the Prototype Wall—one cluttered with options, one clean and focused. Her white scarf suggests clarity and simplicity. She removes elements one by one from the cluttered version, and with each removal, the user success rate increases. Student Quiet Observer hums approvingly, sketching the minimal design. Professor Mrjana explains that every element competes for attention—addition by subtraction.",
+      "textPanel": "\"When everything's important, nothing stands out,\nSimplicity cuts through confusion and doubt.\nRemove what's not needed, focus what stays,\nThe best design often subtracts—not adds—these days.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Simplicity: The Ultimate Sophistication\n\n## The Paradox of Choice:\n\n```\nStudy: Jam tasting booth\n\n24 jam options: 3% bought jam\n6 jam options:  30% bought jam\n\nMore choices → More paralysis → Fewer decisions\n```\n\n## Hick's Law:\n\n```\nDecision Time = log₂(Number of Choices + 1)\n\n2 options:  ~1 second decision\n8 options:  ~3 seconds decision\n32 options: ~5 seconds decision + frustration\n```\n\n## The Subtraction Principle:\n\n| Before | After |\n|--------|-------|\n| 10 buttons | 3 buttons (most used) |\n| 15 form fields | 5 fields (required only) |\n| 4 navigation levels | 2 levels (flattened) |\n| 20 settings | 5 settings (smart defaults) |\n\n**Apple's Secret:**\n> \"It's not done when there's nothing more to add.\n> It's done when there's nothing left to take away.\"",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#1a365d",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#ed8936",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mrjana", "Student Eager Noodler", "Student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet Observer"],
+      "elements": ["Prototype Wall", "The Human Interface Lab"]
+    },
+    {
+      "title": "Error Messages That Help",
+      "description": "Professor Mrjana shows a collection of terrible error messages: 'Error 0x80004005', 'An error occurred', 'Invalid input'. Her scarf is a frustrated red. Then she transforms each into helpful, human messages that explain what happened and how to fix it. Student Eager Noodler's antennae perk up with each improvement. The Friction Detector shows error recovery time dropping dramatically with better messages. Professor Mrjana emphasizes: errors are inevitable, bad error handling is not.",
+      "textPanel": "\"Errors will happen, that much is true,\nBut how you handle them reflects on you.\nDon't blame the user with jargon and codes,\nGuide them forward on friendlier roads.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Error Messages: Be Human\n\n## The Terrible vs. The Helpful:\n\n| Bad Error | Good Error |\n|-----------|------------|\n| \"Error 404\" | \"Page not found. Try searching or go home.\" |\n| \"Invalid input\" | \"Please enter a valid email (e.g., name@example.com)\" |\n| \"An error occurred\" | \"We couldn't save your changes. Your work is safe—try again.\" |\n| \"Password invalid\" | \"Password needs 8+ characters, including a number\" |\n\n## The Error Message Formula:\n\n```\n1. What happened (in plain language)\n2. Why it might have happened\n3. What the user can do now\n4. Reassurance (if applicable)\n```\n\n**Example:**\n```\n❌ \"Payment failed\"\n\n✅ \"Your payment didn't go through.\n   Your card may have expired or the \n   billing address didn't match.\n   \n   Please check your details and try again.\n   You haven't been charged.\"\n```\n\n**The Rule:** Errors are conversations, not dead ends.",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#1a365d",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#ed8936",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 13,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mrjana", "Student Eager Noodler", "Student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet Observer"],
+      "elements": ["Prototype Wall", "Friction Detector"]
+    },
+    {
+      "title": "Design for Emotion",
+      "description": "Professor Mrjana's scarf shifts to warm pink as she discusses emotional design. The User Empathy Station shows how interfaces make people feel—not just what they do. She displays micro-interactions that create delight: a heart animation when liking a post, a friendly empty state, a celebration when completing a goal. Student Zippy Zapper zings with joy at each delightful example. Professor Mrjana explains that functional isn't enough—people remember how you made them feel.",
+      "textPanel": "\"Function alone won't win users' hearts,\nEmotion and delight are equally vital parts.\nA tiny animation, a friendly tone of voice,\nCan turn a mere transaction into a joyful choice.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# Emotional Design: Beyond Function\n\n## The Three Levels of Design:\n\n```\n┌─────────────────────────────────┐\n│  REFLECTIVE (Long-term)         │\n│  \"I'm proud to use this\"        │\n├─────────────────────────────────┤\n│  BEHAVIORAL (Task-focused)      │\n│  \"This works well\"              │\n├─────────────────────────────────┤\n│  VISCERAL (Immediate reaction)  │\n│  \"This looks/feels good\"        │\n└─────────────────────────────────┘\n```\n\n## Micro-Delights That Matter:\n\n| Moment | Delight Opportunity |\n|--------|--------------------|\n| Empty state | Friendly illustration + guidance |\n| Loading | Progress + fun animation |\n| Success | Celebration + clear confirmation |\n| Error | Empathy + helpful recovery |\n| First use | Warm welcome + easy win |\n\n## The ROI of Delight:\n\n- Users **forgive** more mistakes\n- Users **recommend** to friends\n- Users **return** more often\n- Users **pay** premium prices\n\n**Maya Angelou applies to UX:**\n> \"People will forget what you said, forget what you did,\n> but never forget how you made them feel.\"",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 38,
+          "autoScale": true,
+          "backgroundColor": "#1a365d",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#ed8936",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 13,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mrjana", "Student Eager Noodler", "Student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet Observer"],
+      "elements": ["User Empathy Station", "Prototype Wall"]
+    },
+    {
+      "title": "Conclusion: Design for Humans",
+      "description": "Professor Mrjana stands at the center of The Human Interface Lab, surrounded by her students. Her scarf is now a rainbow gradient—combining all the lessons. All the screens show well-designed interfaces that embody the principles learned: empathy, simplicity, accessibility, testing, convention, clarity. Student Eager Noodler's notes are overflowing, Student Thoughtful Giggler beams with understanding, Student Zippy Zapper zings with creative energy, and Student Quiet Observer has filled their notebook with beautiful design sketches. Professor Mrjana delivers her final message with her signature warmth.",
+      "textPanel": "\"Remember, dear students, as you go forth to create:\nDesign for humans—that's what makes design great.\nEmpathy first, simplicity your guide,\nTest with real users, let humility be your pride.\n\nGood design is invisible, it just feels right,\nIt serves the user's journey from morning to night.\nSo go build with purpose, with care, with heart,\nAnd make every experience a work of art.\"",
+      "diagramPanel": {
+        "type": "markdown",
+        "content": "# UX Design Principles: Summary\n\n## The Commandments:\n\n1. **You are not your user** → Research & empathize\n2. **Friction kills** → Remove every unnecessary step\n3. **Conventions work** → Innovate only where it matters\n4. **Accessibility benefits all** → Design for everyone\n5. **Test early, test often** → 5 users find 85% of problems\n6. **Less is more** → Subtract before you add\n7. **Errors are conversations** → Help, don't blame\n8. **Emotions matter** → Delight creates loyalty\n\n---\n\n## The Ultimate Test:\n\n```\nCan a tired, distracted, first-time user\ncomplete their goal without frustration?\n\nIf yes → Good UX\nIf no  → Keep iterating\n```\n\n---\n\n**Professor Mrjana's Mantra:**\n> \"Design for humans, not for yourself.\n> The best interface is one you don't notice.\"\n\n*Now go create something wonderful.*",
+        "language": "markdown",
+        "style": {
+          "boardStyle": "whiteboard",
+          "position": "top-center",
+          "widthPercentage": 90,
+          "heightPercentage": 35,
+          "autoScale": true,
+          "backgroundColor": "#1a365d",
+          "foregroundColor": "#ffffff",
+          "borderColor": "#ed8936",
+          "borderWidth": 3,
+          "padding": 15,
+          "fontSize": 14,
+          "gutterTop": 20,
+          "gutterBottom": 0,
+          "gutterLeft": 0,
+          "gutterRight": 0
+        }
+      },
+      "characters": ["Professor Mrjana", "Student Eager Noodler", "Student Thoughtful Giggler", "Student Zippy Zapper", "Student Quiet Observer"],
+      "elements": ["The Human Interface Lab", "Prototype Wall", "User Empathy Station", "Usability Testing Corner", "Friction Detector", "Accessibility Simulator"]
+    }
+  ]
+}
+

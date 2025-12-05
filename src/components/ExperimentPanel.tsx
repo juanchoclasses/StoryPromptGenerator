@@ -20,6 +20,7 @@ import {
   Divider
 } from '@mui/material';
 import { ImageGenerationService } from '../services/ImageGenerationService';
+import { IMAGE_MODELS } from '../constants/imageModels';
 
 interface AspectRatio {
   id: string;
@@ -59,28 +60,14 @@ const ASPECT_RATIOS: AspectRatio[] = [
   { id: '21:9', label: '21:9', value: '21:9', description: 'Ultrawide' },
 ];
 
-const LLM_MODELS: LLMModel[] = [
-  {
-    id: 'google/gemini-2.5-flash-image',
-    name: 'Gemini 2.5 Flash',
-    description: 'Fast & versatile'
-  },
-  {
-    id: 'openai/gpt-5-image-mini',
-    name: 'GPT-5 Image Mini',
-    description: 'OpenAI image model'
-  },
-  {
-    id: 'google/gemini-2.0-flash-exp:image',
-    name: 'Gemini 2.0 Flash Exp',
-    description: 'Experimental version'
-  },
-  {
-    id: 'google/gemini-exp-1206:image',
-    name: 'Gemini Exp 1206',
-    description: 'Experimental build'
-  },
-];
+// Derive LLM_MODELS from the single source of truth (IMAGE_MODELS)
+const LLM_MODELS: LLMModel[] = IMAGE_MODELS.map(model => ({
+  id: model.value,
+  name: model.label.split('(')[0].trim(), // Extract name before parentheses
+  description: model.label.includes('(') 
+    ? model.label.match(/\(([^)]+)\)/)?.[1] || '' 
+    : ''
+}));
 
 // Utility function to load image and get dimensions
 const loadImageDimensions = (url: string): Promise<{ width: number; height: number }> => {

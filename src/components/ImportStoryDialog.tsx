@@ -25,7 +25,6 @@ import type { ParsedStoryBundle } from '../services/MarkdownStoryParser';
 import { BookService } from '../services/BookService';
 import type { Story, Scene, StoryElement } from '../types/Story';
 import type { Character } from '../models/Story';
-import type { Character } from '../models/Story';
 // Note: Character is now in models/Story.ts (name-based, not ID-based)
 
 interface ImportStoryDialogProps {

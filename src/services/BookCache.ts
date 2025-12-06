@@ -50,20 +50,8 @@ export class BookCache {
         return;
       }
 
-      const fsBooks = await FileSystemService.loadAllBooksMetadata();
-      console.log(`Found ${fsBooks.size} books in filesystem`);
-
-      // Deserialize and cache each book
-      for (const [bookId, bookJson] of fsBooks.entries()) {
-        try {
-          const bookData = JSON.parse(bookJson);
-          const book = await this.deserializeBook(bookData);
-          this.cache.set(bookId, book);
-          console.log(`✓ Loaded book: ${book.title} (${bookId})`);
-        } catch (error) {
-          console.error(`Failed to parse book ${bookId}:`, error);
-        }
-      }
+      // Load books from both old and new formats
+      await this.loadBooksFromBothFormats();
 
       // Load activeBookId from filesystem metadata
       const appMetadata = await FileSystemService.loadAppMetadata();
@@ -79,6 +67,100 @@ export class BookCache {
     } catch (error) {
       console.error('Failed to load books into cache:', error);
       this.loaded = true; // Mark as loaded even on error to prevent retry loops
+    }
+  }
+
+  /**
+   * Load books from both old (monolithic) and new (directory) formats
+   */
+  private async loadBooksFromBothFormats(): Promise<void> {
+    const { FileBasedStorageService } = await import('./FileBasedStorageService');
+    
+    // First, try to load old format books (monolithic JSON files)
+    const fsBooks = await FileSystemService.loadAllBooksMetadata();
+    console.log(`Found ${fsBooks.size} books in old format`);
+
+    for (const [bookId, bookJson] of fsBooks.entries()) {
+      try {
+        const bookData = JSON.parse(bookJson);
+        const book = await this.deserializeBook(bookData);
+        this.cache.set(bookId, book);
+        console.log(`✓ Loaded book (old format): ${book.title} (${bookId})`);
+      } catch (error) {
+        console.error(`Failed to parse book ${bookId}:`, error);
+      }
+    }
+
+    // Then, try to load new format books (directory structure)
+    // We need to scan the books directory for subdirectories
+    try {
+      const { ElectronFileSystemService } = await import('./ElectronFileSystemService');
+      
+      if (FileSystemService.isElectron()) {
+        // Electron mode - list directories
+        const { directories } = await ElectronFileSystemService.listDirectory('prompter-cache/books');
+        console.log(`Found ${directories.length} potential book directories in new format`);
+        
+        for (const dirName of directories) {
+          // Check if this is a directory format book
+          const isDirectory = await FileBasedStorageService.isDirectoryFormat(dirName);
+          
+          if (isDirectory) {
+            try {
+              const book = await FileBasedStorageService.loadBook(dirName);
+              if (book) {
+                // Only add if not already loaded from old format
+                if (!this.cache.has(book.id)) {
+                  this.cache.set(book.id, book);
+                  console.log(`✓ Loaded book (new format): ${book.title} (${book.id})`);
+                } else {
+                  console.log(`⚠️ Book ${book.id} exists in both formats - using old format`);
+                }
+              }
+            } catch (error) {
+              console.error(`Failed to load directory book ${dirName}:`, error);
+            }
+          }
+        }
+      } else {
+        // Browser mode - iterate through directory handles
+        const parentHandle = await FileSystemService.getDirectoryHandle();
+        if (parentHandle && 'getDirectoryHandle' in parentHandle) {
+          try {
+            const cacheHandle = await parentHandle.getDirectoryHandle('prompter-cache', { create: false });
+            const booksHandle = await cacheHandle.getDirectoryHandle('books', { create: false });
+            
+            // @ts-ignore - values() is an async iterator
+            for await (const entry of booksHandle.values()) {
+              if (entry.kind === 'directory') {
+                const isDirectory = await FileBasedStorageService.isDirectoryFormat(entry.name);
+                
+                if (isDirectory) {
+                  try {
+                    const book = await FileBasedStorageService.loadBook(entry.name);
+                    if (book) {
+                      // Only add if not already loaded from old format
+                      if (!this.cache.has(book.id)) {
+                        this.cache.set(book.id, book);
+                        console.log(`✓ Loaded book (new format): ${book.title} (${book.id})`);
+                      } else {
+                        console.log(`⚠️ Book ${book.id} exists in both formats - using old format`);
+                      }
+                    }
+                  } catch (error) {
+                    console.error(`Failed to load directory book ${entry.name}:`, error);
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            // Books directory doesn't exist or error reading
+            console.log('No new format books found or error reading directory');
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Could not load new format books:', error);
     }
   }
 
@@ -191,6 +273,7 @@ export class BookCache {
 
   /**
    * Save book to filesystem
+   * Always uses new directory format
    */
   private async saveToFilesystem(book: Book): Promise<void> {
     const fsConfigured = await FileSystemService.isConfigured();
@@ -200,67 +283,32 @@ export class BookCache {
     }
 
     try {
-      const bookData = this.serializeBook(book);
-      const bookJson = JSON.stringify(bookData, null, 2);
-      await FileSystemService.saveBookMetadata(book.id, bookJson);
-      console.log(`✓ Book saved to filesystem: ${book.title}`);
+      // Import FileBasedStorageService
+      const { FileBasedStorageService } = await import('./FileBasedStorageService');
+      
+      // Save using new directory format
+      const result = await FileBasedStorageService.saveBook(book);
+      
+      if (result.success) {
+        console.log(`✓ Book saved to filesystem (new format): ${book.title}`);
+        
+        // Clean up old format file if it exists
+        try {
+          await FileSystemService.deleteBookMetadata(book.id);
+          console.log(`✓ Cleaned up old format file for book: ${book.id}`);
+        } catch (error) {
+          // Ignore errors - old file might not exist
+        }
+      } else {
+        throw new Error(result.error || 'Failed to save book');
+      }
     } catch (error) {
       console.error(`Failed to save book ${book.id} to filesystem:`, error);
       throw error;
     }
   }
 
-  /**
-   * Serialize a book to JSON format
-   */
-  private serializeBook(book: Book): any {
-    return {
-      id: book.id,
-      title: book.title,
-      description: book.description,
-      backgroundSetup: book.backgroundSetup,
-      aspectRatio: book.aspectRatio,
-      style: book.style,
-      defaultLayout: book.defaultLayout, // NEW: Book-level default layout
-      characters: book.characters,
-      stories: book.stories.map(story => ({
-        id: story.id,
-        title: story.title,
-        description: story.description,
-        backgroundSetup: story.backgroundSetup,
-        diagramStyle: story.diagramStyle,
-        layout: story.layout, // NEW: Story-level layout
-        characters: story.characters,
-        elements: story.elements,
-        scenes: story.scenes.map(scene => {
-          // Debug: Check if scene has layout
-          if (scene.layout) {
-            console.log(`📐 Serializing scene "${scene.title}" WITH layout:`, scene.layout.type);
-          } else {
-            console.log(`⚠️  Serializing scene "${scene.title}" WITHOUT layout`);
-          }
-          
-          return {
-            id: scene.id,
-            title: scene.title,
-            description: scene.description,
-            textPanel: scene.textPanel,
-            diagramPanel: scene.diagramPanel,
-            layout: scene.layout, // Scene-specific layout
-            characters: scene.characters,
-            elements: scene.elements,
-            imageHistory: scene.imageHistory,
-            createdAt: scene.createdAt,
-            updatedAt: scene.updatedAt
-          };
-        }),
-        createdAt: story.createdAt,
-        updatedAt: story.updatedAt
-      })),
-      createdAt: book.createdAt,
-      updatedAt: book.updatedAt
-    };
-  }
+
 
   /**
    * Delete a book from cache and filesystem

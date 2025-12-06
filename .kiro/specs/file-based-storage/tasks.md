@@ -24,14 +24,14 @@ This plan implements a simple file-based storage system where each book is a dir
   - Handle conflicts by appending numeric suffixes (e.g., `story-1`, `story-2`)
   - _Requirements: 1.5, 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 1.1 Write unit tests for SlugService
+- [x] 1.1 Write unit tests for SlugService
   - Test basic slug generation (lowercase, hyphens, special chars removed)
   - Test length limiting (50 chars max)
   - Test empty/invalid title fallback
   - Test unique slug generation with conflicts
   - _Requirements: 1.5, 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 2. Implement FileBasedStorageService
+- [x] 2. Implement FileBasedStorageService
   - Create `src/services/FileBasedStorageService.ts`
   - Implement `saveBook(book: Book): Promise<{success: boolean; error?: string}>`
     - Generate book slug from title
@@ -52,7 +52,7 @@ This plan implements a simple file-based storage system where each book is a dir
   - Use existing FileSystemService APIs for all file operations
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 3.1, 3.2, 3.3, 3.4_
 
-- [ ]* 2.1 Write unit tests for FileBasedStorageService
+- [x] 2.1 Write unit tests for FileBasedStorageService
   - Test saving book creates correct directory structure
   - Test book.json contains correct metadata fields
   - Test story files are created with correct slugs
@@ -64,7 +64,7 @@ This plan implements a simple file-based storage system where each book is a dir
   - Test error handling for filesystem failures
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 3. Update StorageService for backward compatibility
+- [x] 3. Update StorageService for backward compatibility
   - Update `loadAllBooks()` to check both formats:
     - Load old format: `prompter-cache/books/{bookId}.json`
     - Load new format: `prompter-cache/books/{book-slug}/book.json`
@@ -83,7 +83,7 @@ This plan implements a simple file-based storage system where each book is a dir
   - Test book listing works with both formats
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 7.2, 7.3, 7.4_
 
-- [ ] 4. Handle edge cases
+- [x] 4. Handle edge cases
   - Books with no stories: create empty `stories/` directory
   - Stories with no scenes: save with empty scenes array
   - Titles with only special characters: use fallback slug (e.g., `book-{uuid}`)
@@ -99,10 +99,10 @@ This plan implements a simple file-based storage system where each book is a dir
   - Test file write failures
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 5. Checkpoint - Verify core functionality
+- [x] 5. Checkpoint - Verify core functionality
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Create standalone migration script
+- [x] 6. Create standalone migration script
   - Create `migrate-books.ts` in project root (throwaway code)
   - Use Node.js `fs` module directly (not FileSystemService)
   - Read all old format files: `prompter-cache/books/*.json`
@@ -118,7 +118,7 @@ This plan implements a simple file-based storage system where each book is a dir
   - Keep backup until manually deleted
   - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 7. Test migration script
+- [x] 7. Test migration script
   - Create test books in old format
   - Run migration script on test data
   - Verify directory structure is correct
@@ -128,7 +128,7 @@ This plan implements a simple file-based storage system where each book is a dir
   - Load migrated books in app to confirm they work
   - _Requirements: 6.2, 6.3, 6.4_
 
-- [ ] 8. Run migration on real data
+- [x] 8. Run migration on real data
   - Backup current books directory manually (extra safety)
   - Run migration script: `npx tsx migrate-books.ts`
   - Verify migration completed successfully
@@ -137,7 +137,7 @@ This plan implements a simple file-based storage system where each book is a dir
   - Delete migration script (throwaway code)
   - _Requirements: 6.5, 7.1_
 
-- [ ] 9. Final testing
+- [x] 9. Final testing
   - Test creating new books (should use new format)
   - Test editing existing books (should convert to new format)
   - Test loading books (both formats work)
@@ -146,7 +146,7 @@ This plan implements a simple file-based storage system where each book is a dir
   - Verify all existing app features still work
   - _Requirements: All_
 
-- [ ] 10. Documentation and cleanup
+- [x] 10. Documentation and cleanup
   - Update README with new file structure
   - Document external editing capabilities
   - Add comments to SlugService and FileBasedStorageService

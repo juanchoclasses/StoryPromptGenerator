@@ -103,7 +103,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
 
 ### Phase 2: State Management Hooks
 
-- [ ] 4. Implement useWizardState Hook
+- [x] 4. Implement useWizardState Hook
   - Create `src/hooks/useWizardState.ts`
   - Initialize wizard state with default values
   - Implement step navigation:
@@ -120,7 +120,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Return state and update functions
   - _Requirements: 1, 5, 9_
 
-- [ ] 4.1 Write unit tests for useWizardState
+- [x] 4.1 Write unit tests for useWizardState
   - Create `tests/hooks/useWizardState.test.ts`
   - Test state initialization
   - Test step navigation (next, previous, goto)
@@ -130,7 +130,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Use React Testing Library hooks testing
   - _Requirements: 1, 5, 9_
 
-- [ ] 5. Implement useWizardConversation Hook
+- [x] 5. Implement useWizardConversation Hook
   - Create `src/hooks/useWizardConversation.ts`
   - Implement `sendMessage(content: string)` - Send user message
     - Add user message to conversation
@@ -145,7 +145,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Return conversation state and actions
   - _Requirements: 2, 5, 6_
 
-- [ ] 5.1 Write unit tests for useWizardConversation
+- [x] 5.1 Write unit tests for useWizardConversation
   - Create `tests/hooks/useWizardConversation.test.ts`
   - Test sending user messages
   - Test receiving assistant responses
@@ -156,7 +156,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Test conversation context management
   - _Requirements: 2, 5, 6_
 
-- [ ] 6. Implement useStyleRefinement Hook
+- [x] 6. Implement useStyleRefinement Hook
   - Create `src/hooks/useStyleRefinement.ts`
   - Implement `generateInitialStyles(concept: string, preferences?: string)` - Generate 3-5 style options
   - Implement `selectStyle(styleId: string)` - Select a style option
@@ -171,7 +171,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Return refinement state and actions
   - _Requirements: 3, 7_
 
-- [ ] 6.1 Write unit tests for useStyleRefinement
+- [x] 6.1 Write unit tests for useStyleRefinement
   - Create `tests/hooks/useStyleRefinement.test.ts`
   - Test generating initial style options
   - Test selecting a style
@@ -184,7 +184,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
 
 ### Phase 3: UI Components - Shared
 
-- [ ] 7. Implement WizardProgress Component
+- [x] 7. Implement WizardProgress Component
   - Create `src/components/BookCreationWizard/WizardProgress.tsx`
   - Display all wizard steps (Welcome, Concept, Style, Characters, Summary)
   - Highlight current step
@@ -196,7 +196,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Accessible with ARIA labels
   - _Requirements: 1, 10_
 
-- [ ] 7.1 Write unit tests for WizardProgress
+- [x] 7.1 Write unit tests for WizardProgress
   - Create `tests/components/BookCreationWizard/WizardProgress.test.tsx`
   - Test rendering all steps
   - Test highlighting current step
@@ -206,7 +206,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Test accessibility (ARIA labels)
   - _Requirements: 1, 10_
 
-- [ ] 8. Implement Message Components
+- [x] 8. Implement Message Components
   - Create `src/components/BookCreationWizard/SystemMessage.tsx`
   - Create `src/components/BookCreationWizard/UserMessage.tsx`
   - Create `src/components/BookCreationWizard/AssistantMessage.tsx`
@@ -228,7 +228,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Accessible with proper ARIA roles
   - _Requirements: 5, 10_
 
-- [ ] 8.1 Write unit tests for Message Components
+- [x] 8.1 Write unit tests for Message Components
   - Create `tests/components/BookCreationWizard/SystemMessage.test.tsx`
   - Create `tests/components/BookCreationWizard/UserMessage.test.tsx`
   - Create `tests/components/BookCreationWizard/AssistantMessage.test.tsx`
@@ -240,7 +240,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Test accessibility
   - _Requirements: 5, 10_
 
-- [ ] 9. Implement MessageInput Component
+- [x] 9. Implement MessageInput Component
   - Create `src/components/BookCreationWizard/MessageInput.tsx`
   - Multi-line text input (TextField)
   - Send button (Enter key or click)
@@ -253,7 +253,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Accessible with proper labels
   - _Requirements: 5, 10_
 
-- [ ] 9.1 Write unit tests for MessageInput
+- [x] 9.1 Write unit tests for MessageInput
   - Create `tests/components/BookCreationWizard/MessageInput.test.tsx`
   - Test typing and sending messages
   - Test Enter key to send
@@ -264,7 +264,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Test accessibility
   - _Requirements: 5, 10_
 
-- [ ] 10. Implement MessageList Component
+- [x] 10. Implement MessageList Component
   - Create `src/components/BookCreationWizard/MessageList.tsx`
   - Scrollable container for messages
   - Auto-scroll to bottom on new messages
@@ -276,7 +276,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Accessible with proper ARIA roles
   - _Requirements: 5, 7, 10_
 
-- [ ] 10.1 Write unit tests for MessageList
+- [x] 10.1 Write unit tests for MessageList
   - Create `tests/components/BookCreationWizard/MessageList.test.tsx`
   - Test rendering messages
   - Test auto-scroll on new messages

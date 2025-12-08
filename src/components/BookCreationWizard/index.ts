@@ -15,3 +15,9 @@ export type { UserMessageProps } from './UserMessage';
 
 export { AssistantMessage } from './AssistantMessage';
 export type { AssistantMessageProps } from './AssistantMessage';
+
+export { MessageInput } from './MessageInput';
+export type { MessageInputProps, QuickAction } from './MessageInput';
+
+export { MessageList } from './MessageList';
+export type { MessageListProps } from './MessageList';

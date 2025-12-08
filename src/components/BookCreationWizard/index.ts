@@ -21,3 +21,6 @@ export type { MessageInputProps, QuickAction } from './MessageInput';
 
 export { MessageList } from './MessageList';
 export type { MessageListProps } from './MessageList';
+
+export { ConversationView } from './ConversationView';
+export type { ConversationViewProps } from './ConversationView';

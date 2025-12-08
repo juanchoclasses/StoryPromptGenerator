@@ -286,7 +286,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Test accessibility
   - _Requirements: 5, 7, 10_
 
-- [ ] 11. Implement ConversationView Component
+- [x] 11. Implement ConversationView Component
   - Create `src/components/BookCreationWizard/ConversationView.tsx`
   - Combine MessageList and MessageInput
   - Layout: MessageList fills space, MessageInput at bottom
@@ -299,7 +299,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Accessible container
   - _Requirements: 5, 6, 7, 10_
 
-- [ ] 11.1 Write unit tests for ConversationView
+- [x] 11.1 Write unit tests for ConversationView
   - Create `tests/components/BookCreationWizard/ConversationView.test.tsx`
   - Test rendering message list and input
   - Test sending messages

@@ -26,7 +26,8 @@ import type {
   CharacterProfile,
   WizardState,
   PersistedWizardState,
-  GeneratedImage
+  GeneratedImage,
+  Message
 } from '../types/Wizard';
 import type { BookStyle } from '../types/BookStyle';
 import { v4 as uuidv4 } from 'uuid';
@@ -219,6 +220,36 @@ export class BookCreationWizardService {
     }
 
     return result.imageUrl;
+  }
+
+  // ========================================
+  // Conversation Methods
+  // ========================================
+
+  /**
+   * Send a conversational message and get LLM response
+   * Used for general wizard conversation at any step
+   */
+  static async sendConversationMessage(
+    userMessage: string,
+    conversationHistory: Message[],
+    context: { concept?: string; stylePrompt?: string }
+  ): Promise<string> {
+    const llmContext: WizardLLMContext = {
+      concept: context.concept,
+      currentStylePrompt: context.stylePrompt,
+      conversationHistory
+    };
+
+    // Make LLM request for conversation
+    const result = await WizardLLMService.makeStructuredRequest('conversation', llmContext);
+    
+    if (!result.success || !result.data) {
+      throw new Error(result.error || 'Failed to get conversation response');
+    }
+
+    // For conversation, the response is plain text
+    return result.data;
   }
 
   // ========================================

@@ -6,3 +6,12 @@
 
 export { WizardProgress } from './WizardProgress';
 export type { WizardProgressProps } from './WizardProgress';
+
+export { SystemMessage } from './SystemMessage';
+export type { SystemMessageProps } from './SystemMessage';
+
+export { UserMessage } from './UserMessage';
+export type { UserMessageProps } from './UserMessage';
+
+export { AssistantMessage } from './AssistantMessage';
+export type { AssistantMessageProps } from './AssistantMessage';

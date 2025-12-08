@@ -65,7 +65,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Test retry logic
   - _Requirements: 2, 3, 4, 6_
 
-- [ ] 3. Implement BookCreationWizardService
+- [x] 3. Implement BookCreationWizardService
   - Create `src/services/BookCreationWizardService.ts`
   - Implement concept phase methods:
     - `analyzeConcept()` - Send concept to LLM, return analysis
@@ -89,7 +89,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Handle errors and provide fallbacks
   - _Requirements: 1, 2, 3, 4, 6, 9_
 
-- [ ] 3.1 Write unit tests for BookCreationWizardService
+- [x] 3.1 Write unit tests for BookCreationWizardService
   - Create `tests/services/BookCreationWizardService.test.ts`
   - Test concept analysis and metadata generation
   - Test style variation generation

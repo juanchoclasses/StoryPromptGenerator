@@ -3,6 +3,7 @@ import { FileSystemService } from './FileSystemService';
 export interface AppSettings {
   openRouterApiKey?: string;
   imageGenerationModel?: string;
+  textLLMModel?: string;
   autoSaveImages?: boolean;
 }
 
@@ -59,6 +60,17 @@ export class SettingsService {
   static async setImageGenerationModel(model: string): Promise<void> {
     const settings = await this.getSettings();
     settings.imageGenerationModel = model;
+    await this.saveSettings(settings);
+  }
+
+  static async getTextLLMModel(): Promise<string> {
+    const settings = await this.getSettings();
+    return settings.textLLMModel || 'google/gemini-2.0-flash-exp';
+  }
+
+  static async setTextLLMModel(model: string): Promise<void> {
+    const settings = await this.getSettings();
+    settings.textLLMModel = model;
     await this.saveSettings(settings);
   }
 

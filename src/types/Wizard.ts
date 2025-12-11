@@ -6,7 +6,6 @@
  */
 
 import type { BookStyle } from './BookStyle';
-import type { Character } from '../models/Story';
 
 /**
  * Wizard step types
@@ -87,7 +86,7 @@ export interface WizardBookData {
   stylePrompt?: string;
   
   /** Characters created during the wizard */
-  characters: Character[];
+  characters: CharacterProfile[];
 }
 
 /**

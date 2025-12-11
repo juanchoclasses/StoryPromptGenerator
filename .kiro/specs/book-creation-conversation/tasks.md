@@ -310,7 +310,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
 
 ### Phase 4: UI Components - Style Selection
 
-- [ ] 12. Implement StyleImageCard Component
+- [x] 12. Implement StyleImageCard Component
   - Create `src/components/BookCreationWizard/StyleImageCard.tsx`
   - Display generated style image
   - Show style name/description
@@ -324,7 +324,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Accessible with proper labels
   - _Requirements: 3, 7, 10_
 
-- [ ] 12.1 Write unit tests for StyleImageCard
+- [x] 12.1 Write unit tests for StyleImageCard
   - Create `tests/components/BookCreationWizard/StyleImageCard.test.tsx`
   - Test rendering image and details
   - Test select button click
@@ -335,7 +335,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Test accessibility
   - _Requirements: 3, 7, 10_
 
-- [ ] 13. Implement StyleRefinementPanel Component
+- [x] 13. Implement StyleRefinementPanel Component
   - Create `src/components/BookCreationWizard/StyleRefinementPanel.tsx`
   - Large preview of selected style image
   - Editable prompt text area
@@ -350,7 +350,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Accessible controls
   - _Requirements: 3, 5, 7, 10_
 
-- [ ] 13.1 Write unit tests for StyleRefinementPanel
+- [x] 13.1 Write unit tests for StyleRefinementPanel
   - Create `tests/components/BookCreationWizard/StyleRefinementPanel.test.tsx`
   - Test displaying selected style
   - Test editing prompt
@@ -362,7 +362,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Test accessibility
   - _Requirements: 3, 5, 7, 10_
 
-- [ ] 14. Implement StyleGallery Component
+- [x] 14. Implement StyleGallery Component
   - Create `src/components/BookCreationWizard/StyleGallery.tsx`
   - Grid layout of StyleImageCard components
   - Generate initial styles on mount
@@ -375,7 +375,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Accessible navigation
   - _Requirements: 3, 7, 10_
 
-- [ ] 14.1 Write unit tests for StyleGallery
+- [x] 14.1 Write unit tests for StyleGallery
   - Create `tests/components/BookCreationWizard/StyleGallery.test.tsx`
   - Test generating initial styles
   - Test displaying style cards
@@ -388,7 +388,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
 
 ### Phase 5: UI Components - Character Creation
 
-- [ ] 15. Implement CharacterBuilder Component
+- [x] 15. Implement CharacterBuilder Component
   - Create `src/components/BookCreationWizard/CharacterBuilder.tsx`
   - Character counter display (e.g., "Character 1 of 3")
   - Form fields:
@@ -408,7 +408,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Accessible form controls
   - _Requirements: 4, 5, 7, 10_
 
-- [ ] 15.1 Write unit tests for CharacterBuilder
+- [x] 15.1 Write unit tests for CharacterBuilder
   - Create `tests/components/BookCreationWizard/CharacterBuilder.test.tsx`
   - Test form input handling
   - Test generating character details
@@ -422,7 +422,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
 
 ### Phase 6: UI Components - Summary & Main Dialog
 
-- [ ] 16. Implement SummaryView Component
+- [x] 16. Implement SummaryView Component
   - Create `src/components/BookCreationWizard/SummaryView.tsx`
   - Organized sections:
     - Book Details (title, description, background)
@@ -437,7 +437,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Accessible with proper headings and navigation
   - _Requirements: 7, 8, 10_
 
-- [ ] 16.1 Write unit tests for SummaryView
+- [x] 16.1 Write unit tests for SummaryView
   - Create `tests/components/BookCreationWizard/SummaryView.test.tsx`
   - Test displaying all book details
   - Test edit buttons navigation
@@ -447,7 +447,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Test accessibility
   - _Requirements: 7, 8, 10_
 
-- [ ] 17. Implement BookCreationWizard Main Component
+- [x] 17. Implement BookCreationWizard Main Component
   - Create `src/components/BookCreationWizard/BookCreationWizard.tsx`
   - Create `src/components/BookCreationWizard/index.ts`
   - Full-screen dialog (Material-UI Dialog)
@@ -472,7 +472,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Accessible with proper ARIA attributes
   - _Requirements: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10_
 
-- [ ] 17.1 Write unit tests for BookCreationWizard
+- [x] 17.1 Write unit tests for BookCreationWizard
   - Create `tests/components/BookCreationWizard/BookCreationWizard.test.tsx`
   - Test rendering wizard dialog
   - Test step navigation
@@ -486,7 +486,7 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
 
 ### Phase 7: Integration & Polish
 
-- [ ] 18. Integrate Wizard into Main App
+- [x] 18. Integrate Wizard into Main App
   - Modify `src/App.tsx` (or main book management component)
   - Import BookCreationWizard component
   - Add state for wizard open/closed
@@ -498,13 +498,19 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
   - Handle wizard cancellation
   - _Requirements: 1, 8_
 
-- [ ] 19. Add Wizard Entry Point to Navigation
+- [x] 19. Add Wizard Entry Point to Navigation
   - Update main navigation/toolbar component
   - Update book list component
   - Update "New Book" button styling/text to indicate wizard
   - Add tooltip: "Create a new book with AI assistance"
   - Consider adding wizard icon
   - Ensure button is prominent and accessible
+  - **Completed:** Added "New Book (AI Wizard)" button in FileManager with wizard integration
+  - **Completed:** Added "New Book (Manual)" button for traditional creation
+  - **Completed:** Updated empty state with "Create First Book with AI" button
+  - **Completed:** Fixed conversation context bug to include user messages in LLM context
+  - **Completed:** Added regression test to prevent conversation context bug
+  - **Completed:** Updated text LLM models to latest versions (Claude 4.5, Gemini 3 Pro Preview)
   - _Requirements: 1, 10_
 
 - [ ] 20. Implement Cleanup for Temporary Images
@@ -599,15 +605,15 @@ This plan implements a conversational, AI-assisted wizard for creating books wit
 
 ## Progress Summary
 
-**Completed:** 1 / 25 tasks (4%)
+**Completed:** 19 / 25 tasks (76%)
 
-**Phase 1 (Foundation):** 1/4 complete
-**Phase 2 (Hooks):** 0/3 complete
-**Phase 3 (Shared UI):** 0/5 complete
-**Phase 4 (Style UI):** 0/3 complete
-**Phase 5 (Character UI):** 0/1 complete
-**Phase 6 (Summary & Main):** 0/2 complete
-**Phase 7 (Integration):** 0/8 complete
+**Phase 1 (Foundation):** 4/4 complete ✅
+**Phase 2 (Hooks):** 3/3 complete ✅
+**Phase 3 (Shared UI):** 5/5 complete ✅
+**Phase 4 (Style UI):** 3/3 complete ✅
+**Phase 5 (Character UI):** 1/1 complete ✅
+**Phase 6 (Summary & Main):** 2/2 complete ✅
+**Phase 7 (Integration):** 2/8 complete
 
 ---
 

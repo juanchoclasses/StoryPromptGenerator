@@ -107,7 +107,8 @@ export function useWizardConversation(
 
     try {
       let response: string;
-      const context = getConversationContext();
+      // Get conversation context and include the new user message
+      const context = [...getConversationContext(), userMessage];
 
       // Call appropriate service method based on current step
       switch (currentStep) {

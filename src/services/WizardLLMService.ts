@@ -23,7 +23,7 @@ import type {
 /**
  * Task types for structured prompt generation
  */
-export type WizardTaskType = 'concept' | 'style' | 'character' | 'refinement' | 'conversation';
+export type WizardTaskType = 'concept' | 'style' | 'character' | 'refinement' | 'conversation' | 'extract-characters';
 
 /**
  * Context for LLM requests
@@ -81,7 +81,6 @@ export interface LLMResult<T = any> {
 
 export class WizardLLMService {
   private static readonly OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
-  private static readonly DEFAULT_MODEL = 'google/gemini-2.0-flash-exp:free';
   private static readonly MAX_RETRIES = 3;
   private static readonly RETRY_DELAY_MS = 1000;
 
@@ -100,6 +99,8 @@ export class WizardLLMService {
         return this.generateRefinementPrompt(context);
       case 'conversation':
         return this.generateConversationPrompt(context);
+      case 'extract-characters':
+        return this.generateExtractCharactersPrompt(context);
       default:
         throw new Error(`Unknown task type: ${task}`);
     }
@@ -264,6 +265,45 @@ Recent conversation:
 ${historyText}
 
 Respond naturally and helpfully. Keep responses concise but informative. Guide the user toward the next step when appropriate.`;
+  }
+
+  /**
+   * Generate character extraction prompt
+   */
+  private static generateExtractCharactersPrompt(context: WizardLLMContext): string {
+    const conversationText = context.conversationHistory && context.conversationHistory.length > 0
+      ? context.conversationHistory
+          .map(m => `${m.role}: ${m.content}`)
+          .join('\n\n')
+      : context.concept || '';
+
+    return `You are analyzing a conversation about a book to extract character information.
+
+Book context:
+${context.bookMetadata?.title ? `Title: "${context.bookMetadata.title}"` : ''}
+${context.bookMetadata?.description ? `Description: "${context.bookMetadata.description}"` : ''}
+${context.bookMetadata?.backgroundSetup ? `Setting: "${context.bookMetadata.backgroundSetup}"` : ''}
+
+Conversation:
+${conversationText}
+
+Extract all characters mentioned in the conversation. For each character, provide:
+- name: The character's name (exactly as mentioned)
+- role: Their role in the story (e.g., "professor", "student", "protagonist")
+- description: A brief description based on what was discussed (if any details were provided)
+
+Respond in JSON format as an array:
+[
+  {
+    "name": "Character Name",
+    "role": "Their role",
+    "description": "Brief description based on conversation"
+  }
+]
+
+If no characters were explicitly mentioned, return an empty array: []
+
+Only include characters that were clearly mentioned by name. Do not invent characters.`;
   }
 
   /**
@@ -447,6 +487,46 @@ Respond naturally and helpfully. Keep responses concise but informative. Guide t
   }
 
   /**
+   * Parse character extraction response
+   */
+  static parseExtractCharactersResponse(response: string): LLMResult<Array<{ name: string; role: string; description: string }>> {
+    try {
+      // Extract JSON from response
+      const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/) || 
+                       response.match(/```\s*([\s\S]*?)\s*```/) ||
+                       [null, response];
+      
+      const jsonText = jsonMatch[1] || response;
+      const parsed = JSON.parse(jsonText.trim());
+
+      // Ensure it's an array
+      const characters = Array.isArray(parsed) ? parsed : [];
+
+      // Validate each character has required fields
+      const validCharacters = characters.filter(c => 
+        c.name && typeof c.name === 'string'
+      ).map(c => ({
+        name: c.name,
+        role: c.role || 'Character',
+        description: c.description || `A character in the story`
+      }));
+
+      return {
+        success: true,
+        data: validCharacters,
+        rawResponse: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to parse character extraction response: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        rawResponse: response,
+        data: [] // Return empty array on error
+      };
+    }
+  }
+
+  /**
    * Send a message to the LLM with conversation context
    */
   static async sendMessage(
@@ -564,6 +644,9 @@ Respond naturally and helpfully. Keep responses concise but informative. Guide t
         };
       }
 
+      // Get the configured text LLM model
+      const model = await SettingsService.getTextLLMModel();
+
       const response = await fetch(`${this.OPENROUTER_BASE_URL}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -573,7 +656,7 @@ Respond naturally and helpfully. Keep responses concise but informative. Guide t
           'X-Title': 'Story Prompter - Book Creation Wizard'
         },
         body: JSON.stringify({
-          model: this.DEFAULT_MODEL,
+          model: model,
           messages: messages
         })
       });

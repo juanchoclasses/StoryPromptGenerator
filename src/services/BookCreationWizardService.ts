@@ -257,6 +257,37 @@ export class BookCreationWizardService {
   // ========================================
 
   /**
+   * Extract characters from conversation
+   */
+  static async extractCharactersFromConversation(
+    conversationHistory: Message[],
+    bookMetadata: { title?: string; description?: string; backgroundSetup?: string }
+  ): Promise<Array<{ name: string; role: string; description: string }>> {
+    const context: WizardLLMContext = {
+      conversationHistory,
+      bookMetadata
+    };
+
+    // Make LLM request
+    const result = await WizardLLMService.makeStructuredRequest('extract-characters', context);
+    
+    if (!result.success || !result.data) {
+      console.warn('Failed to extract characters:', result.error);
+      return []; // Return empty array on failure
+    }
+
+    // Parse response
+    const parsed = WizardLLMService.parseExtractCharactersResponse(result.data);
+    
+    if (!parsed.success) {
+      console.warn('Failed to parse character extraction:', parsed.error);
+      return [];
+    }
+
+    return parsed.data || [];
+  }
+
+  /**
    * Suggest number of characters based on concept
    * (Simple heuristic for now, could be LLM-powered in future)
    */

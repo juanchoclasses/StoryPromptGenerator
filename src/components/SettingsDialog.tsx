@@ -31,6 +31,7 @@ import { FileSystemService } from '../services/FileSystemService';
 import { DirectoryMigrationService } from '../services/DirectoryMigrationService';
 import type { MigrationProgress } from '../services/DirectoryMigrationService';
 import { IMAGE_MODELS } from '../constants/imageModels';
+import { TEXT_LLM_MODELS } from '../constants/textLLMModels';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -40,6 +41,7 @@ interface SettingsDialogProps {
 export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose }) => {
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState('');
+  const [textLLMModel, setTextLLMModel] = useState('');
   const [saved, setSaved] = useState(false);
   const [saveDirectory, setSaveDirectory] = useState<string | null>(null);
   const [isSelectingDirectory, setIsSelectingDirectory] = useState(false);
@@ -59,6 +61,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
         const settings = await SettingsService.getAllSettings();
         setApiKey(settings.openRouterApiKey || '');
         setModel(settings.imageGenerationModel || 'google/gemini-2.5-flash-image');
+        setTextLLMModel(settings.textLLMModel || 'google/gemini-2.0-flash-exp');
         setAutoSaveEnabled(settings.autoSaveImages ?? false);
         setSaved(false);
       };
@@ -75,6 +78,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
     await SettingsService.updateSettings({
       openRouterApiKey: apiKey.trim() || undefined,
       imageGenerationModel: model,
+      textLLMModel: textLLMModel,
       autoSaveImages: autoSaveEnabled
     });
     setSaved(true);
@@ -265,11 +269,11 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
           />
 
           <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>AI Model</InputLabel>
+            <InputLabel>Image Generation Model</InputLabel>
             <Select
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              label="AI Model"
+              label="Image Generation Model"
             >
               {IMAGE_MODELS.map((m) => (
                 <MenuItem key={m.value} value={m.value}>
@@ -279,14 +283,36 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose })
             </Select>
           </FormControl>
 
-          <Alert severity="info" sx={{ mt: 2 }}>
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Text LLM Model (for Wizard)</InputLabel>
+            <Select
+              value={textLLMModel}
+              onChange={(e) => setTextLLMModel(e.target.value)}
+              label="Text LLM Model (for Wizard)"
+            >
+              {TEXT_LLM_MODELS.map((m) => (
+                <MenuItem key={m.value} value={m.value}>
+                  {m.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
             <Typography variant="caption">
-              <strong>Pricing:</strong> Image generation costs vary by model. Gemini models typically charge 
-              per 1K characters of input. Check the{' '}
+              <strong>Image Model:</strong> Used for generating scene images. Gemini models typically charge 
+              per 1K characters of input.
+            </Typography>
+          </Alert>
+
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="caption">
+              <strong>Text LLM Model:</strong> Used for the Book Creation Wizard conversations. 
+              Gemini 2.0 Flash is recommended for speed and quality. Check the{' '}
               <Link href="https://openrouter.ai/models" target="_blank" rel="noopener">
                 Models page
               </Link>
-              {' '}for current pricing.
+              {' '}for pricing and capabilities.
             </Typography>
           </Alert>
 

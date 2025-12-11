@@ -372,6 +372,83 @@ describe('useWizardConversation', () => {
         expect.any(Object)
       );
     });
+
+    it('should include the new user message in conversation context sent to service', async () => {
+      // Regression test: Ensure the current user message is included in the context
+      // This prevents the bug where LLM doesn't see the user's actual message
+      const existingMessages: Message[] = [
+        {
+          id: '1',
+          role: 'user',
+          content: 'First message',
+          timestamp: new Date()
+        },
+        {
+          id: '2',
+          role: 'assistant',
+          content: 'First response',
+          timestamp: new Date()
+        }
+      ];
+
+      const mockResponse = 'Response acknowledging character names';
+      vi.mocked(BookCreationWizardService.sendConversationMessage).mockResolvedValue(mockResponse);
+
+      const { result } = renderHook(() =>
+        useWizardConversation({
+          currentStep: WizardSteps.CHARACTERS,
+          messages: existingMessages,
+          onAddMessage: (msg) => existingMessages.push(msg),
+          onSetProcessing,
+          onSetError,
+          concept: 'A steampunk western story'
+        })
+      );
+
+      await act(async () => {
+        await result.current.sendMessage('Call the professor Professor Investogator and the students Carl, Karla, Pietor, and Petra');
+      });
+
+      // Verify the service was called with context that includes BOTH:
+      // 1. Previous messages
+      // 2. The NEW user message we just sent
+      const callArgs = vi.mocked(BookCreationWizardService.sendConversationMessage).mock.calls[0];
+      const contextArray = callArgs[1];
+      
+      // The context array gets mutated because existingMessages is mutated
+      // What matters is that it contains the new user message at the time of the call
+      expect(contextArray.length).toBeGreaterThanOrEqual(3);
+      
+      // Verify it contains the previous messages
+      expect(contextArray).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            role: 'user',
+            content: 'First message'
+          }),
+          expect.objectContaining({
+            role: 'assistant',
+            content: 'First response'
+          })
+        ])
+      );
+      
+      // CRITICAL: Verify the context includes the NEW user message
+      // This is the regression test - without the fix, this message would be missing
+      expect(contextArray).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            role: 'user',
+            content: 'Call the professor Professor Investogator and the students Carl, Karla, Pietor, and Petra'
+          })
+        ])
+      );
+      
+      // Verify the concept context was also passed
+      expect(callArgs[2]).toMatchObject({
+        concept: 'A steampunk western story'
+      });
+    });
   });
 
   describe('Regenerate Response', () => {

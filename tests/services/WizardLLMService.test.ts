@@ -14,8 +14,9 @@ describe('WizardLLMService', () => {
     // Reset mocks
     vi.clearAllMocks();
     
-    // Mock API key
+    // Mock API key and text LLM model
     vi.mocked(SettingsService.getApiKey).mockResolvedValue('test-api-key');
+    vi.mocked(SettingsService.getTextLLMModel).mockResolvedValue('google/gemini-2.0-flash-exp');
   });
 
   afterEach(() => {

@@ -40,6 +40,7 @@ import { DEFAULT_BOOK_STYLE } from '../types/BookStyle';
 import { PanelConfigDialog } from './PanelConfigDialog';
 import { BookStyleEditor } from './BookStyleEditor';
 import { SceneLayoutEditor } from './SceneLayoutEditor';
+import { BookCreationWizard } from './BookCreationWizard';
 import type { SceneLayout } from '../types/Story';
 
 interface FileManagerProps {
@@ -76,6 +77,9 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
   // Book layout editor state
   const [bookLayoutEditorOpen, setBookLayoutEditorOpen] = useState(false);
   const [editingBookLayout, setEditingBookLayout] = useState<{ bookId: string, layout?: SceneLayout, aspectRatio: string } | null>(null);
+  
+  // Wizard state
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   useEffect(() => {
     loadBooks();
@@ -424,6 +428,18 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
     setEditingBookStyle(null);
   };
 
+  const handleWizardComplete = async (bookId: string) => {
+    setWizardOpen(false);
+    await loadBooks();
+    await handleSelectBook(bookId);
+    onBookUpdate();
+    showSnackbar('Book created successfully with AI assistance!', 'success');
+  };
+
+  const handleWizardCancel = () => {
+    setWizardOpen(false);
+  };
+
   return (
     <Box>
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
@@ -448,9 +464,16 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
           <Button
             variant="contained"
             startIcon={<AddIcon />}
+            onClick={() => setWizardOpen(true)}
+          >
+            New Book (AI Wizard)
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<AddIcon />}
             onClick={() => setOpenCreateDialog(true)}
           >
-            New Book
+            New Book (Manual)
           </Button>
         </Box>
       </Box>
@@ -467,9 +490,9 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={() => setOpenCreateDialog(true)}
+            onClick={() => setWizardOpen(true)}
           >
-            Create First Book
+            Create First Book with AI
           </Button>
         </Paper>
       ) : (
@@ -780,6 +803,13 @@ export const FileManager: React.FC<FileManagerProps> = ({ onBookSelect, onBookUp
           onClearLayout={editingBookLayout.layout ? handleClearBookLayout : undefined}
         />
       )}
+
+      {/* Book Creation Wizard */}
+      <BookCreationWizard
+        open={wizardOpen}
+        onClose={handleWizardCancel}
+        onComplete={handleWizardComplete}
+      />
     </Box>
   );
 }; 
